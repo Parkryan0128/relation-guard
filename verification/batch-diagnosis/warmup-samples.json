@@ -1,0 +1,422 @@
+[
+  {
+    "utc": "2026-10-02T19:06:56.764713+00:00",
+    "interval_seconds": 0.003476833924651146,
+    "probe_seconds": 0.0013744169846177101,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 0\nrelation_guard_errors_total 0\nrelation_guard_allow_total 0\nrelation_guard_deny_total 0\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 0\nrelation_guard_http_seconds_sum 0\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 0\nrelation_guard_pool_wait_seconds_sum 0\nrelation_guard_data_sql_seconds_count 0\nrelation_guard_data_sql_seconds_sum 0\nrelation_guard_core_seconds_count 0\nrelation_guard_core_seconds_sum 0\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 0\nrelation_guard_facts_sum 0\nrelation_guard_work_units_count 0\nrelation_guard_work_units_sum 0\n"
+  },
+  {
+    "utc": "2026-10-02T19:06:57.766811+00:00",
+    "interval_seconds": 1.002221415983513,
+    "probe_seconds": 0.0009877500124275684,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 9\nrelation_guard_errors_total 0\nrelation_guard_allow_total 500\nrelation_guard_deny_total 400\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 9\nrelation_guard_http_seconds_sum 0.211071834\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 9\nrelation_guard_pool_wait_seconds_sum 0.00009479\nrelation_guard_data_sql_seconds_count 27\nrelation_guard_data_sql_seconds_sum 0.177447416\nrelation_guard_core_seconds_count 9\nrelation_guard_core_seconds_sum 0.003455751\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 9\nrelation_guard_facts_sum 2075\nrelation_guard_work_units_count 9\nrelation_guard_work_units_sum 5950\n"
+  },
+  {
+    "utc": "2026-10-02T19:06:58.769774+00:00",
+    "interval_seconds": 1.002237625187263,
+    "probe_seconds": 0.0017131250351667404,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 19\nrelation_guard_errors_total 0\nrelation_guard_allow_total 1000\nrelation_guard_deny_total 900\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 19\nrelation_guard_http_seconds_sum 0.385946292\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 19\nrelation_guard_pool_wait_seconds_sum 0.000185958\nrelation_guard_data_sql_seconds_count 57\nrelation_guard_data_sql_seconds_sum 0.320612421\nrelation_guard_core_seconds_count 19\nrelation_guard_core_seconds_sum 0.006949708\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 19\nrelation_guard_facts_sum 4330\nrelation_guard_work_units_count 19\nrelation_guard_work_units_sum 12500\n"
+  },
+  {
+    "utc": "2026-10-02T19:06:59.777984+00:00",
+    "interval_seconds": 1.0083806668408215,
+    "probe_seconds": 0.0015422501601278782,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 29\nrelation_guard_errors_total 0\nrelation_guard_allow_total 1500\nrelation_guard_deny_total 1400\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 29\nrelation_guard_http_seconds_sum 0.566640584\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 29\nrelation_guard_pool_wait_seconds_sum 0.000258084\nrelation_guard_data_sql_seconds_count 87\nrelation_guard_data_sql_seconds_sum 0.468836675\nrelation_guard_core_seconds_count 29\nrelation_guard_core_seconds_sum 0.010869586\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 29\nrelation_guard_facts_sum 6585\nrelation_guard_work_units_count 29\nrelation_guard_work_units_sum 19050\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:00.787719+00:00",
+    "interval_seconds": 1.009763624984771,
+    "probe_seconds": 0.0015089591033756733,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 39\nrelation_guard_errors_total 0\nrelation_guard_allow_total 2000\nrelation_guard_deny_total 1900\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 39\nrelation_guard_http_seconds_sum 0.806340666\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 39\nrelation_guard_pool_wait_seconds_sum 0.000344585\nrelation_guard_data_sql_seconds_count 117\nrelation_guard_data_sql_seconds_sum 0.669587258\nrelation_guard_core_seconds_count 39\nrelation_guard_core_seconds_sum 0.014885335\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 39\nrelation_guard_facts_sum 8840\nrelation_guard_work_units_count 39\nrelation_guard_work_units_sum 25600\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:01.794255+00:00",
+    "interval_seconds": 1.0062656251247972,
+    "probe_seconds": 0.0017917079385370016,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 49\nrelation_guard_errors_total 0\nrelation_guard_allow_total 2500\nrelation_guard_deny_total 2400\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 49\nrelation_guard_http_seconds_sum 1.004478667\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 49\nrelation_guard_pool_wait_seconds_sum 0.000461503\nrelation_guard_data_sql_seconds_count 147\nrelation_guard_data_sql_seconds_sum 0.831298714\nrelation_guard_core_seconds_count 49\nrelation_guard_core_seconds_sum 0.018905377\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 49\nrelation_guard_facts_sum 11095\nrelation_guard_work_units_count 49\nrelation_guard_work_units_sum 32150\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:02.797880+00:00",
+    "interval_seconds": 1.0038206249009818,
+    "probe_seconds": 0.001582792028784752,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 59\nrelation_guard_errors_total 0\nrelation_guard_allow_total 3000\nrelation_guard_deny_total 2900\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 59\nrelation_guard_http_seconds_sum 1.185376334\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 59\nrelation_guard_pool_wait_seconds_sum 0.000556794\nrelation_guard_data_sql_seconds_count 177\nrelation_guard_data_sql_seconds_sum 0.974102007\nrelation_guard_core_seconds_count 59\nrelation_guard_core_seconds_sum 0.02309596\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 59\nrelation_guard_facts_sum 13350\nrelation_guard_work_units_count 59\nrelation_guard_work_units_sum 38700\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:03.801716+00:00",
+    "interval_seconds": 1.0028494999278337,
+    "probe_seconds": 0.0025766249746084213,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 69\nrelation_guard_errors_total 0\nrelation_guard_allow_total 3500\nrelation_guard_deny_total 3400\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 69\nrelation_guard_http_seconds_sum 1.369205459\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 69\nrelation_guard_pool_wait_seconds_sum 0.000664337\nrelation_guard_data_sql_seconds_count 207\nrelation_guard_data_sql_seconds_sum 1.105062925\nrelation_guard_core_seconds_count 69\nrelation_guard_core_seconds_sum 0.027196377\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 69\nrelation_guard_facts_sum 15605\nrelation_guard_work_units_count 69\nrelation_guard_work_units_sum 45250\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:04.810725+00:00",
+    "interval_seconds": 1.0100749172270298,
+    "probe_seconds": 0.0014891668688505888,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 79\nrelation_guard_errors_total 0\nrelation_guard_allow_total 4000\nrelation_guard_deny_total 3900\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 79\nrelation_guard_http_seconds_sum 1.555148169\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 79\nrelation_guard_pool_wait_seconds_sum 0.000765963\nrelation_guard_data_sql_seconds_count 237\nrelation_guard_data_sql_seconds_sum 1.253391132\nrelation_guard_core_seconds_count 79\nrelation_guard_core_seconds_sum 0.031585999\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 79\nrelation_guard_facts_sum 17860\nrelation_guard_work_units_count 79\nrelation_guard_work_units_sum 51800\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:05.827856+00:00",
+    "interval_seconds": 1.015184957999736,
+    "probe_seconds": 0.003242249833419919,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 90\nrelation_guard_errors_total 0\nrelation_guard_allow_total 4500\nrelation_guard_deny_total 4400\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 1\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 1\nrelation_guard_http_seconds_count 89\nrelation_guard_http_seconds_sum 1.767168752\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 90\nrelation_guard_pool_wait_seconds_sum 0.000853673\nrelation_guard_data_sql_seconds_count 267\nrelation_guard_data_sql_seconds_sum 1.41648084\nrelation_guard_core_seconds_count 89\nrelation_guard_core_seconds_sum 0.034909916\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 89\nrelation_guard_facts_sum 20115\nrelation_guard_work_units_count 89\nrelation_guard_work_units_sum 58350\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:06.839535+00:00",
+    "interval_seconds": 1.0135538328904659,
+    "probe_seconds": 0.0015595830045640469,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 100\nrelation_guard_errors_total 0\nrelation_guard_allow_total 5000\nrelation_guard_deny_total 4900\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 1\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 1\nrelation_guard_http_seconds_count 99\nrelation_guard_http_seconds_sum 1.985946212\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 100\nrelation_guard_pool_wait_seconds_sum 0.001030174\nrelation_guard_data_sql_seconds_count 298\nrelation_guard_data_sql_seconds_sum 1.583419504\nrelation_guard_core_seconds_count 99\nrelation_guard_core_seconds_sum 0.038816626\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 99\nrelation_guard_facts_sum 22370\nrelation_guard_work_units_count 99\nrelation_guard_work_units_sum 64900\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:07.849474+00:00",
+    "interval_seconds": 1.0074911250267178,
+    "probe_seconds": 0.004006625153124332,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 110\nrelation_guard_errors_total 0\nrelation_guard_allow_total 5500\nrelation_guard_deny_total 5500\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 110\nrelation_guard_http_seconds_sum 2.206763005\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 110\nrelation_guard_pool_wait_seconds_sum 0.001148132\nrelation_guard_data_sql_seconds_count 330\nrelation_guard_data_sql_seconds_sum 1.758606508\nrelation_guard_core_seconds_count 110\nrelation_guard_core_seconds_sum 0.043614751\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 110\nrelation_guard_facts_sum 24805\nrelation_guard_work_units_count 110\nrelation_guard_work_units_sum 72050\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:08.860332+00:00",
+    "interval_seconds": 1.0137009168975055,
+    "probe_seconds": 0.001153833931311965,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 120\nrelation_guard_errors_total 0\nrelation_guard_allow_total 6000\nrelation_guard_deny_total 6000\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 120\nrelation_guard_http_seconds_sum 2.360180547\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 120\nrelation_guard_pool_wait_seconds_sum 0.001227258\nrelation_guard_data_sql_seconds_count 360\nrelation_guard_data_sql_seconds_sum 1.876382837\nrelation_guard_core_seconds_count 120\nrelation_guard_core_seconds_sum 0.048313502\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 120\nrelation_guard_facts_sum 27060\nrelation_guard_work_units_count 120\nrelation_guard_work_units_sum 78600\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:09.871193+00:00",
+    "interval_seconds": 1.0105565830599517,
+    "probe_seconds": 0.0014611249789595604,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 130\nrelation_guard_errors_total 0\nrelation_guard_allow_total 6500\nrelation_guard_deny_total 6500\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 130\nrelation_guard_http_seconds_sum 2.584281838\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 130\nrelation_guard_pool_wait_seconds_sum 0.001362469\nrelation_guard_data_sql_seconds_count 390\nrelation_guard_data_sql_seconds_sum 2.045728631\nrelation_guard_core_seconds_count 130\nrelation_guard_core_seconds_sum 0.052480294\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 130\nrelation_guard_facts_sum 29315\nrelation_guard_work_units_count 130\nrelation_guard_work_units_sum 85150\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:10.880846+00:00",
+    "interval_seconds": 1.009811958996579,
+    "probe_seconds": 0.001291999826207757,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 140\nrelation_guard_errors_total 0\nrelation_guard_allow_total 7000\nrelation_guard_deny_total 7000\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 140\nrelation_guard_http_seconds_sum 2.77278467\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 140\nrelation_guard_pool_wait_seconds_sum 0.00145672\nrelation_guard_data_sql_seconds_count 420\nrelation_guard_data_sql_seconds_sum 2.19518188\nrelation_guard_core_seconds_count 140\nrelation_guard_core_seconds_sum 0.056904126\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 140\nrelation_guard_facts_sum 31570\nrelation_guard_work_units_count 140\nrelation_guard_work_units_sum 91700\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:11.891996+00:00",
+    "interval_seconds": 1.0113725000992417,
+    "probe_seconds": 0.0010672500357031822,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 150\nrelation_guard_errors_total 0\nrelation_guard_allow_total 7500\nrelation_guard_deny_total 7500\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 150\nrelation_guard_http_seconds_sum 2.951602084\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 150\nrelation_guard_pool_wait_seconds_sum 0.001562509\nrelation_guard_data_sql_seconds_count 450\nrelation_guard_data_sql_seconds_sum 2.334380671\nrelation_guard_core_seconds_count 150\nrelation_guard_core_seconds_sum 0.061202878\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 150\nrelation_guard_facts_sum 33825\nrelation_guard_work_units_count 150\nrelation_guard_work_units_sum 98250\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:12.902678+00:00",
+    "interval_seconds": 1.0100095409434289,
+    "probe_seconds": 0.0017429578583687544,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 160\nrelation_guard_errors_total 0\nrelation_guard_allow_total 8000\nrelation_guard_deny_total 8000\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 160\nrelation_guard_http_seconds_sum 3.135340249\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 160\nrelation_guard_pool_wait_seconds_sum 0.001645927\nrelation_guard_data_sql_seconds_count 480\nrelation_guard_data_sql_seconds_sum 2.479401921\nrelation_guard_core_seconds_count 160\nrelation_guard_core_seconds_sum 0.065074921\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 160\nrelation_guard_facts_sum 36080\nrelation_guard_work_units_count 160\nrelation_guard_work_units_sum 104800\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:13.904299+00:00",
+    "interval_seconds": 1.0022079590708017,
+    "probe_seconds": 0.0011417081113904715,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 170\nrelation_guard_errors_total 0\nrelation_guard_allow_total 8500\nrelation_guard_deny_total 8500\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 170\nrelation_guard_http_seconds_sum 3.320604913\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 170\nrelation_guard_pool_wait_seconds_sum 0.001751386\nrelation_guard_data_sql_seconds_count 510\nrelation_guard_data_sql_seconds_sum 2.629835836\nrelation_guard_core_seconds_count 170\nrelation_guard_core_seconds_sum 0.069137089\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 170\nrelation_guard_facts_sum 38335\nrelation_guard_work_units_count 170\nrelation_guard_work_units_sum 111350\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:14.913241+00:00",
+    "interval_seconds": 1.0089749158360064,
+    "probe_seconds": 0.0011144999880343676,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 180\nrelation_guard_errors_total 0\nrelation_guard_allow_total 9000\nrelation_guard_deny_total 9000\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 180\nrelation_guard_http_seconds_sum 3.500212078\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 180\nrelation_guard_pool_wait_seconds_sum 0.001855092\nrelation_guard_data_sql_seconds_count 540\nrelation_guard_data_sql_seconds_sum 2.771184584\nrelation_guard_core_seconds_count 180\nrelation_guard_core_seconds_sum 0.073249547\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 180\nrelation_guard_facts_sum 40590\nrelation_guard_work_units_count 180\nrelation_guard_work_units_sum 117900\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:15.916853+00:00",
+    "interval_seconds": 1.0032382500357926,
+    "probe_seconds": 0.0014887917786836624,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 190\nrelation_guard_errors_total 0\nrelation_guard_allow_total 9500\nrelation_guard_deny_total 9500\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 190\nrelation_guard_http_seconds_sum 3.68730966\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 190\nrelation_guard_pool_wait_seconds_sum 0.001958965\nrelation_guard_data_sql_seconds_count 570\nrelation_guard_data_sql_seconds_sum 2.920797374\nrelation_guard_core_seconds_count 190\nrelation_guard_core_seconds_sum 0.077539712\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 190\nrelation_guard_facts_sum 42845\nrelation_guard_work_units_count 190\nrelation_guard_work_units_sum 124450\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:16.925909+00:00",
+    "interval_seconds": 1.0090766251087189,
+    "probe_seconds": 0.0014635410625487566,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 200\nrelation_guard_errors_total 0\nrelation_guard_allow_total 10000\nrelation_guard_deny_total 10000\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 200\nrelation_guard_http_seconds_sum 3.877708369\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 200\nrelation_guard_pool_wait_seconds_sum 0.002082547\nrelation_guard_data_sql_seconds_count 600\nrelation_guard_data_sql_seconds_sum 3.071732041\nrelation_guard_core_seconds_count 200\nrelation_guard_core_seconds_sum 0.081811793\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 200\nrelation_guard_facts_sum 45100\nrelation_guard_work_units_count 200\nrelation_guard_work_units_sum 131000\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:17.935234+00:00",
+    "interval_seconds": 1.0098257919307798,
+    "probe_seconds": 0.0009517078287899494,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 211\nrelation_guard_errors_total 0\nrelation_guard_allow_total 10500\nrelation_guard_deny_total 10500\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 1\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 1\nrelation_guard_http_seconds_count 210\nrelation_guard_http_seconds_sum 4.07438587\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 211\nrelation_guard_pool_wait_seconds_sum 0.002200589\nrelation_guard_data_sql_seconds_count 632\nrelation_guard_data_sql_seconds_sum 3.234392374\nrelation_guard_core_seconds_count 210\nrelation_guard_core_seconds_sum 0.085932417\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 210\nrelation_guard_facts_sum 47355\nrelation_guard_work_units_count 210\nrelation_guard_work_units_sum 137550\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:18.936152+00:00",
+    "interval_seconds": 1.0010528329294175,
+    "probe_seconds": 0.000814167084172368,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 221\nrelation_guard_errors_total 0\nrelation_guard_allow_total 11100\nrelation_guard_deny_total 11000\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 221\nrelation_guard_http_seconds_sum 4.294620162\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 221\nrelation_guard_pool_wait_seconds_sum 0.002288921\nrelation_guard_data_sql_seconds_count 663\nrelation_guard_data_sql_seconds_sum 3.404641418\nrelation_guard_core_seconds_count 221\nrelation_guard_core_seconds_sum 0.090590917\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 221\nrelation_guard_facts_sum 49881\nrelation_guard_work_units_count 221\nrelation_guard_work_units_sum 144810\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:19.946590+00:00",
+    "interval_seconds": 1.0075391670688987,
+    "probe_seconds": 0.0037310831248760223,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 231\nrelation_guard_errors_total 0\nrelation_guard_allow_total 11600\nrelation_guard_deny_total 11500\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 231\nrelation_guard_http_seconds_sum 4.47275233\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 231\nrelation_guard_pool_wait_seconds_sum 0.002336421\nrelation_guard_data_sql_seconds_count 693\nrelation_guard_data_sql_seconds_sum 3.55373746\nrelation_guard_core_seconds_count 231\nrelation_guard_core_seconds_sum 0.094185998\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 231\nrelation_guard_facts_sum 52136\nrelation_guard_work_units_count 231\nrelation_guard_work_units_sum 151360\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:20.950660+00:00",
+    "interval_seconds": 1.0069539579562843,
+    "probe_seconds": 0.0008234579581767321,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 241\nrelation_guard_errors_total 0\nrelation_guard_allow_total 12100\nrelation_guard_deny_total 12000\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 241\nrelation_guard_http_seconds_sum 4.675181122\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 241\nrelation_guard_pool_wait_seconds_sum 0.002440796\nrelation_guard_data_sql_seconds_count 723\nrelation_guard_data_sql_seconds_sum 3.715520544\nrelation_guard_core_seconds_count 241\nrelation_guard_core_seconds_sum 0.098479664\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 241\nrelation_guard_facts_sum 54391\nrelation_guard_work_units_count 241\nrelation_guard_work_units_sum 157910\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:21.958655+00:00",
+    "interval_seconds": 1.0062929999548942,
+    "probe_seconds": 0.0025282499846071005,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 251\nrelation_guard_errors_total 0\nrelation_guard_allow_total 12600\nrelation_guard_deny_total 12500\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 251\nrelation_guard_http_seconds_sum 4.85493604\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 251\nrelation_guard_pool_wait_seconds_sum 0.002519878\nrelation_guard_data_sql_seconds_count 753\nrelation_guard_data_sql_seconds_sum 3.860803628\nrelation_guard_core_seconds_count 251\nrelation_guard_core_seconds_sum 0.102144747\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 251\nrelation_guard_facts_sum 56646\nrelation_guard_work_units_count 251\nrelation_guard_work_units_sum 164460\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:22.969313+00:00",
+    "interval_seconds": 1.0115775840822607,
+    "probe_seconds": 0.001613958040252328,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 261\nrelation_guard_errors_total 0\nrelation_guard_allow_total 13100\nrelation_guard_deny_total 13000\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 261\nrelation_guard_http_seconds_sum 5.063647081\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 261\nrelation_guard_pool_wait_seconds_sum 0.002622378\nrelation_guard_data_sql_seconds_count 783\nrelation_guard_data_sql_seconds_sum 4.027219375\nrelation_guard_core_seconds_count 261\nrelation_guard_core_seconds_sum 0.106166703\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 261\nrelation_guard_facts_sum 58901\nrelation_guard_work_units_count 261\nrelation_guard_work_units_sum 171010\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:23.976139+00:00",
+    "interval_seconds": 1.0043918748851866,
+    "probe_seconds": 0.0040487919468432665,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 271\nrelation_guard_errors_total 0\nrelation_guard_allow_total 13600\nrelation_guard_deny_total 13500\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 271\nrelation_guard_http_seconds_sum 5.261669664\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 271\nrelation_guard_pool_wait_seconds_sum 0.002733879\nrelation_guard_data_sql_seconds_count 813\nrelation_guard_data_sql_seconds_sum 4.18247391\nrelation_guard_core_seconds_count 271\nrelation_guard_core_seconds_sum 0.111144951\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 271\nrelation_guard_facts_sum 61156\nrelation_guard_work_units_count 271\nrelation_guard_work_units_sum 177560\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:24.979155+00:00",
+    "interval_seconds": 1.00550316600129,
+    "probe_seconds": 0.0015414999797940254,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 281\nrelation_guard_errors_total 0\nrelation_guard_allow_total 14100\nrelation_guard_deny_total 14000\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 281\nrelation_guard_http_seconds_sum 5.424165039\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 281\nrelation_guard_pool_wait_seconds_sum 0.002805337\nrelation_guard_data_sql_seconds_count 843\nrelation_guard_data_sql_seconds_sum 4.313300534\nrelation_guard_core_seconds_count 281\nrelation_guard_core_seconds_sum 0.114861408\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 281\nrelation_guard_facts_sum 63411\nrelation_guard_work_units_count 281\nrelation_guard_work_units_sum 184110\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:25.982201+00:00",
+    "interval_seconds": 1.0035767091903836,
+    "probe_seconds": 0.0010117089841514826,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 291\nrelation_guard_errors_total 0\nrelation_guard_allow_total 14600\nrelation_guard_deny_total 14500\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 291\nrelation_guard_http_seconds_sum 5.629014538\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 291\nrelation_guard_pool_wait_seconds_sum 0.002953796\nrelation_guard_data_sql_seconds_count 873\nrelation_guard_data_sql_seconds_sum 4.474444532\nrelation_guard_core_seconds_count 291\nrelation_guard_core_seconds_sum 0.118981908\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 291\nrelation_guard_facts_sum 65666\nrelation_guard_work_units_count 291\nrelation_guard_work_units_sum 190660\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:26.983680+00:00",
+    "interval_seconds": 1.00132641592063,
+    "probe_seconds": 0.001160917105153203,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 301\nrelation_guard_errors_total 0\nrelation_guard_allow_total 15100\nrelation_guard_deny_total 15000\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 301\nrelation_guard_http_seconds_sum 5.833570914\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 301\nrelation_guard_pool_wait_seconds_sum 0.003066881\nrelation_guard_data_sql_seconds_count 903\nrelation_guard_data_sql_seconds_sum 4.632824366\nrelation_guard_core_seconds_count 301\nrelation_guard_core_seconds_sum 0.123185577\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 301\nrelation_guard_facts_sum 67921\nrelation_guard_work_units_count 301\nrelation_guard_work_units_sum 197210\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:27.994701+00:00",
+    "interval_seconds": 1.0108442089986056,
+    "probe_seconds": 0.0013336669653654099,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 311\nrelation_guard_errors_total 0\nrelation_guard_allow_total 15600\nrelation_guard_deny_total 15500\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 311\nrelation_guard_http_seconds_sum 6.029451164\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 311\nrelation_guard_pool_wait_seconds_sum 0.003169336\nrelation_guard_data_sql_seconds_count 933\nrelation_guard_data_sql_seconds_sum 4.79095299\nrelation_guard_core_seconds_count 311\nrelation_guard_core_seconds_sum 0.127168911\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 311\nrelation_guard_facts_sum 70176\nrelation_guard_work_units_count 311\nrelation_guard_work_units_sum 203760\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:29.005874+00:00",
+    "interval_seconds": 1.0114316660910845,
+    "probe_seconds": 0.0010680409613996744,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 321\nrelation_guard_errors_total 0\nrelation_guard_allow_total 16100\nrelation_guard_deny_total 16000\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 321\nrelation_guard_http_seconds_sum 6.222888246\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 321\nrelation_guard_pool_wait_seconds_sum 0.003238046\nrelation_guard_data_sql_seconds_count 963\nrelation_guard_data_sql_seconds_sum 4.949160699\nrelation_guard_core_seconds_count 321\nrelation_guard_core_seconds_sum 0.130181119\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 321\nrelation_guard_facts_sum 72431\nrelation_guard_work_units_count 321\nrelation_guard_work_units_sum 210310\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:30.019705+00:00",
+    "interval_seconds": 1.011416041990742,
+    "probe_seconds": 0.0034952089190483093,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 331\nrelation_guard_errors_total 0\nrelation_guard_allow_total 16600\nrelation_guard_deny_total 16500\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 331\nrelation_guard_http_seconds_sum 6.388819164\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 331\nrelation_guard_pool_wait_seconds_sum 0.003311797\nrelation_guard_data_sql_seconds_count 993\nrelation_guard_data_sql_seconds_sum 5.074207117\nrelation_guard_core_seconds_count 331\nrelation_guard_core_seconds_sum 0.133941579\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 331\nrelation_guard_facts_sum 74686\nrelation_guard_work_units_count 331\nrelation_guard_work_units_sum 216860\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:31.027835+00:00",
+    "interval_seconds": 1.0105494169984013,
+    "probe_seconds": 0.0010579170193523169,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 342\nrelation_guard_errors_total 0\nrelation_guard_allow_total 17100\nrelation_guard_deny_total 17000\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 1\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 1\nrelation_guard_http_seconds_count 341\nrelation_guard_http_seconds_sum 6.589326622\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 342\nrelation_guard_pool_wait_seconds_sum 0.00338713\nrelation_guard_data_sql_seconds_count 1023\nrelation_guard_data_sql_seconds_sum 5.236401281\nrelation_guard_core_seconds_count 341\nrelation_guard_core_seconds_sum 0.137851704\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 341\nrelation_guard_facts_sum 76941\nrelation_guard_work_units_count 341\nrelation_guard_work_units_sum 223410\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:32.036477+00:00",
+    "interval_seconds": 1.0088929159101099,
+    "probe_seconds": 0.0008067500311881304,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 352\nrelation_guard_errors_total 0\nrelation_guard_allow_total 17600\nrelation_guard_deny_total 17600\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 1\nrelation_guard_http_seconds_count 352\nrelation_guard_http_seconds_sum 6.80855208\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 352\nrelation_guard_pool_wait_seconds_sum 0.003487132\nrelation_guard_data_sql_seconds_count 1056\nrelation_guard_data_sql_seconds_sum 5.411399033\nrelation_guard_core_seconds_count 352\nrelation_guard_core_seconds_sum 0.143229038\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 352\nrelation_guard_facts_sum 79376\nrelation_guard_work_units_count 352\nrelation_guard_work_units_sum 230560\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:33.039762+00:00",
+    "interval_seconds": 1.002761916955933,
+    "probe_seconds": 0.0013286659959703684,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 362\nrelation_guard_errors_total 0\nrelation_guard_allow_total 18100\nrelation_guard_deny_total 18000\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 1\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 1\nrelation_guard_http_seconds_count 361\nrelation_guard_http_seconds_sum 6.999766621\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 362\nrelation_guard_pool_wait_seconds_sum 0.003611551\nrelation_guard_data_sql_seconds_count 1084\nrelation_guard_data_sql_seconds_sum 5.564217865\nrelation_guard_core_seconds_count 361\nrelation_guard_core_seconds_sum 0.14748733\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 361\nrelation_guard_facts_sum 81451\nrelation_guard_work_units_count 361\nrelation_guard_work_units_sum 236510\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:34.045230+00:00",
+    "interval_seconds": 1.0050466670654714,
+    "probe_seconds": 0.001756165875121951,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 372\nrelation_guard_errors_total 0\nrelation_guard_allow_total 18600\nrelation_guard_deny_total 18500\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 1\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 1\nrelation_guard_http_seconds_count 371\nrelation_guard_http_seconds_sum 7.208571579\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 372\nrelation_guard_pool_wait_seconds_sum 0.00372776\nrelation_guard_data_sql_seconds_count 1116\nrelation_guard_data_sql_seconds_sum 5.746030204\nrelation_guard_core_seconds_count 372\nrelation_guard_core_seconds_sum 0.152631495\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 372\nrelation_guard_facts_sum 83886\nrelation_guard_work_units_count 372\nrelation_guard_work_units_sum 243660\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:35.058264+00:00",
+    "interval_seconds": 1.010071916040033,
+    "probe_seconds": 0.004708166932687163,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 382\nrelation_guard_errors_total 0\nrelation_guard_allow_total 19100\nrelation_guard_deny_total 19100\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 382\nrelation_guard_http_seconds_sum 7.40863608\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 382\nrelation_guard_pool_wait_seconds_sum 0.003836011\nrelation_guard_data_sql_seconds_count 1146\nrelation_guard_data_sql_seconds_sum 5.881079491\nrelation_guard_core_seconds_count 382\nrelation_guard_core_seconds_sum 0.157835454\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 382\nrelation_guard_facts_sum 86141\nrelation_guard_work_units_count 382\nrelation_guard_work_units_sum 250210\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:36.060805+00:00",
+    "interval_seconds": 1.0055207919795066,
+    "probe_seconds": 0.0017379159107804298,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 392\nrelation_guard_errors_total 0\nrelation_guard_allow_total 19600\nrelation_guard_deny_total 19600\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 392\nrelation_guard_http_seconds_sum 7.631958873\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 392\nrelation_guard_pool_wait_seconds_sum 0.003942762\nrelation_guard_data_sql_seconds_count 1176\nrelation_guard_data_sql_seconds_sum 6.058656368\nrelation_guard_core_seconds_count 392\nrelation_guard_core_seconds_sum 0.163955453\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 392\nrelation_guard_facts_sum 88396\nrelation_guard_work_units_count 392\nrelation_guard_work_units_sum 256760\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:37.071296+00:00",
+    "interval_seconds": 1.010925417067483,
+    "probe_seconds": 0.00128837488591671,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 402\nrelation_guard_errors_total 0\nrelation_guard_allow_total 20100\nrelation_guard_deny_total 20100\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 402\nrelation_guard_http_seconds_sum 7.830028247\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 402\nrelation_guard_pool_wait_seconds_sum 0.004067596\nrelation_guard_data_sql_seconds_count 1206\nrelation_guard_data_sql_seconds_sum 6.215416032\nrelation_guard_core_seconds_count 402\nrelation_guard_core_seconds_sum 0.168960078\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 402\nrelation_guard_facts_sum 90651\nrelation_guard_work_units_count 402\nrelation_guard_work_units_sum 263310\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:38.077805+00:00",
+    "interval_seconds": 1.0068574999459088,
+    "probe_seconds": 0.0009312499314546585,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 412\nrelation_guard_errors_total 0\nrelation_guard_allow_total 20600\nrelation_guard_deny_total 20600\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 412\nrelation_guard_http_seconds_sum 8.043584872\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 412\nrelation_guard_pool_wait_seconds_sum 0.004195763\nrelation_guard_data_sql_seconds_count 1236\nrelation_guard_data_sql_seconds_sum 6.385967655\nrelation_guard_core_seconds_count 412\nrelation_guard_core_seconds_sum 0.173529413\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 412\nrelation_guard_facts_sum 92906\nrelation_guard_work_units_count 412\nrelation_guard_work_units_sum 269860\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:39.089885+00:00",
+    "interval_seconds": 1.0109912499319762,
+    "probe_seconds": 0.002038792008534074,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 422\nrelation_guard_errors_total 0\nrelation_guard_allow_total 21100\nrelation_guard_deny_total 21100\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 422\nrelation_guard_http_seconds_sum 8.258841207\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 422\nrelation_guard_pool_wait_seconds_sum 0.004301555\nrelation_guard_data_sql_seconds_count 1266\nrelation_guard_data_sql_seconds_sum 6.556874403\nrelation_guard_core_seconds_count 422\nrelation_guard_core_seconds_sum 0.178674956\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 422\nrelation_guard_facts_sum 95161\nrelation_guard_work_units_count 422\nrelation_guard_work_units_sum 276410\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:40.091320+00:00",
+    "interval_seconds": 1.0024144579656422,
+    "probe_seconds": 0.001036834204569459,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 432\nrelation_guard_errors_total 0\nrelation_guard_allow_total 21600\nrelation_guard_deny_total 21600\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 432\nrelation_guard_http_seconds_sum 8.438661246\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 432\nrelation_guard_pool_wait_seconds_sum 0.004406597\nrelation_guard_data_sql_seconds_count 1296\nrelation_guard_data_sql_seconds_sum 6.69788519\nrelation_guard_core_seconds_count 432\nrelation_guard_core_seconds_sum 0.18293604\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 432\nrelation_guard_facts_sum 97416\nrelation_guard_work_units_count 432\nrelation_guard_work_units_sum 282960\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:41.102691+00:00",
+    "interval_seconds": 1.0112957919482142,
+    "probe_seconds": 0.001110290875658393,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 442\nrelation_guard_errors_total 0\nrelation_guard_allow_total 22100\nrelation_guard_deny_total 22100\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 442\nrelation_guard_http_seconds_sum 8.656182163\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 442\nrelation_guard_pool_wait_seconds_sum 0.004519806\nrelation_guard_data_sql_seconds_count 1326\nrelation_guard_data_sql_seconds_sum 6.870777232\nrelation_guard_core_seconds_count 442\nrelation_guard_core_seconds_sum 0.188423332\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 442\nrelation_guard_facts_sum 99671\nrelation_guard_work_units_count 442\nrelation_guard_work_units_sum 289510\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:42.112186+00:00",
+    "interval_seconds": 1.009411416016519,
+    "probe_seconds": 0.0011926249135285616,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 452\nrelation_guard_errors_total 0\nrelation_guard_allow_total 22600\nrelation_guard_deny_total 22600\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 452\nrelation_guard_http_seconds_sum 8.873963414\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 452\nrelation_guard_pool_wait_seconds_sum 0.00462918\nrelation_guard_data_sql_seconds_count 1356\nrelation_guard_data_sql_seconds_sum 7.044908356\nrelation_guard_core_seconds_count 452\nrelation_guard_core_seconds_sum 0.193507835\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 452\nrelation_guard_facts_sum 101926\nrelation_guard_work_units_count 452\nrelation_guard_work_units_sum 296060\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:43.120701+00:00",
+    "interval_seconds": 1.0071614591870457,
+    "probe_seconds": 0.0025451660621911287,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 462\nrelation_guard_errors_total 0\nrelation_guard_allow_total 23100\nrelation_guard_deny_total 23100\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 462\nrelation_guard_http_seconds_sum 9.078991539\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 462\nrelation_guard_pool_wait_seconds_sum 0.004733432\nrelation_guard_data_sql_seconds_count 1386\nrelation_guard_data_sql_seconds_sum 7.207488646\nrelation_guard_core_seconds_count 462\nrelation_guard_core_seconds_sum 0.198606043\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 462\nrelation_guard_facts_sum 104181\nrelation_guard_work_units_count 462\nrelation_guard_work_units_sum 302610\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:44.127936+00:00",
+    "interval_seconds": 1.0088315408211201,
+    "probe_seconds": 0.0009422500152140856,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 473\nrelation_guard_errors_total 0\nrelation_guard_allow_total 23600\nrelation_guard_deny_total 23600\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 1\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 1\nrelation_guard_http_seconds_count 472\nrelation_guard_http_seconds_sum 9.297029166\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 473\nrelation_guard_pool_wait_seconds_sum 0.004881265\nrelation_guard_data_sql_seconds_count 1416\nrelation_guard_data_sql_seconds_sum 7.382321188\nrelation_guard_core_seconds_count 472\nrelation_guard_core_seconds_sum 0.203780378\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 472\nrelation_guard_facts_sum 106436\nrelation_guard_work_units_count 472\nrelation_guard_work_units_sum 309160\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:45.129014+00:00",
+    "interval_seconds": 1.001208791974932,
+    "probe_seconds": 0.0008060841355472803,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 483\nrelation_guard_errors_total 0\nrelation_guard_allow_total 24100\nrelation_guard_deny_total 24100\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 1\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 1\nrelation_guard_http_seconds_count 482\nrelation_guard_http_seconds_sum 9.500121873\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 483\nrelation_guard_pool_wait_seconds_sum 0.004993391\nrelation_guard_data_sql_seconds_count 1447\nrelation_guard_data_sql_seconds_sum 7.54590848\nrelation_guard_core_seconds_count 482\nrelation_guard_core_seconds_sum 0.208614459\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 482\nrelation_guard_facts_sum 108691\nrelation_guard_work_units_count 482\nrelation_guard_work_units_sum 315710\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:46.131772+00:00",
+    "interval_seconds": 1.0019842500332743,
+    "probe_seconds": 0.001580874901264906,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 493\nrelation_guard_errors_total 0\nrelation_guard_allow_total 24600\nrelation_guard_deny_total 24600\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 1\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 1\nrelation_guard_http_seconds_count 492\nrelation_guard_http_seconds_sum 9.701291915\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 493\nrelation_guard_pool_wait_seconds_sum 0.005106225\nrelation_guard_data_sql_seconds_count 1477\nrelation_guard_data_sql_seconds_sum 7.694905141\nrelation_guard_core_seconds_count 492\nrelation_guard_core_seconds_sum 0.213758001\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 492\nrelation_guard_facts_sum 110946\nrelation_guard_work_units_count 492\nrelation_guard_work_units_sum 322260\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:47.133633+00:00",
+    "interval_seconds": 1.0024743750691414,
+    "probe_seconds": 0.0009603751823306084,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 503\nrelation_guard_errors_total 0\nrelation_guard_allow_total 25100\nrelation_guard_deny_total 25100\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 1\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 1\nrelation_guard_http_seconds_count 502\nrelation_guard_http_seconds_sum 9.916481997\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 503\nrelation_guard_pool_wait_seconds_sum 0.005192099\nrelation_guard_data_sql_seconds_count 1507\nrelation_guard_data_sql_seconds_sum 7.868255224\nrelation_guard_core_seconds_count 502\nrelation_guard_core_seconds_sum 0.219247834\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 502\nrelation_guard_facts_sum 113201\nrelation_guard_work_units_count 502\nrelation_guard_work_units_sum 328810\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:48.134930+00:00",
+    "interval_seconds": 1.0012828330509365,
+    "probe_seconds": 0.0009717920329421759,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 513\nrelation_guard_errors_total 0\nrelation_guard_allow_total 25700\nrelation_guard_deny_total 25600\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 1\nrelation_guard_http_seconds_count 513\nrelation_guard_http_seconds_sum 10.134365498\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 513\nrelation_guard_pool_wait_seconds_sum 0.005295765\nrelation_guard_data_sql_seconds_count 1539\nrelation_guard_data_sql_seconds_sum 8.035847513\nrelation_guard_core_seconds_count 513\nrelation_guard_core_seconds_sum 0.224036127\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 513\nrelation_guard_facts_sum 115727\nrelation_guard_work_units_count 513\nrelation_guard_work_units_sum 336070\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:49.140029+00:00",
+    "interval_seconds": 1.0013372919056565,
+    "probe_seconds": 0.004769459133967757,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 523\nrelation_guard_errors_total 0\nrelation_guard_allow_total 26100\nrelation_guard_deny_total 26100\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 1\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 1\nrelation_guard_http_seconds_count 522\nrelation_guard_http_seconds_sum 10.309585793\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 523\nrelation_guard_pool_wait_seconds_sum 0.005403973\nrelation_guard_data_sql_seconds_count 1567\nrelation_guard_data_sql_seconds_sum 8.172973428\nrelation_guard_core_seconds_count 522\nrelation_guard_core_seconds_sum 0.228087585\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 522\nrelation_guard_facts_sum 117711\nrelation_guard_work_units_count 522\nrelation_guard_work_units_sum 341910\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:50.143637+00:00",
+    "interval_seconds": 1.0073973331600428,
+    "probe_seconds": 0.0009392909705638885,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 533\nrelation_guard_errors_total 0\nrelation_guard_allow_total 26600\nrelation_guard_deny_total 26600\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 1\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 1\nrelation_guard_http_seconds_count 532\nrelation_guard_http_seconds_sum 10.516579335\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 533\nrelation_guard_pool_wait_seconds_sum 0.005508763\nrelation_guard_data_sql_seconds_count 1597\nrelation_guard_data_sql_seconds_sum 8.3425753\nrelation_guard_core_seconds_count 532\nrelation_guard_core_seconds_sum 0.232264419\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 532\nrelation_guard_facts_sum 119966\nrelation_guard_work_units_count 532\nrelation_guard_work_units_sum 348460\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:51.146924+00:00",
+    "interval_seconds": 1.0028067498933524,
+    "probe_seconds": 0.0014292499981820583,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 543\nrelation_guard_errors_total 0\nrelation_guard_allow_total 27200\nrelation_guard_deny_total 27100\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 543\nrelation_guard_http_seconds_sum 10.702153253\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 543\nrelation_guard_pool_wait_seconds_sum 0.005579721\nrelation_guard_data_sql_seconds_count 1629\nrelation_guard_data_sql_seconds_sum 8.486141343\nrelation_guard_core_seconds_count 543\nrelation_guard_core_seconds_sum 0.236245129\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 543\nrelation_guard_facts_sum 122492\nrelation_guard_work_units_count 543\nrelation_guard_work_units_sum 355720\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:52.150118+00:00",
+    "interval_seconds": 1.0034279169049114,
+    "probe_seconds": 0.0011782499495893717,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 553\nrelation_guard_errors_total 0\nrelation_guard_allow_total 27700\nrelation_guard_deny_total 27600\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 553\nrelation_guard_http_seconds_sum 10.880683964\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 553\nrelation_guard_pool_wait_seconds_sum 0.005680804\nrelation_guard_data_sql_seconds_count 1659\nrelation_guard_data_sql_seconds_sum 8.629090426\nrelation_guard_core_seconds_count 553\nrelation_guard_core_seconds_sum 0.240370212\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 553\nrelation_guard_facts_sum 124747\nrelation_guard_work_units_count 553\nrelation_guard_work_units_sum 362270\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:53.151963+00:00",
+    "interval_seconds": 1.0020626671612263,
+    "probe_seconds": 0.0009599581826478243,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 563\nrelation_guard_errors_total 0\nrelation_guard_allow_total 28200\nrelation_guard_deny_total 28100\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 563\nrelation_guard_http_seconds_sum 11.073221174\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 563\nrelation_guard_pool_wait_seconds_sum 0.005805221\nrelation_guard_data_sql_seconds_count 1689\nrelation_guard_data_sql_seconds_sum 8.782417345\nrelation_guard_core_seconds_count 563\nrelation_guard_core_seconds_sum 0.244435878\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 563\nrelation_guard_facts_sum 127002\nrelation_guard_work_units_count 563\nrelation_guard_work_units_sum 368820\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:54.162350+00:00",
+    "interval_seconds": 1.0098994579166174,
+    "probe_seconds": 0.0014545000158250332,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 573\nrelation_guard_errors_total 0\nrelation_guard_allow_total 28700\nrelation_guard_deny_total 28600\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 573\nrelation_guard_http_seconds_sum 11.278336965\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 573\nrelation_guard_pool_wait_seconds_sum 0.005932304\nrelation_guard_data_sql_seconds_count 1719\nrelation_guard_data_sql_seconds_sum 8.94795647\nrelation_guard_core_seconds_count 573\nrelation_guard_core_seconds_sum 0.248581296\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 573\nrelation_guard_facts_sum 129257\nrelation_guard_work_units_count 573\nrelation_guard_work_units_sum 375370\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:55.170033+00:00",
+    "interval_seconds": 1.0074632500763983,
+    "probe_seconds": 0.0016681670676916838,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 583\nrelation_guard_errors_total 0\nrelation_guard_allow_total 29200\nrelation_guard_deny_total 29100\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 583\nrelation_guard_http_seconds_sum 11.4452353\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 583\nrelation_guard_pool_wait_seconds_sum 0.005993429\nrelation_guard_data_sql_seconds_count 1749\nrelation_guard_data_sql_seconds_sum 9.08404801\nrelation_guard_core_seconds_count 583\nrelation_guard_core_seconds_sum 0.251754587\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 583\nrelation_guard_facts_sum 131512\nrelation_guard_work_units_count 583\nrelation_guard_work_units_sum 381920\n"
+  },
+  {
+    "utc": "2026-10-02T19:07:56.172849+00:00",
+    "interval_seconds": 1.0036803330294788,
+    "probe_seconds": 0.0007910840213298798,
+    "status": 200,
+    "metrics": "relation_guard_requests_total 593\nrelation_guard_errors_total 0\nrelation_guard_allow_total 29700\nrelation_guard_deny_total 29600\nrelation_guard_conflicts_total 0\nrelation_guard_inflight 0\nrelation_guard_pool_size 2\nrelation_guard_pool_idle 2\nrelation_guard_http_seconds_count 593\nrelation_guard_http_seconds_sum 11.622473257\nrelation_guard_pool_acquire_timeouts_total 0\nrelation_guard_pool_acquire_errors_total 0\nrelation_guard_transaction_begin_errors_total 0\nrelation_guard_pool_wait_seconds_count 593\nrelation_guard_pool_wait_seconds_sum 0.006090431\nrelation_guard_data_sql_seconds_count 1779\nrelation_guard_data_sql_seconds_sum 9.222043263\nrelation_guard_core_seconds_count 593\nrelation_guard_core_seconds_sum 0.256098005\nrelation_guard_write_lock_seconds_count 0\nrelation_guard_write_lock_seconds_sum 0\nrelation_guard_facts_count 593\nrelation_guard_facts_sum 133767\nrelation_guard_work_units_count 593\nrelation_guard_work_units_sum 388470\n"
+  }
+]

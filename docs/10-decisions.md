@@ -55,3 +55,14 @@ primary REPEATABLE READ snapshot. replica/cache/token mode를 제공하지 않�
 pool checkout의 선행 ping도 생략한다. 직후 BEGIN이 실제 연결 생존을 검증하며, stale socket은 명시적 DB 오류가 되고 allow/deny로 바뀌지 않는다. DB 연결 차단/복구, lock/statement timeout, snapshot, rollback, COMMIT ack 유실 테스트를 재실행한다. 데이터 SELECT는 여전히 최대 3개이며 일관성 모델, pool 10, acquire 250ms, 요청 2초 한도는 변경하지 않는다.
 
 목표 수치나 실패율 분모는 낮추지 않는다. 같은 workload를 다시 측정하고 실패 회차도 보존한다. 로컬 결과를 Linux 제한 환경 보장으로 표현하지 않는다.
+
+
+## ADR-013 — 서비스 연결 최소 수와 실패 단계 관측 (2026-10-02)
+
+기존 batch 실패 여섯 건은 첫 data SELECT 전에 발생했고, 같은 5초 구간에서 pool 획득 시간 합계가 약 1.66초 증가했다. 하지만 응답 error code·pool 상태가 저장되지 않아 당시의 외부 지연 원인을 확정할 수 없다. 해당 기록은 실패로 유지한다.
+
+같은 바이너리에 대해 PostgreSQL 응답 전달을 750ms 지연시키는 격리 실험을 했다. 초기 연결 2개에서는 초당 10개 요청 중 4개가 약 250ms 뒤 OVERLOADED로 실패했고 acquire timeout 카운터가 4 증가했다. 연결 10개를 미리 확보하면 동일한 12개 요청이 모두 성공했다. 이는 가능한 실패 경로의 통제된 재현이며, 원래 사건에서 네트워크 지연이 발생했다는 증명은 아니다.
+
+서비스용 풀은 최소 10·최대 10을 유지하도록 변경한다. 관리자 CLI의 최소 연결 수는 0을 유지한다. API deadline·SQL timeout·획득 timeout·데이터 모델·최대 동시성·성능 합격 기준은 변경하지 않는다. 추가 DB 연결 비용을 명시하고, pool timeout/기타 획득 오류/BEGIN 오류 카운터 및 오류 시점의 pool 상태를 기록한다.
+
+보강 후 통제된 지연 테스트와 기능 회귀·동일 batch 부하를 검증한다. 후속 정상 재측정으로 과거 실패 회차를 덮어쓰거나 전체 release gate를 소급 통과시키지 않는다.

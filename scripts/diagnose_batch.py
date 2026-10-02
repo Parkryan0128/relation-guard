@@ -5,7 +5,7 @@ from native_lab import Lab, ROOT
 from load_dataset import seed
 
 private=pathlib.Path(os.environ['RG_DIAGNOSTIC_DIR']);private.mkdir(exist_ok=True);private.chmod(0o700)
-output=ROOT/'verification/batch-diagnosis';output.mkdir(exist_ok=True)
+output=pathlib.Path(os.environ.get('RG_DIAGNOSTIC_OUTPUT',str(ROOT/'verification/batch-diagnosis')));output.mkdir(exist_ok=True)
 lab=Lab(private/'lab');runs=[]
 report={'source_commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
         'source_dirty':bool(subprocess.check_output(['git','diff','--name-only','HEAD','--','crates'],cwd=ROOT)),

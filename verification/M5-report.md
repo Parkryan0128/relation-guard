@@ -1,6 +1,6 @@
 # M5-native — numerical target missed
 
-Production source: `afc0fe192681eba11e6867f6bf85413baa4598fb`. Release binary SHA-256: `eb8f6a85472ed307cc030ab4c341c2fd767fdec89fbefbf1e8db47070bf8ca39`. Production source was clean when the run started. Later commits change test tooling, CI and documentation only. [Full manifest](load/manifest.json), [native testing plan](../docs/14-native-verification.md).
+Production source: `afc0fe192681eba11e6867f6bf85413baa4598fb`. Release binary SHA-256: `eb8f6a85472ed307cc030ab4c341c2fd767fdec89fbefbf1e8db47070bf8ca39`. Production source was clean when the run started. Subsequent diagnostic changes add error logging, pool metrics and a service minimum of ten connections; the benchmark above remains evidence for its recorded source/binary, not an unmeasured newer binary. [Full manifest](load/manifest.json), [native testing plan](../docs/14-native-verification.md).
 
 M5-01 functional and native recovery tests passed in a [clean Linux checkout](https://github.com/Parkryan0128/relation-guard/actions/runs/37041474310). M5-02 native S targets were missed in one or more runs; see the manifest. M5-03 completed the million-relationship, mixed, stress and recovery profiles. M5-04 dependency/secret review is recorded below. This does not certify the original container deployment or Linux resource-limited release gates.
 

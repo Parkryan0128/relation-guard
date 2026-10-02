@@ -1,0 +1,151 @@
+{
+  "purpose": "Controlled DB transport-delay mechanism experiment; does not establish what caused the original network/pool stall.",
+  "runs": [
+    {
+      "prewarmed": false,
+      "initial_pool_size": 2,
+      "initial_pool_idle": 2,
+      "response_delay_ms": 750,
+      "offered_requests_per_second": 10,
+      "responses": [
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 771.2368750944734
+        },
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 661.2189998850226
+        },
+        {
+          "status": 503,
+          "code": "OVERLOADED",
+          "milliseconds": 255.6775000412017
+        },
+        {
+          "status": 503,
+          "code": "OVERLOADED",
+          "milliseconds": 254.8860830720514
+        },
+        {
+          "status": 503,
+          "code": "OVERLOADED",
+          "milliseconds": 254.65566688217223
+        },
+        {
+          "status": 503,
+          "code": "OVERLOADED",
+          "milliseconds": 253.85574996471405
+        },
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 169.75429095327854
+        },
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 64.86437493003905
+        },
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 6.702125072479248
+        },
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 8.652165997773409
+        },
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 8.642667206004262
+        },
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 7.461874978616834
+        }
+      ],
+      "acquire_timeouts": 4,
+      "begin_errors": 0,
+      "recovered": true
+    },
+    {
+      "prewarmed": true,
+      "initial_pool_size": 10,
+      "initial_pool_idle": 10,
+      "response_delay_ms": 750,
+      "offered_requests_per_second": 10,
+      "responses": [
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 762.7934999763966
+        },
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 660.1347920950502
+        },
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 552.6111251674592
+        },
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 455.3006668575108
+        },
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 356.9169589318335
+        },
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 258.8088749907911
+        },
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 152.33016689307988
+        },
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 59.18083316646516
+        },
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 3.862458048388362
+        },
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 4.972249967977405
+        },
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 6.789874983951449
+        },
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 7.947332924231887
+        }
+      ],
+      "acquire_timeouts": 0,
+      "begin_errors": 0,
+      "recovered": true
+    }
+  ],
+  "source_commit": "cfde18b0ac4f1e32c94bf846d7ff72f25b5d104b",
+  "binary_sha256": "d4b0d54efab2d1cb62a62e7ea2d0390c96af9b318db2e7f91f3e2a60f4a4cad3"
+}

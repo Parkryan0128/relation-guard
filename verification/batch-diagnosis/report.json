@@ -1,0 +1,86 @@
+{
+  "source_commit": "cfde18b0ac4f1e32c94bf846d7ff72f25b5d104b",
+  "source_dirty": false,
+  "binary_sha256": "d4b0d54efab2d1cb62a62e7ea2d0390c96af9b318db2e7f91f3e2a60f4a4cad3",
+  "purpose": "Diagnostic replay, not replacement of the failed original acceptance run",
+  "runs": [
+    {
+      "name": "warmup",
+      "exit_code": 0,
+      "correct": 601,
+      "unexpected": 0,
+      "dropped": 0,
+      "latency": {
+        "avg": 20.17875041597338,
+        "min": 7.387,
+        "med": 20.437,
+        "max": 50.404,
+        "p(50)": 20.437,
+        "p(95)": 26.75,
+        "p(99)": 33.183
+      }
+    },
+    {
+      "name": "batch-1",
+      "exit_code": 0,
+      "correct": 3000,
+      "unexpected": 0,
+      "dropped": 0,
+      "latency": {
+        "p(50)": 21.622999999999998,
+        "p(95)": 27.1142,
+        "p(99)": 38.03749999999999,
+        "avg": 21.239516000000016,
+        "min": 7.188,
+        "med": 21.622999999999998,
+        "max": 222.773
+      }
+    },
+    {
+      "name": "batch-2",
+      "exit_code": 0,
+      "correct": 3001,
+      "unexpected": 0,
+      "dropped": 0,
+      "latency": {
+        "avg": 21.98368277240915,
+        "min": 7.328,
+        "med": 22.141,
+        "max": 256.484,
+        "p(50)": 22.141,
+        "p(95)": 27.785,
+        "p(99)": 43.645
+      }
+    },
+    {
+      "name": "batch-3",
+      "exit_code": 0,
+      "correct": 3001,
+      "unexpected": 0,
+      "dropped": 0,
+      "latency": {
+        "p(50)": 21.908,
+        "p(95)": 27.937,
+        "p(99)": 37.566,
+        "avg": 21.842747750749773,
+        "min": 6.899,
+        "med": 21.908,
+        "max": 332.019
+      }
+    }
+  ],
+  "dataset": {
+    "tenant": "3f9a3f7a-94a3-442a-8617-fd8db94a9c06",
+    "users": 1000,
+    "teams": 100,
+    "folders": 1000,
+    "documents": 10000,
+    "relationships": 50000,
+    "max_depth": 8
+  },
+  "resource_usage": {
+    "user_cpu_seconds": 24.781857,
+    "system_cpu_seconds": 4.065041,
+    "peak_rss_bytes": 10420224
+  }
+}

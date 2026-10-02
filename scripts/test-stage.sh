@@ -25,6 +25,7 @@ cargo test -p authz-server --locked
 [[ "$stage" == M3 ]] && exit 0
 : "${PG_BIN:?PostgreSQL client bin directory required for native recovery tests}"
 EXISTING_TEST_DATABASE_URL="${EXISTING_TEST_DATABASE_URL:-$TEST_DATABASE_URL}" "$python_cmd" scripts/test_native_recovery.py
+EXISTING_TEST_DATABASE_URL="${EXISTING_TEST_DATABASE_URL:-$TEST_DATABASE_URL}" "$python_cmd" scripts/test_pool_transport_stall.py
 [[ "$stage" == M4 ]] && exit 0
 : "${AUDIT_JSON:?Fresh cargo-audit JSON report required; see docs/14-native-verification.md}"
 "$python_cmd" scripts/check_security.py

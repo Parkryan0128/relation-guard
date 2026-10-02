@@ -1,7 +1,7 @@
 mod auth;
 mod queries;
 use authz_core::*;
-use authz_store::{StoreError, pool};
+use authz_store::{StoreError, service_pool as pool};
 use axum::{
     Router,
     body::to_bytes,

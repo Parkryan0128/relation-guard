@@ -53,3 +53,10 @@ DB connection budget은 replica 수 × pool size로 계산하고 여유를 admin
 - healthz: 살아 있으면 200 `{status:"ok"}`. readyz: 준비 시 200 `{status:"ready"}`, DB/schema/drain 실패 시 503 `{status:"not_ready"}`. metrics는 Prometheus text. 운영 응답은 data API의 공통 JSON envelope에서 제외한다.
 - shutdown은 readiness false → data listener 신규 수락 중단 → in-flight drain 최대 10초 → pool 종료. 10초 안에 종료 못 한 연결은 닫고 로그에 남긴다. commit 상태는 별도로 확정하거나 unknown으로 남기며 허위 rollback 기록을 하지 않는다.
 - in-flight 제한은 instance별 전체 data API에 적용하고 대기열을 만들지 않는다. 128개 점유 시 새 요청은 503 OVERLOADED. 운영 listener는 별도의 작은 capacity를 확보한다. 단일 tenant가 전체 capacity를 쓸 수 있다는 한계는 남으며 tenant별 quota는 v0.1 범위 밖이다.
+
+
+## 연결 풀 준비와 오류 진단
+
+서비스 프로세스는 최소/최대 연결 수를 모두 10으로 설정해, 낮은 트래픽에서도 요청 경로가 새 연결 생성에 의존하는 빈도를 줄인다. 관리자 CLI와 일반 store 테스트의 풀은 필요할 때 연결을 여는 방식이다. 서비스 한 replica당 DB 연결 10개를 예산에 포함한다. 획득 250ms·statement 1초·request 2초 제한은 유지한다.
+
+실패 응답은 request ID, 제한된 error code, 당시 pool size/idle 수를 구조화 로그에 남긴다. `/metrics`에는 pool size/idle, acquire timeout·기타 acquire 오류·transaction BEGIN 오류를 분리한 카운터가 있다. 토큰·전체 payload·subject/resource/proof는 기록하지 않는다. 낮은 숫자의 acquire timeout은 경보로 삼되, 과거 HTTP 503만으로 DB 장애 종류를 확정하지 않는다.

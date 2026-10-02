@@ -2,7 +2,7 @@
 
 All planned implementation stages and approved native test scenarios have been executed. Functional and recovery checks passed; **M5-native acceptance did not pass** because one batch repetition exceeded its error budget. This is not a production release or a container certification.
 
-Production source: `afc0fe192681eba11e6867f6bf85413baa4598fb`. Later commits add test tooling, CI and evidence without changing the production source. [Local regression](regression.log) and [clean Linux functional/recovery CI](https://github.com/Parkryan0128/relation-guard/actions/runs/37041474310) passed.
+Original benchmark source: `afc0fe192681eba11e6867f6bf85413baa4598fb`. Subsequent diagnosis adds pool metrics, structured error logging and a service minimum of ten connections; historical performance results retain their original source and binary attribution. [Local regression](regression.log) and [clean Linux functional/recovery CI](https://github.com/Parkryan0128/relation-guard/actions/runs/37041474310) passed.
 
 | Stage | Evidence | Status |
 |---|---|---|

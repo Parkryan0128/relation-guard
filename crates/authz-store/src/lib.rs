@@ -61,8 +61,17 @@ impl From<sqlx::Error> for StoreError {
     }
 }
 pub async fn pool(url: &str) -> Result<PgPool, StoreError> {
+    pool_with_minimum(url, 0).await
+}
+/// Keep the bounded service pool ready before accepting data requests.
+/// Admin commands retain the smaller, on-demand pool above.
+pub async fn service_pool(url: &str) -> Result<PgPool, StoreError> {
+    pool_with_minimum(url, 10).await
+}
+async fn pool_with_minimum(url: &str, minimum: u32) -> Result<PgPool, StoreError> {
     Ok(PgPoolOptions::new()
         .max_connections(10)
+        .min_connections(minimum)
         // BEGIN detects a stale socket; never turn connection failure into a decision.
         .test_before_acquire(false)
         .acquire_timeout(Duration::from_millis(250))
