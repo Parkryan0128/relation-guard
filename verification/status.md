@@ -1,5 +1,7 @@
 # Verification status
 
+**Active pool-timeout investigation:** the bounded-wait change passes functional, controlled fault and container CI, but its extended local S-single-3 measurement failed. Independent Linux load verification is in progress. [Current report](pool-burst/report.md). The earlier V1 results below retain their original source attribution.
+
 **Current: managed-authorization V1 (`org-doc-v2`) implementation and approved verification complete.** [Full V1 report](v1/report.md).
 
 | Current V1 verification | Result |

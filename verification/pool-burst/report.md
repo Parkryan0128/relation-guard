@@ -1,6 +1,6 @@
 # Short pool saturation correction
 
-Status: targeted fault reproduction and full local functional regression passed. Full native S/M load remeasurement is pending.
+Status: targeted fault reproduction and functional regression passed, but the extended local load run has failed its third single-check gate (22 overloads, 60 generator drops, p99 89.76ms). Investigation and independent Linux measurement are in progress; the 503 issue is not claimed fully resolved.
 
 ## Finding and change
 
@@ -23,7 +23,7 @@ Every successful response matched the expected decision. Errors had no decision;
 
 [Full local log](regression.log): format, Clippy, build, 10,000 generated graph comparisons, real PostgreSQL store/concurrency/migration tests, 290 HTTP assertions, COMMIT ambiguity and Python client tests passed. New real TCP cases hold all ten connections for 350ms and verify both reads and writes wait and succeed exactly once. Sustained exhaustion returns OVERLOADED before the request deadline, leaves the attempted write absent and preserves the revision. Existing in-flight, lock, deadline and recovery tests remain enabled.
 
-`test_pool_burst.py` is also part of Linux CI. No claim is made that arbitrary host/DB pauses or sustained overload can never cause 503.
+The [Linux CI run for the fix](https://github.com/Parkryan0128/relation-guard/actions/runs/37069873323) passed both functional/recovery and container-deployment jobs, including `test_pool_burst.py`. No claim is made that arbitrary host/DB pauses or sustained overload can never cause 503.
 
 ## Native load
 
