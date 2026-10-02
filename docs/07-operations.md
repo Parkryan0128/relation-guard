@@ -58,6 +58,6 @@ DB connection budget은 replica 수 × pool size로 계산하고 여유를 admin
 
 ## 연결 풀 준비와 오류 진단
 
-서비스 프로세스는 최소/최대 연결 수를 모두 10으로 설정해, 낮은 트래픽에서도 요청 경로가 새 연결 생성에 의존하는 빈도를 줄인다. 관리자 CLI와 일반 store 테스트의 풀은 필요할 때 연결을 여는 방식이다. 서비스 한 replica당 DB 연결 10개를 예산에 포함한다. 획득 250ms·statement 1초·request 2초 제한은 유지한다.
+서비스 프로세스는 최소/최대 연결 수를 모두 10으로 설정해, 낮은 트래픽에서도 요청 경로가 새 연결 생성에 의존하는 빈도를 줄인다. 관리자 CLI와 일반 store 테스트의 풀은 필요할 때 연결을 여는 방식이다. 서비스 한 replica당 DB 연결 10개를 예산에 포함한다. 획득 대기 예산은 500ms이며 statement 1초·request 2초 제한은 유지한다. 짧은 포화 대응과 지연 비용은 ADR-014에 기록한다.
 
 실패 응답은 request ID, 제한된 error code, 당시 pool size/idle 수를 구조화 로그에 남긴다. `/metrics`에는 pool size/idle, acquire timeout·기타 acquire 오류·transaction BEGIN 오류를 분리한 카운터가 있다. 토큰·전체 payload·subject/resource/proof는 기록하지 않는다. 낮은 숫자의 acquire timeout은 경보로 삼되, 과거 HTTP 503만으로 DB 장애 종류를 확정하지 않는다.

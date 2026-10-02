@@ -88,13 +88,26 @@ async fn m3_pool_lock_and_recovery() {
         held.push(h.app.pool.acquire().await.unwrap());
     }
     let timeouts_before = authz_store::metrics::POOL_ACQUIRE_TIMEOUTS.load(Ordering::Relaxed);
+    let started = tokio::time::Instant::now();
     let (status, body) = request(&h, "revision", None).await;
+    assert!(started.elapsed() >= authz_store::POOL_ACQUIRE_TIMEOUT);
+    assert!(started.elapsed() < Duration::from_secs(2));
     assert!(authz_store::metrics::POOL_ACQUIRE_TIMEOUTS.load(Ordering::Relaxed) > timeouts_before);
     assert_eq!(h.app.pool.size(), 10);
     assert_eq!(h.app.pool.num_idle(), 0);
     assert_eq!(status, 503);
     assert_eq!(body["error"]["code"], "OVERLOADED");
+    let write = json!({"expected_revision":"0","operations":[{"op":"put_entity","entity":{"kind":"user","id":"not-written"}}]});
+    assert_eq!(request(&h, "write", Some(write)).await.0, 503);
     drop(held);
+    assert_eq!(request(&h, "revision", None).await.1["revision"], "0");
+    let count: i64 =
+        sqlx::query_scalar("SELECT count(*) FROM entities WHERE tenant_id=$1 AND id='not-written'")
+            .bind(h.tenant)
+            .fetch_one(&h.app.pool)
+            .await
+            .unwrap();
+    assert_eq!(count, 0);
     let mut lock = h.app.pool.begin().await.unwrap();
     sqlx::query("SELECT revision FROM tenants WHERE id=$1 FOR UPDATE")
         .bind(h.tenant)
@@ -108,6 +121,38 @@ async fn m3_pool_lock_and_recovery() {
     lock.rollback().await.unwrap();
     assert_eq!(request(&h, "write", Some(write)).await.0, 200);
     assert_eq!(request(&h, "revision", None).await.1["revision"], "1");
+}
+#[tokio::test]
+async fn short_pool_saturation_waits_without_replaying_reads_or_writes() {
+    let h = harness().await;
+    for path in ["revision", "write"] {
+        let mut held = Vec::new();
+        for _ in 0..10 {
+            held.push(h.app.pool.acquire().await.unwrap());
+        }
+        let body = (path == "write").then(|| json!({"expected_revision":"0","operations":[{"op":"put_entity","entity":{"kind":"user","id":"once"}}]}));
+        let pending = request(&h, path, body);
+        tokio::pin!(pending);
+        // Deliberate resource starvation for 350ms: beyond the old 250ms
+        // rejection budget, within the new bounded wait. No SQL ordering by sleep.
+        assert!(
+            tokio::time::timeout(Duration::from_millis(350), &mut pending)
+                .await
+                .is_err()
+        );
+        drop(held);
+        let (status, _) = tokio::time::timeout(Duration::from_secs(1), pending)
+            .await
+            .unwrap();
+        assert_eq!(status, 200);
+    }
+    assert_eq!(request(&h, "revision", None).await.1["revision"], "1");
+    let audits: i64 = sqlx::query_scalar("SELECT count(*) FROM audit_events WHERE tenant_id=$1")
+        .bind(h.tenant)
+        .fetch_one(&h.app.pool)
+        .await
+        .unwrap();
+    assert_eq!(audits, 1);
 }
 #[tokio::test]
 async fn m3_real_tcp_inflight_limit_and_deadline() {

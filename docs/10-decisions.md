@@ -66,3 +66,13 @@ pool checkout의 선행 ping도 생략한다. 직후 BEGIN이 실제 연결 생�
 서비스용 풀은 최소 10·최대 10을 유지하도록 변경한다. 관리자 CLI의 최소 연결 수는 0을 유지한다. API deadline·SQL timeout·획득 timeout·데이터 모델·최대 동시성·성능 합격 기준은 변경하지 않는다. 추가 DB 연결 비용을 명시하고, pool timeout/기타 획득 오류/BEGIN 오류 카운터 및 오류 시점의 pool 상태를 기록한다.
 
 보강 후 통제된 지연 테스트와 기능 회귀·동일 batch 부하를 검증한다. 후속 정상 재측정으로 과거 실패 회차를 덮어쓰거나 전체 release gate를 소급 통과시키지 않는다.
+
+## ADR-014 — 짧은 연결 포화의 대기 예산 (2026-10-02)
+
+V1 warmup의 네 503은 모두 pool size=10/idle=0에서 발생했고 acquire timeout 카운터가 네 번 증가했다. 외부 지연의 원인은 당시 기록으로 확정할 수 없다. 동일 바이너리로 DB 응답 전달을 400ms 정지하고 정상 목표 부하인 100 requests/s를 주면 100건 중 10건이 OVERLOADED였다. 900ms 정지에서는 60건이 거절되고 이후 정상 회복했다. 이는 연결 포화와 짧은 대기 예산의 재현이지 과거 지연 원인의 증명이 아니다.
+
+연결 획득의 단일 대기 예산을 250ms에서 500ms로 바꾼다. 연결은 SQLx의 기존 대기 순서를 유지하며 기다리고, timeout 뒤 재시도하거나 SQL/transaction을 재실행하지 않는다. 짧은 DB 지연 뒤 연결이 반환될 때 처리할 여유를 주는 가용성 개선이다. DB 처리 속도 개선이나 503 제거 보장은 아니다. 지속 포화 시 거절까지 최대 250ms 더 걸리는 대가가 있다.
+
+전체 HTTP deadline 2초, statement 1초, lock 500ms, readiness 250ms, 연결 수 10, in-flight 128은 유지한다. HTTP deadline이 먼저 오면 그 시간이 우선한다. 연결 대기 중에는 transaction/권한 snapshot이 없으며 획득 후 최신 snapshot에서 actor와 권한을 검사한다. 별도 무제한 큐, 캐시 또는 fail-open은 도입하지 않는다. p95/p99/오류율 합격 기준도 유지한다.
+
+필수 검증: 같은 400ms 지연에서 100건의 allow/deny 정확성과 오류 0, 900ms 지연에서 유한 시간 내 OVERLOADED 및 회복, 대기 중 read/write 성공과 지속 포화 시 write 무변경, 기존 deadline/동시성/COMMIT 회귀 검사, 같은 S/M 부하 재측정. 이전 실패 증거는 보존한다.

@@ -57,7 +57,7 @@ body: 단일 subject, checks 배열(1–100, 각 `{resource,action}`), explain(d
 
 초기 hard limits: body 256 KiB(262,144 bytes), JSON nesting depth 16, ops 100, checks 100, ancestor depth 32 edges, load된 unique resource 최대 3,300, matching grant facts 최대 10,000, work units 최대 20,000. core의 work unit 정의와 early-return 규칙은 아래 세부 계약을 따른다. proof는 최대 34 tuple(32 parent + grant + membership). JSON depth는 root object를 1로 세고, object/array 진입마다 1 증가한다. scalar는 depth를 늘리지 않는다. parser도 입력 깊이/배열 크기를 제한한다.
 
-초기 운영 설정: 요청 deadline 2초, DB statement timeout 1초, lock timeout 500ms, pool acquire timeout 250ms, DB pool max 10/replica, in-flight max 128/replica, graceful drain 10초. request가 남은 deadline보다 긴 query를 시작하지 않도록 조정한다. write SQL 및 read SQL timeout은 같은 기준. 값은 성능 근거가 생기면 문서와 테스트를 같이 변경한다.
+초기 운영 설정: 요청 deadline 2초, DB statement timeout 1초, lock timeout 500ms, pool acquire timeout 500ms, DB pool max 10/replica, in-flight max 128/replica, graceful drain 10초. request가 남은 deadline보다 긴 query를 시작하지 않도록 조정한다. write SQL 및 read SQL timeout은 같은 기준. 값은 성능 근거가 생기면 문서와 테스트를 같이 변경한다.
 
 | HTTP | code | 의미 |
 |---|---|---|

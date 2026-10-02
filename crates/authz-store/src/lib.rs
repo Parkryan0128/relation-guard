@@ -6,6 +6,9 @@ use sqlx::{PgPool, Postgres, Row, Transaction, postgres::PgPoolOptions};
 use std::{collections::BTreeSet, time::Duration};
 use uuid::Uuid;
 pub const SCHEMA_VERSION: i64 = 2;
+// ADR-014: absorb short pool saturation without retrying a transaction.
+// HTTP's overall 2s deadline remains authoritative.
+pub const POOL_ACQUIRE_TIMEOUT: Duration = Duration::from_millis(500);
 pub static MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("../../migrations");
 
 #[derive(Debug, thiserror::Error)]
@@ -75,7 +78,7 @@ async fn pool_with_minimum(url: &str, minimum: u32) -> Result<PgPool, StoreError
         .min_connections(minimum)
         // BEGIN detects a stale socket; never turn connection failure into a decision.
         .test_before_acquire(false)
-        .acquire_timeout(Duration::from_millis(250))
+        .acquire_timeout(POOL_ACQUIRE_TIMEOUT)
         .connect(url)
         .await?)
 }

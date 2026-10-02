@@ -53,6 +53,7 @@ jobs:
           done
           PG_BIN="$RUNNER_TEMP/rg-pg-client" EXISTING_TEST_DATABASE_URL="$TEST_DATABASE_URL" RECOVERY_OUTPUT="$GITHUB_WORKSPACE/verification/ci-native-recovery.json" python3 scripts/test_native_recovery.py | tee verification/ci-recovery.log
           PG_BIN="$RUNNER_TEMP/rg-pg-client" EXISTING_TEST_DATABASE_URL="$TEST_DATABASE_URL" POOL_STALL_OUTPUT="$GITHUB_WORKSPACE/verification/ci-pool-transport-stall.json" python3 scripts/test_pool_transport_stall.py | tee verification/ci-pool-stall.log
+          PG_BIN="$RUNNER_TEMP/rg-pg-client" EXISTING_TEST_DATABASE_URL="$TEST_DATABASE_URL" POOL_BURST_OUTPUT="$GITHUB_WORKSPACE/verification/ci-pool-burst.json" python3 scripts/test_pool_burst.py | tee verification/ci-pool-burst.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -62,6 +63,7 @@ jobs:
             verification/ci-query-plans.json
             verification/ci-native-recovery.json
             verification/ci-pool-transport-stall.json
+            verification/ci-pool-burst.json
           retention-days: 30
       - run: python scripts/check_docs.py
   container-deployment:
