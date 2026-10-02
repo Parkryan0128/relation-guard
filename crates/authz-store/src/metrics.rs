@@ -47,6 +47,9 @@ impl Drop for Timer<'_> {
             .observe(self.start.elapsed().as_nanos().min(u64::MAX as u128) as u64);
     }
 }
+pub static POOL_ACQUIRE_TIMEOUTS: AtomicU64 = AtomicU64::new(0);
+pub static POOL_ACQUIRE_ERRORS: AtomicU64 = AtomicU64::new(0);
+pub static TRANSACTION_BEGIN_ERRORS: AtomicU64 = AtomicU64::new(0);
 pub static POOL_WAIT: Metric = Metric::new();
 pub static DATA_SQL: Metric = Metric::new();
 pub static CORE: Metric = Metric::new();
@@ -54,7 +57,12 @@ pub static LOCK_WAIT: Metric = Metric::new();
 pub static FACTS: Metric = Metric::new();
 pub static WORK: Metric = Metric::new();
 pub fn render() -> String {
-    let mut s = String::new();
+    let mut s = format!(
+        "relation_guard_pool_acquire_timeouts_total {}\nrelation_guard_pool_acquire_errors_total {}\nrelation_guard_transaction_begin_errors_total {}\n",
+        POOL_ACQUIRE_TIMEOUTS.load(Ordering::Relaxed),
+        POOL_ACQUIRE_ERRORS.load(Ordering::Relaxed),
+        TRANSACTION_BEGIN_ERRORS.load(Ordering::Relaxed)
+    );
     for (name, metric, scale) in [
         ("relation_guard_pool_wait_seconds", &POOL_WAIT, 1e9),
         ("relation_guard_data_sql_seconds", &DATA_SQL, 1e9),

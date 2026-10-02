@@ -72,6 +72,9 @@ async fn endpoint(State(app): State<Arc<App>>, request: Request) -> Response {
         Ok(r) => r,
         Err(e) => {
             app.errors.fetch_add(1, Ordering::Relaxed);
+            tracing::warn!(request_id=%id, error_code=e.code,
+                pool_size=app.pool.size(), pool_idle=app.pool.num_idle(),
+                "request failed");
             if e.code == "REVISION_CONFLICT" {
                 CONFLICTS.fetch_add(1, Ordering::Relaxed);
             }
@@ -268,6 +271,11 @@ async fn ops(State(app): State<Arc<App>>, request: Request) -> Response {
                 CONFLICTS.load(Ordering::Relaxed),
                 128 - app.slots.available_permits()
             );
+            output.push_str(&format!(
+                "relation_guard_pool_size {}\nrelation_guard_pool_idle {}\n",
+                app.pool.size(),
+                app.pool.num_idle()
+            ));
             output.push_str(&HTTP_LATENCY.render("relation_guard_http_seconds", 1e9));
             output.push_str(&authz_store::metrics::render());
             ([("content-type", "text/plain; version=0.0.4")], output).into_response()

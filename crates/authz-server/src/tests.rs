@@ -80,7 +80,11 @@ async fn m3_pool_lock_and_recovery() {
     for _ in 0..10 {
         held.push(h.app.pool.acquire().await.unwrap());
     }
+    let timeouts_before = authz_store::metrics::POOL_ACQUIRE_TIMEOUTS.load(Ordering::Relaxed);
     let (status, body) = request(&h, "revision", None).await;
+    assert!(authz_store::metrics::POOL_ACQUIRE_TIMEOUTS.load(Ordering::Relaxed) > timeouts_before);
+    assert_eq!(h.app.pool.size(), 10);
+    assert_eq!(h.app.pool.num_idle(), 0);
     assert_eq!(status, 503);
     assert_eq!(body["error"]["code"], "OVERLOADED");
     drop(held);

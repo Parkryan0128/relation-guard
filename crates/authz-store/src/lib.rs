@@ -74,7 +74,14 @@ async fn begin(
     read_only: bool,
 ) -> Result<Transaction<'static, Postgres>, StoreError> {
     let timer = metrics::POOL_WAIT.timer();
-    let connection = pool.acquire().await?;
+    let connection = pool.acquire().await.inspect_err(|error| {
+        let counter = if matches!(error, sqlx::Error::PoolTimedOut) {
+            &metrics::POOL_ACQUIRE_TIMEOUTS
+        } else {
+            &metrics::POOL_ACQUIRE_ERRORS
+        };
+        counter.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    })?;
     drop(timer);
     // Constant setup statements share a single PostgreSQL protocol round trip.
     // The first data SELECT still establishes the repeatable-read snapshot.
@@ -83,7 +90,11 @@ async fn begin(
     } else {
         "BEGIN; SET LOCAL statement_timeout='1s'; SET LOCAL lock_timeout='500ms'"
     };
-    Ok(Transaction::begin(connection, Some(setup.into())).await?)
+    Ok(Transaction::begin(connection, Some(setup.into()))
+        .await
+        .inspect_err(|_| {
+            metrics::TRANSACTION_BEGIN_ERRORS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        })?)
 }
 pub async fn provision(pool: &PgPool, tenant: Uuid) -> Result<(), StoreError> {
     sqlx::query("INSERT INTO tenants(id) VALUES ($1) ON CONFLICT(id) DO NOTHING")

@@ -30,6 +30,11 @@ export default function(){
  const checks=profile==='batch'?Array.from({length:100},(_,j)=>({resource:{kind:'document',id:`d${(d+j*50)%cfg.documents}`},action:'view'})):null;
  const response=call(checks?'batch-check':'check',checks?{subject,checks}:{subject,resource:{kind:'document',id:`d${d}`},action:'view'},tenant);
  if(statuses[response.status])statuses[response.status].add(1);
+ if(response.status!==200){
+  let code='UNPARSEABLE';let requestId=null;
+  try{const error=response.json().error;code=error.code;requestId=error.request_id;}catch(_){}
+  console.warn(JSON.stringify({event:'request_failure',time_ms:Date.now(),status:response.status,code,request_id:requestId,duration_ms:response.timings.duration}));
+ }
  let valid=false;
  try{const body=response.json();valid=response.status===200 && (checks?body.results.length===100 && body.results.every(x=>x.decision===(allow?'allow':'deny')):body.decision===(allow?'allow':'deny'));}catch(_){valid=false;}
  if(valid){correct.add(1);successes.add(response.timings.duration);}else{unexpected.add(1);if(response.status===200){mismatches.add(1);}}
