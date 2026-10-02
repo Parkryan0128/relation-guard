@@ -63,3 +63,11 @@ AUTHZ_BIN="$PWD/target/release" python3 scripts/diagnose_batch.py
 ```
 
 The transport test defaults to expecting a prepared service pool. `EXPECT_COLD_POOL_TIMEOUT=1` is only for explicitly testing the older binary, with a separate `POOL_STALL_OUTPUT` path. Each harness creates and removes its own database. Private key/config directories are excluded from repository evidence.
+
+## CI test isolation follow-up
+
+[Evidence-only commit CI](https://github.com/Parkryan0128/relation-guard/actions/runs/37056234115) subsequently failed in `m2_snapshot_and_concurrent_writers`: a losing writer returned `OVERLOADED` instead of `REVISION_CONFLICT`. This is distinct from the batch-load experiment. That test's custom pool uses SQLx's default 30-second acquisition timeout, while the entire failing test took approximately 1.3 seconds; the observed code is consistent with the existing 500ms tenant-row lock timeout. Eight store tests, including heavy graph fixtures, were executing concurrently against the same CI PostgreSQL service.
+
+The regression runner now serializes independent test cases with `--test-threads=1`. Explicit races within each test retain their barriers and concurrent operations, including 100 competing-writer and 100 identical-idempotency-key pairs. No assertion, server deadline, lock timeout or performance target is relaxed. This isolates functional concurrency checks from unrelated test load; dedicated load profiles remain responsible for measuring overload behavior. The failed CI record is retained rather than replaced by an unchanged retry.
+
+The [local regression with isolated test scheduling](pool-isolation-regression.log) passed all functional, property, PostgreSQL, HTTP, COMMIT-fault and client checks. Service code and the release binary used for the 9,003-request replay are unchanged by this test-runner adjustment.

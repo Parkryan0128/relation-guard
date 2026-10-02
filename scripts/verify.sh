@@ -9,7 +9,9 @@ cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo build --workspace --locked
 "$python_cmd" scripts/check_docs.py
 "$python_cmd" scripts/check_contracts.py
-PROPTEST_CASES="${PROPTEST_CASES:-10000}" PROPTEST_RNG_SEED="${PROPTEST_RNG_SEED:-424242}" cargo test --workspace --locked
+# Keep unrelated DB workloads from consuming timing-sensitive tests' budgets.
+# Each concurrency test still runs its own explicit concurrent operations/barriers.
+PROPTEST_CASES="${PROPTEST_CASES:-10000}" PROPTEST_RNG_SEED="${PROPTEST_RNG_SEED:-424242}" cargo test --workspace --locked -- --test-threads=1
 "$python_cmd" scripts/test_http.py
 
 "$python_cmd" scripts/test_commit_faults.py
