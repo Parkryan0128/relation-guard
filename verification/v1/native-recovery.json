@@ -1,0 +1,27 @@
+{
+  "source_commit": "cdfcd7ef8598a65d5367a9fd3485309c7f14c85c",
+  "binary_sha256": "abbe9e86802304b7f4c315314c1e212bbb259b56b05f9a02ccf651385def2cc5",
+  "executed_at_utc": "2026-10-02T20:45:16.514988+00:00",
+  "environment": "darwin native application processes; isolated test PostgreSQL databases",
+  "passed": [
+    "runtime_role",
+    "manager_and_admin_restore",
+    "last_admin_after_restore",
+    "python_client",
+    "server_restart_database_reconnect",
+    "backup_restore_new_credentials",
+    "rotation",
+    "database_schema_readiness",
+    "SIGTERM_inflight_drain"
+  ],
+  "snapshot": {
+    "revision": 4,
+    "entities": 6,
+    "relationships": 2,
+    "audit": 4,
+    "receipts": 3,
+    "edges_hash": "e879222a2625f081eb0a4bf2c66a6bdf"
+  },
+  "shutdown_seconds": 2.020710000069812,
+  "inflight_shutdown_response": 504
+}

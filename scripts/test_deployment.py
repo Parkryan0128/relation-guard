@@ -62,8 +62,9 @@ try:
  backup=shell(['docker','exec',cid('db'),'pg_dump','-U','relation_guard','-d','relation_guard','-Fc']).stdout;(run/'backup.dump').write_bytes(backup)
  restored=project+'-restore-db';shell(['docker','run','-d','--name',restored,'--network',project+'_default','-e','POSTGRES_HOST_AUTH_METHOD=trust','-e','POSTGRES_DB=relation_guard','-e','POSTGRES_USER=relation_guard',PG])
  for _ in range(100):
-  if shell(['docker','exec',restored,'pg_isready','-U','relation_guard'],check=False).returncode==0:break
+  if shell(['docker','exec',restored,'psql','-h','127.0.0.1','-U','relation_guard','-d','relation_guard','-Atc','SELECT 1'],check=False).returncode==0:break
   time.sleep(.1)
+ else:raise AssertionError('Restored database did not finish TCP startup')
  shell(['docker','exec','-i',restored,'pg_restore','--exit-on-error','--no-privileges','-U','relation_guard','-d','relation_guard'],backup)
  assert snapshot(restored)==before
  new_token,new_entry=rotate_entry('restored');restore_key=run/'restore-key.json';restore_key.write_text(json.dumps({'version':1,'keys':[new_entry]}));restore_key.chmod(0o444)

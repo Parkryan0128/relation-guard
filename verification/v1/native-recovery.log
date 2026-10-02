@@ -1,0 +1,3 @@
+Granted: allow; protected operation may proceed.
+Revoked: deny; protected operation blocked.
+PASS: native restart, backup/restore, key rotation, readiness/outage recovery, privilege separation and SIGTERM.
