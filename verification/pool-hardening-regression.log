@@ -1,0 +1,112 @@
+    Checking authz-store v0.1.0 (<repository>/crates/authz-store)
+    Checking authz-server v0.1.0 (<repository>/crates/authz-server)
+    Checking authz-admin v0.1.0 (<repository>/crates/authz-admin)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.47s
+   Compiling authz-store v0.1.0 (<repository>/crates/authz-store)
+   Compiling authz-server v0.1.0 (<repository>/crates/authz-server)
+   Compiling authz-admin v0.1.0 (<repository>/crates/authz-admin)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.68s
+PASS: 23 Markdown documents, local links, English README, 37 acceptance IDs, 2 JSON fixtures, contract and DDL artifact checks
+NOT CHECKED: Rust service behavior, PostgreSQL execution, security, performance, external URL availability
+PASS: OpenAPI 3.1 schemas and positive/negative contract examples
+   Compiling authz-store v0.1.0 (<repository>/crates/authz-store)
+   Compiling authz-admin v0.1.0 (<repository>/crates/authz-admin)
+   Compiling authz-server v0.1.0 (<repository>/crates/authz-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.78s
+     Running unittests src/main.rs (target/debug/deps/authz_admin-ac18ce35bc21775c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/authz_core-9e2e8f608f757eeb)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contracts.rs (target/debug/deps/contracts-efed6b3b25a7be87)
+
+running 2 tests
+test m0_canonicalization_golden ... ok
+test m0_typed_fixtures_and_boundaries ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/evaluator.rs (target/debug/deps/evaluator-3a4aa3ffca399384)
+
+running 4 tests
+test m1_proof_priority_and_errors ... ok
+test m1_design_fixtures ... ok
+test m1_depth_and_budget_boundaries ... ok
+test m1_reference_and_properties ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.76s
+
+     Running unittests src/main.rs (target/debug/deps/authz_server-a4183f7fa4f39ae7)
+
+running 6 tests
+test tests::m3_invalid_startup_configuration ... ok
+test tests::m3_http_disconnect_before_commit ... ok
+test tests::m3_batch_failure_is_not_partial_allow ... ok
+test tests::m3_pool_lock_and_recovery ... ok
+test tests::m3_statement_timeout_and_recovery ... ok
+test tests::m3_real_tcp_inflight_limit_and_deadline ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.15s
+
+     Running unittests src/lib.rs (target/debug/deps/authz_store-303be4cefff507be)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/migration.rs (target/debug/deps/migration-6d64ecb06b260fbe)
+
+running 1 test
+test m0_real_postgres_constraints ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+     Running tests/query_plans.rs (target/debug/deps/query_plans-0d1c6880ab7cf392)
+
+running 1 test
+test m2_measured_query_count_and_explain ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+     Running tests/transactions.rs (target/debug/deps/transactions-b2d3ccc395a278c4)
+
+running 8 tests
+test m2_atomicity_replay_revocation_and_isolation ... ok
+test m2_cleanup_recreate_and_key_scope ... ok
+test m2_hierarchy_and_revision_exhaustion ... ok
+test m2_exact_retention_boundary_and_descendant_move ... ok
+test m2_matching_grant_limit_and_duplicate_batch ... ok
+test m2_snapshot_and_concurrent_writers ... ok
+test m2_concurrent_cycles_and_final_state_moves ... ok
+test m2_batch_snapshot_between_loads ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.29s
+
+   Doc-tests authz_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests authz_store
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+Granted: allow; protected operation may proceed.
+Revoked: deny; protected operation blocked.
+PASS: 261 real TCP HTTP assertions with OpenAPI response validation; grant/revoke/replay, scope isolation, strict parsing and pagination.
+PASS M3-06: DB disconnect before COMMIT forwarding rolled back; lost durable COMMIT acknowledgement returned unknown and replayed exactly one receipt.
+...
+----------------------------------------------------------------------
+Ran 3 tests in 1.771s
+
+OK

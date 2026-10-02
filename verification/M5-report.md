@@ -77,3 +77,7 @@ The [pre-optimization attempt](load-before-setup-optimization/manifest.json) fai
 [Dependency and license inventory](security-review.json) uses RustSec revision `117edb3bed98e9be112f277b7615eea3252e7c43`. Raw cargo-audit reports RUSTSEC-2023-0071 for optional locked rsa 0.9.10. Cargo's active normal/build dependency trees for server/admin on macOS arm64 and Linux arm64/x86_64 exclude that dependency; no unresolved active advisory was found. New features/targets require review again. Tracked secret patterns had zero hits; this is not proof of every possible secret's absence.
 
 Docker image build succeeded earlier, but clean Compose deployment was not completed because of host bind-mount restrictions. The user explicitly selected native application tests against the existing test database. Container isolation/volume-restart and the original Linux resource-limit benchmark remain separate deployment gates. Native completion must not be relabeled as production or container certification.
+
+## Subsequent investigation
+
+The [connection-pool investigation](pool-timeout-investigation.md) records additional failure instrumentation, a controlled DB transport-delay reproduction, service-pool preparation and targeted batch replays on their own recorded source revisions. These results do not overwrite this historical failure or certify the full S/M gate on the newer source.

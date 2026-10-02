@@ -73,7 +73,7 @@ Release build on macOS arm64 with a local PostgreSQL 18.6 endpoint; no CPU/memor
 | 100 single checks/s | p95 6.08–6.41 ms; p99 17.99–21.84 ms | 90,002/90,002 correct responses; all three runs passed |
 | 10 batches/s, 100 checks each | p95 29.16–30.46 ms | Six 503 responses in run 3; failure-rate gate missed |
 
-The one-million-relationship dataset, mixed writes, stress and recovery profiles also ran. Stress results include dropped load-generator iterations. See the [complete report](verification/M5-report.md), including preserved failures, internal costs and environment limits. These are engineering measurements, not production SLA guarantees.
+The one-million-relationship dataset, mixed writes, stress and recovery profiles also ran. Stress results include dropped load-generator iterations. See the [complete report](verification/M5-report.md), including preserved failures, internal costs and environment limits. These are engineering measurements, not production SLA guarantees. The [connection-pool investigation](verification/pool-timeout-investigation.md) records a controlled reproduction, service-pool hardening and separate diagnostic replays; the original failed acceptance result is preserved.
 
 ## Consistency boundaries
 

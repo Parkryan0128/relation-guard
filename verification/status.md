@@ -16,6 +16,8 @@ Original benchmark source: `afc0fe192681eba11e6867f6bf85413baa4598fb`. Subsequen
 
 S single-check runs all passed. S batch run 3 had six 503 responses out of 3,001 requests (0.20% versus the <0.1% target), with no incorrect decision or dropped iteration. The other two batch runs passed. [Finding and diagnostic limits](load-finding.json). No average or unchanged rerun is used to hide the failed repetition. The [earlier pre-optimization failure](load-before-setup-optimization/manifest.json) is retained as well.
 
+The [connection-pool investigation](pool-timeout-investigation.md) documents a controlled transport-stall reproduction and a service minimum of ten prepared connections, with the original timeouts unchanged. Its diagnostic replays are separate evidence, not a rerun of the entire S/M release gate. The historical external trigger remains unproven.
+
 All million-relationship profiles completed. The normal-load recovery after stress returned 6,001/6,001 correct responses. The [100-decision comparison](batch-comparison.json) and release-binary native recovery also passed. Disposable benchmark/recovery databases were removed by their harnesses; the existing dedicated PostgreSQL service was retained.
 
 Docker image build succeeded earlier. Clean Compose execution remained blocked by host bind-mount access. At the user's instruction, native application/test processes used the existing dedicated test PostgreSQL instance. No Linux cgroup-limited performance or container restart/restore claim is made.

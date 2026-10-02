@@ -1,0 +1,86 @@
+{
+  "source_commit": "d665e2f9874869039e131eb84942052834534692",
+  "source_dirty": false,
+  "binary_sha256": "e19ffdf57b7c2055512d88c5229f3cc051aad264ac5424cae90c4b1a1e4cce38",
+  "purpose": "Diagnostic replay, not replacement of the failed original acceptance run",
+  "runs": [
+    {
+      "name": "warmup",
+      "exit_code": 0,
+      "correct": 600,
+      "unexpected": 0,
+      "dropped": 0,
+      "latency": {
+        "avg": 22.56357666666666,
+        "min": 8.415,
+        "med": 23.137999999999998,
+        "max": 57.981,
+        "p(50)": 23.137999999999998,
+        "p(95)": 30.08535,
+        "p(99)": 40.883239999999994
+      }
+    },
+    {
+      "name": "batch-1",
+      "exit_code": 0,
+      "correct": 3001,
+      "unexpected": 0,
+      "dropped": 0,
+      "latency": {
+        "p(95)": 29.305,
+        "p(99)": 39.477,
+        "avg": 22.11390836387871,
+        "min": 7.71,
+        "med": 22.434,
+        "max": 171.928,
+        "p(50)": 22.434
+      }
+    },
+    {
+      "name": "batch-2",
+      "exit_code": 0,
+      "correct": 3001,
+      "unexpected": 0,
+      "dropped": 0,
+      "latency": {
+        "p(95)": 28.232,
+        "p(99)": 37.858,
+        "avg": 21.403999333555486,
+        "min": 7.73,
+        "med": 21.691,
+        "max": 233.945,
+        "p(50)": 21.691
+      }
+    },
+    {
+      "name": "batch-3",
+      "exit_code": 0,
+      "correct": 3001,
+      "unexpected": 0,
+      "dropped": 0,
+      "latency": {
+        "med": 21.574,
+        "max": 252.368,
+        "p(50)": 21.574,
+        "p(95)": 28.607,
+        "p(99)": 44.207,
+        "avg": 21.617579806731083,
+        "min": 7.354
+      }
+    }
+  ],
+  "dataset": {
+    "tenant": "044dc2b6-ea22-42c6-a233-4c53a7ff07be",
+    "users": 1000,
+    "teams": 100,
+    "folders": 1000,
+    "documents": 10000,
+    "relationships": 50000,
+    "max_depth": 8
+  },
+  "resource_usage": {
+    "user_cpu_seconds": 25.028568,
+    "system_cpu_seconds": 4.020743,
+    "peak_rss_bytes": 10960896
+  }
+}
