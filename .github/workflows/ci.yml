@@ -5,6 +5,9 @@ permissions:
 jobs:
   implemented-regression:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
     services:
       postgres:
         image: postgres:18-alpine@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873
@@ -35,5 +38,27 @@ jobs:
             if docker exec ${{ job.services.postgres.id }} pg_isready -U postgres; then break; fi
             sleep 1
           done
-      - run: scripts/verify.sh
+      - run: scripts/verify.sh | tee verification/ci-regression.log
+        env:
+          QUERY_PLAN_OUTPUT: verification/ci-query-plans.json
+      - name: Native application recovery against the isolated PostgreSQL service
+        run: |
+          mkdir -p "$RUNNER_TEMP/rg-pg-client"
+          for command in psql pg_dump pg_restore; do
+            cat > "$RUNNER_TEMP/rg-pg-client/$command" <<EOF
+          #!/usr/bin/env bash
+          exec docker exec -i ${{ job.services.postgres.id }} $command "\$@"
+          EOF
+            chmod 700 "$RUNNER_TEMP/rg-pg-client/$command"
+          done
+          PG_BIN="$RUNNER_TEMP/rg-pg-client" EXISTING_TEST_DATABASE_URL="$TEST_DATABASE_URL" python3 scripts/test_native_recovery.py | tee verification/ci-recovery.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: verification-evidence
+          path: |
+            verification/ci-*.log
+            verification/ci-query-plans.json
+            verification/native-recovery.json
+          retention-days: 30
       - run: python scripts/check_docs.py

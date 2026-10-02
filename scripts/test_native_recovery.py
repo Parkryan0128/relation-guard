@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Native replacement for deployment-dependent acceptance, per user instruction."""
-import json,os,pathlib,subprocess,sys,time
+import http.client,json,os,pathlib,socket,subprocess,sys,time
 from native_lab import Lab,ROOT
 lab=Lab(os.environ.get('RG_NATIVE_DIR'));restore=None
 try:
@@ -24,8 +24,22 @@ try:
  lab.sql('UPDATE _sqlx_migrations SET version=1 WHERE version=2');assert lab.probe('readyz')[0]==200
  lab.stop_db();assert lab.probe('healthz')[0]==200 and lab.probe('readyz')[0]==503;status,body,_=lab.request('check',check);assert status==503 and 'decision' not in body,(status,body)
  lab.start_db();lab.wait_ready();assert lab.request('check',check)[1]['decision']=='allow'
- started=time.monotonic();lab.stop_server();elapsed=time.monotonic()-started;assert elapsed<10;lab.start_server()
- result={'environment':'native macOS application processes; isolated databases on an existing PostgreSQL endpoint','passed':['runtime_role','python_client','server_restart_database_reconnect','backup_restore_new_credentials','rotation','database_schema_readiness','SIGTERM_drain'],'snapshot':json.loads(state),'shutdown_seconds':elapsed}
+ # Hold an actual request body open; use observed inflight state as the barrier.
+ held=socket.create_connection(('127.0.0.1',lab.port),timeout=3)
+ held.sendall((f'POST /v1/tenants/{lab.tenant}/check HTTP/1.1\r\nHost: localhost\r\nAuthorization: Bearer {lab.token}\r\nContent-Type: application/json\r\nContent-Length: 1\r\n\r\n').encode())
+ for _ in range(100):
+  if 'relation_guard_inflight 1\n' in lab.probe('metrics')[1]:break
+  time.sleep(.01)
+ else:raise AssertionError('Request did not reach the inflight barrier')
+ started=time.monotonic();lab.stop_server();elapsed=time.monotonic()-started;assert elapsed<10
+ response=http.client.HTTPResponse(held);response.begin();assert response.status==504
+ assert json.loads(response.read())['error']['code']=='DEADLINE_EXCEEDED';response.close();held.close()
+ try:
+  unexpected=socket.create_connection(('127.0.0.1',lab.port),timeout=.2)
+ except OSError:pass
+ else:unexpected.close();raise AssertionError('Data listener still accepts connections after shutdown')
+ lab.start_server()
+ result={'environment':sys.platform+' native application processes; isolated test PostgreSQL databases','passed':['runtime_role','python_client','server_restart_database_reconnect','backup_restore_new_credentials','rotation','database_schema_readiness','SIGTERM_inflight_drain'],'snapshot':json.loads(state),'shutdown_seconds':elapsed,'inflight_shutdown_response':504}
  (ROOT/'verification/native-recovery.json').write_text(json.dumps(result,indent=2));print('PASS: native restart, backup/restore, key rotation, readiness/outage recovery, privilege separation and SIGTERM.')
 finally:
  if restore:restore.close()

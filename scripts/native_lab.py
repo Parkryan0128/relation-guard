@@ -1,5 +1,5 @@
 """Disposable native PostgreSQL/server processes, bound only to loopback."""
-import base64,hashlib,json,os,pathlib,secrets,socket,subprocess,tempfile,time,urllib.request,urllib.error,uuid
+import base64,hashlib,json,os,pathlib,secrets,socket,subprocess,sys,tempfile,time,urllib.request,urllib.error,uuid
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 def free_port():
  with socket.socket() as s:s.bind(('127.0.0.1',0));return s.getsockname()[1]
@@ -40,7 +40,7 @@ class Lab:
    while True:
     pid,status,usage=os.wait4(self.server.pid,os.WNOHANG)
     if pid:
-     self.server.returncode=os.waitstatus_to_exitcode(status);self.resource_usage={'user_cpu_seconds':usage.ru_utime,'system_cpu_seconds':usage.ru_stime,'peak_rss_bytes':usage.ru_maxrss};assert self.server.returncode==0;break
+     self.server.returncode=os.waitstatus_to_exitcode(status);self.resource_usage={'user_cpu_seconds':usage.ru_utime,'system_cpu_seconds':usage.ru_stime,'peak_rss_bytes':usage.ru_maxrss*(1024 if sys.platform.startswith('linux') else 1)};assert self.server.returncode==0;break
     if time.monotonic()>deadline:self.server.kill();self.server.wait();raise AssertionError('Server drain timeout')
     time.sleep(.01)
    self.log.close();self.server=None
