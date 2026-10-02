@@ -34,7 +34,7 @@ cargo run --locked -p authz-server
 
 운영 listener의 `/healthz`, `/readyz`, `/metrics`와 데이터 listener를 분리한다. 기본 bind는 loopback이다. 데이터 port만 인증된 서비스 네트워크에 연결한다. 외부 HTTPS는 reverse proxy에서 종료한다. 이 구현이 TLS 서버 또는 end-user 로그인 서버는 아니다.
 
-## Compose (이미지 빌드 성공, clean deployment 검증은 별도)
+## Compose (V1 로컬 및 Linux CI 배포 검증 통과)
 
 ```bash
 python3 scripts/bootstrap-local.py
@@ -78,3 +78,9 @@ cargo bench --locked -p authz-core --bench evaluation
 5. 새 서버를 시작하고 관리자/일반 사용자 허용·거부를 확인한 뒤 트래픽을 연다. 구버전으로 단순 바이너리 롤백하지 않는다. 필요하면 백업으로 별도 복구한다.
 
 bootstrap-admin은 기존 admin이 있으면 실패한다. 긴급 복구는 privileged DB 자격으로 recover-admin UUID USER_ID를 사용하며 감사 근거에 operator_recovery가 남는다. 일반 HTTP에는 이 경로가 없다.
+
+## 관리 권한 예제
+
+`examples/client.py`는 private client.json의 조직 관리자 actor로 사용자 두 명과 문서를 만든다. 그 뒤 문서 관리자 actor가 공유하고, editor actor의 자기 승격은 거부되며, 관리자가 회수하면 editor의 접근이 거부된다. 실제 앱은 예제처럼 임의로 actor를 선택하지 말고 검증된 로그인 세션에서 가져온다.
+
+macOS Documents bind mount가 제한된 환경에서는 운영체제의 Docker 파일 접근 설정을 확인하거나, 테스트용 설정을 Docker가 접근 가능한 별도 디렉터리에 생성한다. 검증 하네스는 private temporary run directory를 사용하며 기존 사용자 데이터나 접근 설정을 변경하지 않는다.

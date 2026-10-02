@@ -49,11 +49,24 @@ class Client:
 def main():
     credentials=json.loads(pathlib.Path(os.environ.get('AUTHZ_CLIENT_FILE','secrets/client.json')).read_text())
     client=Client(os.environ.get('AUTHZ_URL','http://127.0.0.1:8080'),credentials['tenant_id'],credentials['token'],credentials['actor_id'])
-    suffix=uuid.uuid4().hex;user={'kind':'user','id':'demo-'+suffix};doc={'kind':'document','id':'demo-'+suffix}
-    edge={'resource':doc,'relation':'viewer','subject':user,'subject_relation':''}
+    suffix=uuid.uuid4().hex
+    manager={'kind':'user','id':'manager-'+suffix};viewer={'kind':'user','id':'editor-'+suffix};doc={'kind':'document','id':'demo-'+suffix}
+    management={'resource':doc,'relation':'manager','subject':manager,'subject_relation':''}
     revision=client.request('revision')['revision']
-    changed=client.request('write',{'expected_revision':revision,'operations':[{'op':'put_entity','entity':user},{'op':'put_entity','entity':doc},{'op':'put_relation','relationship':edge}]},str(uuid.uuid4()))
-    assert client.can_view(user,doc);print('Granted: allow; protected operation may proceed.')
-    client.request('write',{'expected_revision':changed['revision'],'operations':[{'op':'delete_relation','relationship':edge}]},str(uuid.uuid4()))
-    assert not client.can_view(user,doc);print('Revoked: deny; protected operation blocked.')
+    created=client.request('write',{'expected_revision':revision,'operations':[{'op':'put_entity','entity':manager},{'op':'put_entity','entity':viewer},{'op':'put_entity','entity':doc},{'op':'put_relation','relationship':management}]},str(uuid.uuid4()))
+    # This demo is a trusted backend simulating already-authenticated users.
+    # Real applications derive these actor IDs from login sessions, never user input.
+    managing=Client(os.environ.get('AUTHZ_URL','http://127.0.0.1:8080'),credentials['tenant_id'],credentials['token'],manager['id'])
+    editing=Client(os.environ.get('AUTHZ_URL','http://127.0.0.1:8080'),credentials['tenant_id'],credentials['token'],viewer['id'])
+    edge={'resource':doc,'relation':'editor','subject':viewer,'subject_relation':''}
+    changed=managing.request('write',{'expected_revision':created['revision'],'operations':[{'op':'put_relation','relationship':edge}]},str(uuid.uuid4()))
+    assert editing.can_view(viewer,doc);print('Granted: allow; the document manager shared access.')
+    try:
+        editing.request('write',{'expected_revision':changed['revision'],'operations':[{'op':'put_relation','relationship':{**edge,'relation':'manager'}}]},str(uuid.uuid4()))
+    except AuthorizationError as error:
+        if not error.args or not isinstance(error.args[0],dict) or error.args[0].get('error',{}).get('code')!='FORBIDDEN':raise
+        print('Editor cannot share: forbidden; no self-promotion.')
+    else:raise AssertionError('Editor unexpectedly changed permissions')
+    managing.request('write',{'expected_revision':changed['revision'],'operations':[{'op':'delete_relation','relationship':edge}]},str(uuid.uuid4()))
+    assert not editing.can_view(viewer,doc);print('Revoked: deny; protected operation blocked.')
 if __name__=='__main__':main()

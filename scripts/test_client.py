@@ -25,7 +25,9 @@ class ClientTests(unittest.TestCase):
   self.assertEqual(len(self.seen),1)
  def test_malformed_allow_and_errors_block(self):
   base={'decision':'allow','reason':'MATCHING_RELATION','evaluated_revision':'1','model_version':'org-doc-v2','request_id':str(uuid.uuid4())}
-  cases=[[],{},dict(base,reason='NOT_FOUND'),dict(base,evaluated_revision=None),dict(base,evaluated_revision='01'),dict(base,request_id='invalid')]
+  for reason in ('MATCHING_RELATION','ORG_ADMIN'):
+   self.replies=[(200,dict(base,reason=reason))];self.assertTrue(self.client.can_view({'kind':'user','id':'u'},{'kind':'document','id':'d'}))
+  cases=[[],{},dict(base,model_version='org-doc-v1'),dict(base,reason='NOT_FOUND'),dict(base,evaluated_revision=None),dict(base,evaluated_revision='01'),dict(base,request_id='invalid')]
   for value in cases:
    self.replies=[(200,value)]
    with self.assertRaises(module.AuthorizationError):self.client.can_view({'kind':'user','id':'u'},{'kind':'document','id':'d'})

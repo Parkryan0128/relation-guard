@@ -128,10 +128,10 @@ gRPC, language SDK, 캐시+revision consistency, 접근 가능 리소스 검색,
 
 ## 승인된 V1 관리 권한 확장
 
-- [ ] Core 모델과 migration
-- [ ] 사용자 기준 원자적 관리 변경과 감사
-- [ ] HTTP 사용자 검증과 우회 차단
-- [ ] happy path/경계/부정/동시성 테스트
+- [x] Core 모델과 migration
+- [x] 사용자 기준 원자적 관리 변경과 감사
+- [x] HTTP 사용자 검증과 우회 차단
+- [x] happy path/경계/부정/동시성 테스트
 - [ ] 클라이언트·운영·배포·성능 검증
 
 세부 규칙과 단계별 검증은 [확장 계약](15-managed-authorization.md)을 따른다.
