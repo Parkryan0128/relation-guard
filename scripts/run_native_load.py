@@ -4,7 +4,7 @@ import hashlib,json,os,pathlib,platform,subprocess,time,uuid
 from native_lab import Lab,ROOT
 run=pathlib.Path(os.environ['RG_LOAD_DIR']);run.mkdir(exist_ok=True);run.chmod(0o700)
 lab=Lab(run/'lab');k6=os.environ['K6_BIN'];out=pathlib.Path(os.environ.get('RG_LOAD_OUTPUT',str(ROOT/'verification/load')));out.mkdir(exist_ok=True)
-manifest={'seed':424242,'environment':'native macOS loopback; no cgroup CPU/memory limits','os':platform.platform(),'architecture':platform.machine(),'source_dirty':bool(subprocess.check_output(['git','diff','--name-only','HEAD','--','Cargo.toml','Cargo.lock','crates'],cwd=ROOT)),'logical_cpus':os.cpu_count(),'postgres':subprocess.check_output([str(lab.pg/'postgres'),'--version'],text=True).strip(),'commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'binary_sha256':hashlib.sha256((lab.bin/'authz-server').read_bytes()).hexdigest(),'runs':[]}
+manifest={'seed':424242,'environment':f'native {platform.system()} loopback; no per-process CPU/memory limits imposed by this harness','os':platform.platform(),'architecture':platform.machine(),'source_dirty':bool(subprocess.check_output(['git','diff','--name-only','HEAD','--','Cargo.toml','Cargo.lock','crates'],cwd=ROOT)),'logical_cpus':os.cpu_count(),'postgres':subprocess.check_output([str(lab.pg/'postgres'),'--version'],text=True).strip(),'commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'binary_sha256':hashlib.sha256((lab.bin/'authz-server').read_bytes()).hexdigest(),'runs':[]}
 from load_dataset import seed
 def configure(tenants,documents):
  cfg=run/'load-config.json';cfg.write_text(json.dumps({'url':f'http://127.0.0.1:{lab.port}','tenants':tenants,'documents':documents}));cfg.chmod(0o600);return cfg
