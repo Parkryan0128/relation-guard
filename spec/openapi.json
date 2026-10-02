@@ -1,0 +1,958 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Relation Guard",
+    "version": "0.1.0"
+  },
+  "security": [
+    {
+      "serviceKey": []
+    }
+  ],
+  "paths": {
+    "/v1/tenants/{tenant_id}/write": {
+      "post": {
+        "operationId": "write",
+        "description": "Requires relations:write scope. Normative semantics: docs/04-api.md.",
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._-]{1,128}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful evaluation or mutation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WriteResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "No authorization decision; caller must not perform a protected action.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WriteRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tenants/{tenant_id}/check": {
+      "post": {
+        "operationId": "check",
+        "description": "Requires check scope. Normative semantics: docs/04-api.md.",
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful evaluation or mutation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "No authorization decision; caller must not perform a protected action.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tenants/{tenant_id}/batch-check": {
+      "post": {
+        "operationId": "batch_check",
+        "description": "Requires check scope. Normative semantics: docs/04-api.md.",
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful evaluation or mutation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "No authorization decision; caller must not perform a protected action.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tenants/{tenant_id}/revision": {
+      "get": {
+        "operationId": "revision",
+        "description": "Requires relations:read scope. Normative semantics: docs/04-api.md.",
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful evaluation or mutation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevisionResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "No authorization decision; caller must not perform a protected action.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tenants/{tenant_id}/relationships": {
+      "get": {
+        "operationId": "relationships",
+        "description": "Requires relations:read scope. Normative semantics: docs/04-api.md.",
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "resource_kind",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "enum": [
+                "user",
+                "team",
+                "folder",
+                "document"
+              ]
+            }
+          },
+          {
+            "name": "resource_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 2048
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful evaluation or mutation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RelationshipPage"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "No authorization decision; caller must not perform a protected action.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tenants/{tenant_id}/audit": {
+      "get": {
+        "operationId": "audit",
+        "description": "Requires audit:read scope. Normative semantics: docs/04-api.md.",
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "after_revision",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/Revision"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful evaluation or mutation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditPage"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "No authorization decision; caller must not perform a protected action.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "serviceKey": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "Id": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+        "minLength": 1,
+        "maxLength": 128
+      },
+      "Revision": {
+        "type": "string",
+        "pattern": "^(0|[1-9][0-9]{0,17}|[1-8][0-9]{18}|9[0-1][0-9]{17}|92[0-1][0-9]{16}|922[0-2][0-9]{15}|9223[0-2][0-9]{14}|92233[0-6][0-9]{13}|922337[0-1][0-9]{12}|92233720[0-2][0-9]{10}|922337203[0-5][0-9]{9}|9223372036[0-7][0-9]{8}|92233720368[0-4][0-9]{7}|922337203685[0-3][0-9]{6}|9223372036854[0-6][0-9]{5}|92233720368547[0-6][0-9]{4}|922337203685477[0-4][0-9]{3}|9223372036854775[0-7][0-9]{2}|922337203685477580[0-6]|9223372036854775807)$",
+        "description": "Must also parse to signed i64 <= 9223372036854775807."
+      },
+      "Entity": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "enum": [
+              "user",
+              "team",
+              "folder",
+              "document"
+            ]
+          },
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          }
+        },
+        "required": [
+          "kind",
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "const": "user"
+          },
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          }
+        },
+        "required": [
+          "kind",
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "Resource": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "enum": [
+              "folder",
+              "document"
+            ]
+          },
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          }
+        },
+        "required": [
+          "kind",
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "Relationship": {
+        "type": "object",
+        "properties": {
+          "resource": {
+            "$ref": "#/components/schemas/Entity"
+          },
+          "relation": {
+            "enum": [
+              "member",
+              "parent",
+              "viewer",
+              "editor"
+            ]
+          },
+          "subject": {
+            "$ref": "#/components/schemas/Entity"
+          },
+          "subject_relation": {
+            "enum": [
+              "",
+              "member"
+            ]
+          }
+        },
+        "required": [
+          "resource",
+          "relation",
+          "subject",
+          "subject_relation"
+        ],
+        "additionalProperties": false
+      },
+      "Check": {
+        "type": "object",
+        "properties": {
+          "resource": {
+            "$ref": "#/components/schemas/Resource"
+          },
+          "action": {
+            "enum": [
+              "view",
+              "edit"
+            ]
+          }
+        },
+        "required": [
+          "resource",
+          "action"
+        ],
+        "additionalProperties": false
+      },
+      "CheckRequest": {
+        "type": "object",
+        "properties": {
+          "subject": {
+            "$ref": "#/components/schemas/User"
+          },
+          "resource": {
+            "$ref": "#/components/schemas/Resource"
+          },
+          "action": {
+            "enum": [
+              "view",
+              "edit"
+            ]
+          },
+          "explain": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "subject",
+          "resource",
+          "action"
+        ],
+        "additionalProperties": false
+      },
+      "BatchRequest": {
+        "type": "object",
+        "properties": {
+          "subject": {
+            "$ref": "#/components/schemas/User"
+          },
+          "checks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Check"
+            },
+            "minItems": 1,
+            "maxItems": 100
+          },
+          "explain": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "subject",
+          "checks"
+        ],
+        "additionalProperties": false
+      },
+      "WriteRequest": {
+        "type": "object",
+        "properties": {
+          "expected_revision": {
+            "$ref": "#/components/schemas/Revision"
+          },
+          "operations": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "const": "put_entity"
+                    },
+                    "entity": {
+                      "$ref": "#/components/schemas/Entity"
+                    }
+                  },
+                  "required": [
+                    "op",
+                    "entity"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "const": "delete_entity"
+                    },
+                    "entity": {
+                      "$ref": "#/components/schemas/Entity"
+                    }
+                  },
+                  "required": [
+                    "op",
+                    "entity"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "const": "put_relation"
+                    },
+                    "relationship": {
+                      "$ref": "#/components/schemas/Relationship"
+                    }
+                  },
+                  "required": [
+                    "op",
+                    "relationship"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "const": "delete_relation"
+                    },
+                    "relationship": {
+                      "$ref": "#/components/schemas/Relationship"
+                    }
+                  },
+                  "required": [
+                    "op",
+                    "relationship"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "minItems": 1,
+            "maxItems": 100
+          }
+        },
+        "required": [
+          "expected_revision",
+          "operations"
+        ],
+        "additionalProperties": false
+      },
+      "Decision": {
+        "type": "object",
+        "properties": {
+          "decision": {
+            "enum": [
+              "allow",
+              "deny"
+            ]
+          },
+          "reason": {
+            "enum": [
+              "MATCHING_RELATION",
+              "NOT_FOUND",
+              "NO_MATCHING_RELATION"
+            ]
+          },
+          "proof": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Relationship"
+            },
+            "maxItems": 34
+          }
+        },
+        "required": [
+          "decision",
+          "reason"
+        ],
+        "additionalProperties": false
+      },
+      "CheckResponse": {
+        "type": "object",
+        "properties": {
+          "decision": {
+            "enum": [
+              "allow",
+              "deny"
+            ]
+          },
+          "reason": {
+            "enum": [
+              "MATCHING_RELATION",
+              "NOT_FOUND",
+              "NO_MATCHING_RELATION"
+            ]
+          },
+          "proof": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Relationship"
+            },
+            "maxItems": 34
+          },
+          "evaluated_revision": {
+            "$ref": "#/components/schemas/Revision"
+          },
+          "model_version": {
+            "const": "org-doc-v1"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "decision",
+          "reason",
+          "evaluated_revision",
+          "model_version",
+          "request_id"
+        ],
+        "additionalProperties": false
+      },
+      "BatchResponse": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Decision"
+            },
+            "minItems": 1,
+            "maxItems": 100
+          },
+          "evaluated_revision": {
+            "$ref": "#/components/schemas/Revision"
+          },
+          "model_version": {
+            "const": "org-doc-v1"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "results",
+          "evaluated_revision",
+          "model_version",
+          "request_id"
+        ],
+        "additionalProperties": false
+      },
+      "WriteResponse": {
+        "type": "object",
+        "properties": {
+          "changed": {
+            "type": "boolean"
+          },
+          "revision": {
+            "$ref": "#/components/schemas/Revision"
+          },
+          "model_version": {
+            "const": "org-doc-v1"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "changed",
+          "revision",
+          "model_version",
+          "request_id"
+        ],
+        "additionalProperties": false
+      },
+      "RevisionResponse": {
+        "type": "object",
+        "properties": {
+          "revision": {
+            "$ref": "#/components/schemas/Revision"
+          },
+          "model_version": {
+            "const": "org-doc-v1"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "revision",
+          "model_version",
+          "request_id"
+        ],
+        "additionalProperties": false
+      },
+      "RelationshipPage": {
+        "type": "object",
+        "properties": {
+          "relationships": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Relationship"
+            },
+            "maxItems": 100
+          },
+          "evaluated_revision": {
+            "$ref": "#/components/schemas/Revision"
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "relationships",
+          "evaluated_revision",
+          "next_cursor",
+          "request_id"
+        ],
+        "additionalProperties": false
+      },
+      "AuditEvent": {
+        "type": "object",
+        "properties": {
+          "revision": {
+            "$ref": "#/components/schemas/Revision"
+          },
+          "key_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,64}$"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "recorded_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "effective_changes": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "const": "put_entity"
+                    },
+                    "entity": {
+                      "$ref": "#/components/schemas/Entity"
+                    }
+                  },
+                  "required": [
+                    "op",
+                    "entity"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "const": "delete_entity"
+                    },
+                    "entity": {
+                      "$ref": "#/components/schemas/Entity"
+                    }
+                  },
+                  "required": [
+                    "op",
+                    "entity"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "const": "put_relation"
+                    },
+                    "relationship": {
+                      "$ref": "#/components/schemas/Relationship"
+                    }
+                  },
+                  "required": [
+                    "op",
+                    "relationship"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "const": "delete_relation"
+                    },
+                    "relationship": {
+                      "$ref": "#/components/schemas/Relationship"
+                    }
+                  },
+                  "required": [
+                    "op",
+                    "relationship"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "minItems": 1,
+            "maxItems": 100
+          }
+        },
+        "required": [
+          "revision",
+          "key_id",
+          "request_id",
+          "recorded_at",
+          "effective_changes"
+        ],
+        "additionalProperties": false
+      },
+      "AuditPage": {
+        "type": "object",
+        "properties": {
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuditEvent"
+            },
+            "maxItems": 100
+          },
+          "evaluated_revision": {
+            "$ref": "#/components/schemas/Revision"
+          },
+          "next_after_revision": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "events",
+          "evaluated_revision",
+          "next_after_revision",
+          "request_id"
+        ],
+        "additionalProperties": false
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "request_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "details": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "code",
+              "message",
+              "request_id"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}
