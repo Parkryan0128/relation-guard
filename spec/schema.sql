@@ -55,7 +55,7 @@ CREATE INDEX relationships_by_subject
 
 CREATE TABLE mutation_receipts (
     tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE RESTRICT,
-    key_id text COLLATE "C" NOT NULL CHECK (key_id ~ '^[A-Za-z0-9._-]{1,64}$'),
+    key_id text COLLATE "C" NOT NULL CHECK (key_id ~ '^[A-Za-z0-9_-]{1,64}$'),
     idempotency_key text COLLATE "C" NOT NULL
         CHECK (idempotency_key ~ '^[A-Za-z0-9._-]{1,128}$'),
     request_hash bytea NOT NULL CHECK (octet_length(request_hash) = 32),
@@ -68,7 +68,7 @@ CREATE INDEX mutation_receipts_retention ON mutation_receipts (recorded_at);
 CREATE TABLE audit_events (
     tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE RESTRICT,
     revision bigint NOT NULL CHECK (revision > 0),
-    key_id text COLLATE "C" NOT NULL CHECK (key_id ~ '^[A-Za-z0-9._-]{1,64}$'),
+    key_id text COLLATE "C" NOT NULL CHECK (key_id ~ '^[A-Za-z0-9_-]{1,64}$'),
     request_id uuid NOT NULL,
     recorded_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
     effective_changes jsonb NOT NULL

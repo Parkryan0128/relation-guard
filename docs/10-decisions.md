@@ -41,3 +41,7 @@ primary REPEATABLE READ snapshot. replica/cache/token mode를 제공하지 않�
 ## ADR-010: 설계 먼저, 독립 저장소
 
 기존 세 프로젝트와 과거 지원 채팅 코드에 연결 의존성을 만들지 않는다. 현재 commit에는 문서·설계 DDL·계약 fixture·문서 검증만 포함한다. GitHub는 우선 비공개, 라이선스는 보류. 벤치마크 결과와 작동하는 API는 구현 후에만 추가한다.
+
+## ADR-011: 검증 가능한 stage gate와 경계 계약
+
+각 stage에 acceptance ID, 환경, 실행 진입점 계획, 통과 조건, evidence 형식을 연결했다. 기존 모호성을 해소한 결정: delete missing의 참조 검사 면제, replay body/header request ID 구분, final-state hierarchy 검증, COMMIT 이후 unknown outcome 우선, direct proof/deny proof 표현, ASCII key_id에서 dot 제외, 운영 listener 분리, 필수 성능 미달 시 M5 미완료. docs/03·04·05·06·07·08·09·12와 schema가 함께 기준을 이룬다. 새로운 기능을 추가하기보다 기존 계약을 구체화한 변경이다.

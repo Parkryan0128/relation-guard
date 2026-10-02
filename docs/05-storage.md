@@ -46,7 +46,7 @@ FK는 처음에는 immediate, deletion은 관계 제거 후 객체 제거하므�
 
 목표는 BEGIN/COMMIT/SET을 제외한 데이터 조회 statement 최대 3개다. step 2의 존재/ancestor 결과는 하나의 query 또는 동등한 구조로 작성한다. 모든 clause/CTE/join에 tenant 조건을 포함한다. max facts + 1개를 읽어 한도 초과를 감지하며 잘린 결과로 deny를 계산하지 않는다.
 
-parent 구조를 복구할 때 guard에 걸리면 500; 정상 API 입력의 evaluation 예산 초과는 422. 이 구별은 서버가 쓴 유효 계층이라는 invariant와 함께 테스트한다.
+read의 parent chain 조회에서 cycle/다중 부모/depth>32 guard에 걸리면 500; 정상 API 입력의 evaluation 예산 초과는 422. 이 구별은 서버가 쓴 유효 계층이라는 invariant와 함께 테스트한다.
 
 ## Rust 엔진의 실제 역할
 
@@ -55,3 +55,12 @@ DB는 관계 저장, snapshot, ancestor/fact 집합 준비를 담당한다. Rust
 ## 성장 시점
 
 primary 1개, read-only snapshot, 테넌트당 직렬 write는 의도된 시작점이다. hot tenant write contention·큰 subtree·DB pool 포화는 측정할 한계다. closure table, caching, immutable in-memory graph, replicas는 측정 후 consistency 계약을 다시 설계해야 하는 후속 선택지다.
+
+## 구현 세부 확정
+
+- 최종 graph 검증을 위한 parent 변경은 전체 batch의 변경을 적용한 상태에서 수행한다. 한 batch의 두 이동을 각각 이전 상태로 검증하지 않는다. 외부 reader에는 commit 전 중간 상태가 보이지 않는다.
+- duplicate 관계의 put은 전체 PK conflict에만 no-op 처리한다. 별도의 one_parent unique index 위반을 `ON CONFLICT DO NOTHING`으로 숨기지 않는다. 서로 다른 parent를 주는 요청은 409다.
+- 단일 요청에서 entity put과 이를 참조하는 relation put은 가능하다. 반면 delete_entity와 해당 entity를 참조하는 relation put은 최종 FK 검증에서 422 UNKNOWN_ENTITY다. 삭제 시 남아 있는 기존 관계는 409 ENTITY_IN_USE다.
+- revision이 동일한 두 no-op write는 모두 성공할 수 있다. "동시 writer 중 하나만 성공" 테스트는 실제 변경을 수행하는 두 요청에만 적용한다.
+- receipt row 정리는 `recorded_at < DB now - 24 hours` 조건으로 최대 1,000행씩 한다. 누적 삭제는 운영 CLI가 반복한다. 정리로 graph revision이나 audit를 수정하지 않는다. v0.1은 상주 정리 scheduler를 제공하지 않는다.
+- HTTP disconnect 전에 COMMIT을 보내지 않았다면 transaction을 rollback한다. 이미 보냈다면 bounded finalization으로 상태를 수습하고 결과/불명확 여부를 기록한다. 클라이언트 연결이 사라졌다는 이유로 commit이 취소됐다고 가정하지 않는다.

@@ -28,8 +28,8 @@ No custom policy DSL, dynamic arbitrary resource types, nested teams, explicit d
 
 ## Verification and reporting
 
-M0 onward: fmt, Clippy with warnings denied, unit/property tests, real PostgreSQL integration tests, API/integration smoke checks. Exact commands are established when Cargo exists. Add benchmark results only with commit, hardware, limits, dataset, concurrency, errors and latency percentiles. Report unfinished checks candidly. Keep README's status and docs/09 checklist aligned with evidence.
+M0 onward: fmt, Clippy with warnings denied, unit/property tests, real PostgreSQL integration tests, API/integration smoke checks. Stage-specific required cases and evidence are defined in docs/09 and docs/12. Exact commands are established when Cargo exists. Skipped or unavailable required checks do not count as passes. Add benchmark results only with commit, hardware, limits, dataset, concurrency, errors and latency percentiles. Report unfinished checks candidly. Keep README's status and docs/09 checklist aligned with evidence.
 
 ## Language
 
-Design explanations: Korean. Code identifiers, structured errors, and API properties: English. Keep third-party material linked and paraphrased, not copied into this repo.
+README: English only. Detailed design explanations: Korean. Code identifiers, structured errors, and API properties: English. Keep third-party material linked and paraphrased, not copied into this repo.

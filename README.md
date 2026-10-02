@@ -1,55 +1,102 @@
 # Relation Guard
 
-**Rust로 구현할 관계 기반 권한 서비스(ReBAC)의 설계 저장소.** 어떤 언어의 백엔드든 HTTP API로 관계를 등록·회수하고, 사용자의 리소스 접근 가능 여부를 확인한다.
+**A design-first, relationship-based authorization service in Rust.** Backends written in any language will use its HTTP API to register or revoke relationships and check access to resources.
 
-> 상태: **설계 초안 v0.1 — 서비스 구현 전**. 아래 API, 성능 목표, 운영 절차는 구현 계약과 계획이며 동작하거나 달성했다고 주장하는 내용이 아니다. 현재 서버 실행 파일, Cargo 프로젝트, 컨테이너 이미지는 없다.
+> **Status: v0.1 design baseline; implementation has not started.** The repository contains specifications, design SQL, example contracts, and a document checker. It does not contain a running server, Cargo workspace, or container image. Performance numbers are acceptance targets, not measured results.
 
-## 무엇을 만드는가
+## What it will do
 
 ```mermaid
 flowchart LR
-  App[Java / Go / C# / 기타 백엔드] -->|관계 변경 · 권한 확인 HTTP| API[Rust · Axum API]
-  API --> Core[고정 모델 권한 평가기]
-  API --> Store[SQLx 저장소]
-  Store --> DB[(전용 PostgreSQL)]
-  Store -->|동일 스냅샷의 사실| Core
+  App[Application backend] -->|Relationship writes and access checks over HTTP| API[Rust / Axum API]
+  API --> Core[Pure authorization evaluator]
+  API --> Store[SQLx snapshot loader]
+  Store --> DB[(Dedicated PostgreSQL)]
+  Store -->|Facts from one snapshot| Core
 ```
 
-사용자 → 팀 소속 → 폴더 편집 권한 → 하위 문서 편집 권한을 계산한다. 원본 문서 내용과 로그인은 기존 애플리케이션이 관리한다. 엔진은 자신의 관계 데이터만 읽으며 고객 앱의 DB를 직접 조회하지 않는다.
+An application asks whether a user can view or edit a folder or document. Relation Guard evaluates direct grants, team membership, and inherited folder permissions. Applications continue to own login, business data, and enforcement of the returned decision. The service reads its own relationship database, not the application's database.
 
-## 첫 버전의 약속
+## v0.1 scope
 
-- 테넌트 단위 격리. 사용자·팀·폴더·문서의 타입이 정해진 모델.
-- 관계/객체를 원자적으로 등록·삭제하는 write API와 단건·일괄 check API.
-- 직접 권한, 팀 권한, 부모 폴더 상속. `edit`는 `view`를 포함.
-- 한 요청은 한 DB 스냅샷에서 판단. 커밋된 회수 이후 새 스냅샷은 변경을 반영.
-- 재시도 가능한 쓰기, revision 충돌 감지, 변경 감사 기록, 제한된 판단 근거.
-- 정확성·조직 격리·장애·성능을 재현할 테스트와 시나리오.
+- A fixed `org-doc-v1` model: users, teams, folders, and documents within an isolated tenant.
+- Atomic entity and relationship writes, with expected revisions and idempotent retries.
+- Single checks and batch checks for up to 100 items belonging to one subject.
+- Direct and team-based grants, single-parent folder inheritance, and `edit` implying `view`.
+- Optional, scope-protected evidence for an allow decision; change audit records.
+- Explicit error handling, bounded work, health checks, metrics, and container deployment.
 
-## 읽는 순서
+An explicit deny rule is not supported. Removing one grant does not revoke access provided by another grant. A failed evaluation returns an error, not a successful deny response, and callers must execute protected actions only after an explicit allow.
 
-1. [범위와 완료 기준](docs/01-scope.md)
-2. [스택과 구조](docs/02-architecture.md)
-3. [권한 규칙](docs/03-authorization-model.md)
-4. [HTTP API 계약](docs/04-api.md)
-5. [저장 구조와 조회 알고리즘](docs/05-storage.md)
-6. [일관성과 연동 계약](docs/06-consistency.md)
-7. [보안·배포·운영](docs/07-operations.md)
-8. [검증과 성능 실험](docs/08-validation.md)
-9. [단계별 구현 계획](docs/09-roadmap.md)
-10. [설계 결정 기록](docs/10-decisions.md)
-11. [근거 자료와 적용 범위](docs/11-references.md)
+## Stack
 
-[설계용 DDL](spec/schema.sql), [요청·응답 예시](spec/examples/contracts.json), [권한 기대 결과](spec/examples/authorization-cases.json)도 포함한다. DDL은 구현 시 migration으로 옮기기 전 PostgreSQL 검증이 필요하다. 예시는 의도한 계약이며 서비스가 실행한 결과가 아니다.
+| Component | Planned choice |
+|---|---|
+| Language | Stable Rust, edition 2024 |
+| HTTP and async I/O | Axum and Tokio |
+| Data access | SQLx and explicit SQL |
+| Persistence | PostgreSQL 18; one primary, no decision cache |
+| Serialization and observability | Serde, structured tracing, HTTP metrics |
+| Testing | Rust tests, proptest, real PostgreSQL integration tests |
+| Performance experiments | Criterion for the core; k6 for end-to-end HTTP |
+| Deployment | Separate containers with Docker Compose |
 
-## 개발 시작 시
+Exact toolchain and dependency versions will be verified and pinned in M0. Rust is chosen for learning and safe systems implementation, not an unmeasured speed advantage over Java, Go, or C++.
 
-[AGENTS.md](AGENTS.md)를 먼저 읽고 M0부터 순서대로 구현한다. 초기 전달 범위는 이 설계 문서까지다. 새로운 구현 요청 전 서버 개발을 시작하지 않는다.
+## Stage gates
 
-현재 문서 검증: `python3 scripts/check_docs.py`. 외부 패키지를 설치하지 않고 내부 링크·JSON·SQL 주요 계약의 존재를 점검한다. DB/보안/서버 검증을 대신하지 않는다.
+All stages below are **not started**. Detailed test cases, required evidence, and pass/fail rules are defined in the [implementation roadmap](docs/09-roadmap.md) and [acceptance test matrix](docs/12-acceptance-tests.md).
 
-## 범위 밖
+| Stage | Deliverable | Required validation |
+|---|---|---|
+| M0 | Workspace, typed contracts, migrations | Build/lint, valid and invalid API fixtures, real PostgreSQL constraints |
+| M1 | Pure authorization evaluator | Rule fixtures, independent reference comparison, property tests, proof and limit boundaries |
+| M2 | Storage and transactional writes | Rollback, revision conflicts, retry safety, snapshot reads, deterministic concurrency schedules |
+| M3 | HTTP API and service authentication | HTTP contracts, tenant/scope isolation, error mapping, deadlines, overload and disconnect tests |
+| M4 | Deployable integration | Clean Docker bootstrap, external-language client, restart persistence, key rotation, backup/restore |
+| M5 | Release evidence | Full regression, reproducible load tests, fault recovery, dependency and secret review |
 
-자체 로그인·문서 CRUD UI, 임의 정책 언어, OpenFGA/SpiceDB 호환, 명시적 deny, 중첩 팀, Redis, gRPC, 다중 리전, DB replica, Kubernetes 필수화는 v0.1에 포함하지 않는다. 운영 제품 대체나 보안 인증을 주장하지 않는다.
+A stage passes only when its required cases pass and evidence is recorded for the tested commit. A skipped or unavailable required test is not a pass. Implementation and testing of later stages must not hide an unresolved earlier gate.
 
-설계 기준일: 2026-10-01. 저장소는 초기 비공개이며 라이선스 부여는 보류한다.
+## Consistency boundaries
+
+Each check or batch reads one PostgreSQL snapshot. A snapshot acquired after a successful revocation commit sees that change or a later state. An already-running check may still use an older snapshot. Returned revisions describe the observation; they are not access tokens.
+
+The service does not atomically coordinate a permission check with a write to another application's database. It does not provide global external consistency or cancellation of in-flight business operations. See the [integration contract](docs/06-consistency.md).
+
+## Documentation
+
+The README is in English. Detailed design documents currently use Korean; API identifiers and examples use English.
+
+1. [Scope and completion criteria](docs/01-scope.md)
+2. [Stack and architecture](docs/02-architecture.md)
+3. [Authorization semantics](docs/03-authorization-model.md)
+4. [HTTP API contract](docs/04-api.md)
+5. [Storage and query algorithms](docs/05-storage.md)
+6. [Consistency and application integration](docs/06-consistency.md)
+7. [Security, deployment, and operations](docs/07-operations.md)
+8. [Validation and performance methodology](docs/08-validation.md)
+9. [Stage-by-stage implementation and testing](docs/09-roadmap.md)
+10. [Architecture decisions](docs/10-decisions.md)
+11. [Primary references and their applicability](docs/11-references.md)
+12. [Acceptance test matrix](docs/12-acceptance-tests.md)
+
+Supporting artifacts: [design DDL](spec/schema.sql), [API examples](spec/examples/contracts.json), and [authorization cases](spec/examples/authorization-cases.json). The SQL has not been executed against PostgreSQL yet. Examples specify expected behavior; they are not recorded server responses.
+
+## Working on this repository
+
+Read [AGENTS.md](AGENTS.md) before implementation. The current task covers documentation only. Server implementation starts after a separate implementation request.
+
+Run the current document checks from the repository root:
+
+```sh
+python3 scripts/check_docs.py
+```
+
+This checks local links, English README text, JSON examples, stage/test references, and basic specification invariants. It does not test a server, execute SQL, or verify security or performance.
+
+## Out of scope
+
+Login, a document-management UI, arbitrary policy languages, nested teams, explicit deny rules, Redis, gRPC, multi-region operation, read replicas, and mandatory Kubernetes deployment are excluded from v0.1. This is not an OpenFGA/SpiceDB-compatible implementation or a security-certified product.
+
+Design baseline: 2026-10-01. The repository is private. An open-source license has not been selected.

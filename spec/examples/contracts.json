@@ -90,6 +90,10 @@
       "revision": "1",
       "model_version": "org-doc-v1",
       "request_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+    },
+    "response_headers": {
+      "X-Request-Id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "Idempotency-Replayed": "false"
     }
   },
   "check": {
@@ -220,6 +224,10 @@
       "revision": "2",
       "model_version": "org-doc-v1",
       "request_id": "dddddddd-dddd-4ddd-8ddd-dddddddddddd"
+    },
+    "response_headers": {
+      "X-Request-Id": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+      "Idempotency-Replayed": "false"
     }
   },
   "check_after_revoke": {
@@ -264,6 +272,155 @@
         "message": "Authorization could not be evaluated.",
         "request_id": "99999999-9999-4999-8999-999999999999"
       }
+    }
+  },
+  "write_replay_after_revoke": {
+    "headers": {
+      "Idempotency-Key": "bootstrap-001"
+    },
+    "request": {
+      "expected_revision": "0",
+      "operations": [
+        {
+          "op": "put_entity",
+          "entity": {
+            "kind": "user",
+            "id": "u42"
+          }
+        },
+        {
+          "op": "put_entity",
+          "entity": {
+            "kind": "team",
+            "id": "dev"
+          }
+        },
+        {
+          "op": "put_entity",
+          "entity": {
+            "kind": "folder",
+            "id": "f10"
+          }
+        },
+        {
+          "op": "put_entity",
+          "entity": {
+            "kind": "document",
+            "id": "d100"
+          }
+        },
+        {
+          "op": "put_relation",
+          "relationship": {
+            "resource": {
+              "kind": "team",
+              "id": "dev"
+            },
+            "relation": "member",
+            "subject": {
+              "kind": "user",
+              "id": "u42"
+            },
+            "subject_relation": ""
+          }
+        },
+        {
+          "op": "put_relation",
+          "relationship": {
+            "resource": {
+              "kind": "folder",
+              "id": "f10"
+            },
+            "relation": "editor",
+            "subject": {
+              "kind": "team",
+              "id": "dev"
+            },
+            "subject_relation": "member"
+          }
+        },
+        {
+          "op": "put_relation",
+          "relationship": {
+            "resource": {
+              "kind": "document",
+              "id": "d100"
+            },
+            "relation": "parent",
+            "subject": {
+              "kind": "folder",
+              "id": "f10"
+            },
+            "subject_relation": ""
+          }
+        }
+      ]
+    },
+    "response": {
+      "changed": true,
+      "revision": "1",
+      "model_version": "org-doc-v1",
+      "request_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+    },
+    "response_headers": {
+      "X-Request-Id": "12121212-1212-4212-8212-121212121212",
+      "Idempotency-Replayed": "true"
+    },
+    "_note": "Receipt replay returns original revision 1; actual graph remains at revision 2 with membership revoked."
+  },
+  "deny_with_explain": {
+    "request": {
+      "subject": {
+        "kind": "user",
+        "id": "u42"
+      },
+      "resource": {
+        "kind": "document",
+        "id": "d100"
+      },
+      "action": "edit",
+      "explain": true
+    },
+    "response": {
+      "decision": "deny",
+      "reason": "NO_MATCHING_RELATION",
+      "evaluated_revision": "2",
+      "model_version": "org-doc-v1",
+      "request_id": "13131313-1313-4313-8313-131313131313",
+      "proof": []
+    }
+  },
+  "unknown_commit_outcome": {
+    "http_status": 503,
+    "response": {
+      "error": {
+        "code": "WRITE_OUTCOME_UNKNOWN",
+        "message": "Retry the same operation with its original idempotency key.",
+        "request_id": "14141414-1414-4414-8414-141414141414"
+      }
+    }
+  },
+  "revision": {
+    "response": {
+      "revision": "2",
+      "model_version": "org-doc-v1",
+      "request_id": "15151515-1515-4515-8515-151515151515"
+    }
+  },
+  "empty_relationship_page": {
+    "response": {
+      "relationships": [],
+      "evaluated_revision": "2",
+      "next_cursor": null,
+      "request_id": "16161616-1616-4616-8616-161616161616"
+    }
+  },
+  "empty_audit_page": {
+    "response": {
+      "events": [],
+      "evaluated_revision": "2",
+      "next_after_revision": null,
+      "request_id": "17171717-1717-4717-8717-171717171717"
     }
   }
 }

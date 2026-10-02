@@ -53,3 +53,13 @@ parent 이동은 같은 write에서 old parent 삭제 + new parent 등록으로 
 DB 오류, 깊이/작업 한도 초과, corrupt graph는 deny 판단이 아니다. HTTP error를 반환하고 client는 보호 작업을 실행하지 않는다. error에 allowed 필드를 넣지 않는다. 상세 데이터 손상은 로그/운영자에게만 노출한다.
 
 판단에는 `model_version`과 `evaluated_revision`이 들어간다. revision은 snapshot을 설명하는 값이며 권한 증명 token이나 영구 access token이 아니다.
+
+## 판정·증명 세부 계약
+
+- ancestor depth는 parent edge 개수다. root의 depth=0, root 바로 아래 문서는 1. 폴더 이동 검증은 하위 document까지 포함해 최종 상태의 최대 depth를 검사한다.
+- candidate proof 정렬 키는 `(대상부터 grant까지의 parent edge 수, direct user=0/team=1, subject_id의 ASCII 순서, relation의 ASCII 순서, 전체 tuple)`이다. SQL collation이나 입력 순서에 결과를 맡기지 않는다.
+- 반환 proof는 대상→grant 리소스 순의 parent tuples, grant tuple, 필요한 경우 member tuple 순서다. 직접 user grant의 proof는 1개 tuple이다.
+- `explain=false`에서는 proof 필드를 생략한다. `explain=true`이고 deny면 `proof: []`; allow면 위 경로 하나다. batch에도 item별로 동일 규칙을 적용한다.
+- 입력 전체의 형식/권한과 로드 결과의 무결성/한도를 먼저 검증한다. 앞 item이 allow라고 해서 뒤 item의 오류를 숨기지 않는다. 어느 item이든 평가가 실패하면 batch 전체가 오류다.
+- read에서 cycle/다중 부모/depth>32를 발견하면 저장 invariant 손상이므로 500 INTERNAL_ERROR. write가 그런 상태를 만들려 하면 409 INVALID_HIERARCHY. 정상 데이터에서 평가 작업 예산만 초과하면 422 EVALUATION_LIMIT.
+- 삭제 후 같은 ID를 새 write에서 재등록하는 것은 허용하지만 과거 grant를 복원하지 않는다. 오래된 integration event를 새 의도로 재발행하는 문제는 caller가 식별해야 한다.

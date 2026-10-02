@@ -4,7 +4,7 @@
 
 end user → 기존 앱 → Relation Guard → PostgreSQL. 사용자 인증과 subject 선택 책임은 기존 앱에 있다. 사용자가 입력한 user ID를 그대로 믿고 엔진에 넘기지 않는다. Relation Guard는 신뢰된 caller의 tenant와 scope를 검증한다.
 
-v0.1 서비스 인증: CSPRNG로 생성한 최소 32바이트 token, key_id, 단일 tenant UUID, scopes를 운영자 관리 secret 파일에 배포한다. token은 `key_id.secret` 형태이고 저장 설정에는 secret SHA-256 digest만 둔다. 고엔트로피 secret용이며 사용자 password hashing 설계가 아니다. digest는 constant-time 비교, 비밀값은 로그/CLI 인자/URL에 노출하지 않는다. 원문은 최초 생성 시 안전한 secret 전달 경로로만 제공한다.
+v0.1 서비스 인증: CSPRNG로 생성한 정확히 32바이트 secret, key_id, 단일 tenant UUID, scopes를 운영자 관리 secret 파일에 배포한다. token은 `key_id.secret` 형태이고 저장 설정에는 secret SHA-256 digest만 둔다. 고엔트로피 secret용이며 사용자 password hashing 설계가 아니다. digest는 constant-time 비교, 비밀값은 로그/CLI 인자/URL에 노출하지 않는다. 원문은 최초 생성 시 안전한 secret 전달 경로로만 제공한다.
 
 credential secret 파일은 read-only mount, app DB에는 넣지 않는다. key rotation은 새·옛 key 잠시 중복 배포 후 옛 key 제거 및 모든 replica 재시작으로 처리한다. v0.1은 hot reload/즉시 분산 credential 회수를 약속하지 않는다. startup 시 잘못된 tenant/scope/key 중복 설정은 fail-fast. admin CLI는 별도 privileged DB credential로 tenant와 초기 revision 0을 생성하며 runtime 서버에 그 credential을 제공하지 않는다.
 
@@ -44,3 +44,12 @@ DB connection budget은 replica 수 × pool size로 계산하고 여유를 admin
 ## 운영 전 추가 검토
 
 공개 인터넷 노출, 사용자의 직접 API 접근, dynamic API key 관리, 외부 감사 인증, HA/멀티 리전은 별도 설계가 필요하다. 이 항목은 초기 개발을 막는 승인 단계가 아니라 v0.1의 보장 범위를 명시한 것이다.
+
+## credential·listener·shutdown 세부 계약
+
+- key_id는 `[A-Za-z0-9_-]{1,64}`로 dot을 금지한다. secret은 32 random bytes를 unpadded base64url로 인코딩한 43자다. bearer는 `key_id.secret`이며 separator는 정확히 하나. SHA-256은 디코딩한 32 bytes에 적용한다. 형식/unknown key/틀린 secret은 동일한 401 응답을 사용한다.
+- credential 파일 형식은 `{version:1,keys:[{key_id,tenant_id,scopes,secret_sha256}]}`. digest는 lowercase hex 64자, scopes는 알려진 문자열의 중복 없는 배열, key_id는 파일 전체에서 유일하다. 존재하지 않는 tenant, empty scope, 중복/알 수 없는 scope는 startup 실패다. key rotation시 새 key_id를 사용하고 삭제한 key_id를 재사용하지 않는다.
+- data API는 8080, 운영 listener는 9090. healthz/readyz/metrics는 운영 listener에서만 제공하고 bearer scope 체계와 섞지 않는다. Compose는 9090을 host에 publish하지 않는다. 운영 환경도 network policy로 제한한다.
+- healthz: 살아 있으면 200 `{status:"ok"}`. readyz: 준비 시 200 `{status:"ready"}`, DB/schema/drain 실패 시 503 `{status:"not_ready"}`. metrics는 Prometheus text. 운영 응답은 data API의 공통 JSON envelope에서 제외한다.
+- shutdown은 readiness false → data listener 신규 수락 중단 → in-flight drain 최대 10초 → pool 종료. 10초 안에 종료 못 한 연결은 닫고 로그에 남긴다. commit 상태는 별도로 확정하거나 unknown으로 남기며 허위 rollback 기록을 하지 않는다.
+- in-flight 제한은 instance별 전체 data API에 적용하고 대기열을 만들지 않는다. 128개 점유 시 새 요청은 503 OVERLOADED. 운영 listener는 별도의 작은 capacity를 확보한다. 단일 tenant가 전체 capacity를 쓸 수 있다는 한계는 남으며 tenant별 quota는 v0.1 범위 밖이다.

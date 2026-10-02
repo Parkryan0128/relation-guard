@@ -53,8 +53,20 @@ transaction 시작이 아닌 첫 snapshot statement 시점을 test hook으로 �
 4. mixed: 95% check/5% write, hot tenant와 tenant 분산 각각. write client는 revision conflict 수와 재시도 비용도 포함.
 5. stress: load를 단계적으로 증가시켜 latency/error/pool saturation이 발생하는 지점을 기록. 극한 throughput을 정상 운영 SLO처럼 쓰지 않음.
 
-초기 성능 가설: profile 2에서 p95 ≤20ms, p99 ≤50ms, 예상 밖 error <0.1%; profile 3에서 batch p95 ≤100ms. 네트워크 포함 값이다. 이 값은 업계 보장이나 Rust 우위의 증거가 아니다. M0 이후 첫 baseline에서 달성 가능성을 검토하고 실패 시 원인/변경 근거를 남긴다. 기능상 완료와 성능 목표 달성 여부를 별도로 보고하며 목표를 몰래 낮추지 않는다.
+초기 성능 가설: profile 2에서 p95 ≤20ms, p99 ≤50ms, 예상 밖 error <0.1%; profile 3에서 batch p95 ≤100ms. 네트워크 포함 값이다. 이 값은 업계 보장이나 Rust 우위의 증거가 아니다. M0 이후 첫 baseline에서 달성 가능성을 검토하고 실패 시 원인/변경 근거를 남긴다. 기능상 완료와 성능 목표 달성 여부는 별도로 보고한다. M0–M4가 통과해도 M5의 필수 성능 목표가 미달이면 release gate는 미완료다. 목표 변경은 ADR에 근거/조건을 먼저 기록하고 재측정하며 몰래 낮추지 않는다.
 
 필수 기록: end-to-end p50/p95/p99, request/decision throughput, 4xx/5xx/timeout/409 개수, DB statement 수·시간, pool wait, core 시간, CPU/RSS, DB CPU/IO, cold/warm 상태. dropped iteration도 실패로 기록하며 성공 요청만의 percentile로 전체 성공을 주장하지 않는다.
 
 최적화 gate: batch fact loading은 입력 수에 비례해 DB round trip을 늘리지 않음(데이터 SELECT 목표 ≤3). 인덱스는 EXPLAIN (ANALYZE, BUFFERS) 증거로 평가. 성능 때문에 tenant/consistency 검사를 빼지 않는다.
+
+## 측정·CI 규칙 확정
+
+필수 stage별 매핑은 [acceptance matrix](12-acceptance-tests.md). 모든 PR은 구현된 stage까지 fmt/lint/unit/property/integration/contract를 실행한다. PR property는 속성당 1,000 cases, stage gate는 10,000 cases. 동시성 schedule 100회 반복은 M2 및 release gate에 포함한다. full performance gate는 M5와 성능에 영향을 주는 변경 때 실행한다.
+
+benchmark generator 기본 seed는 424242다. S와 M의 정확한 생성 manifest·유효 user/resource 집합·expected decision을 버전 관리한다. 실행 전에 실제 cardinality와 expected allow/deny를 검증한다. parameter가 달라지면 기존 report와 동일 dataset이라고 부르지 않는다.
+
+HTTP baseline은 고정 arrival rate로 측정하며 VU 수 증가로 목표 부하를 숨기지 않는다. unexpected failure ratio 분모는 scheduled requests, 분자는 transport 오류 + 예상하지 않은 HTTP/body/decision + 시작하지 못한 dropped iterations다. expected deny는 실패가 아니다. correctness mismatch는 비율과 관계없이 즉시 gate 실패다. successful request latency percentile과 failure/dropped 수를 함께 보고하며 응답 없는 요청을 0ms로 넣지 않는다.
+
+statement count는 core fact loading의 revision/entities+ancestors/grants queries만 세며 BEGIN/COMMIT/SET과 readiness query를 제외한다. query instrumentation은 재시도 포함 실제 수행 수를 기록한다. >3이면 최적화 gate 실패이고 사유만 적고 통과 처리하지 않는다.
+
+성능 report에서 M dataset/mixed/stress는 관측 항목이고 정량 pass 기준은 S single/batch에만 적용한다. 모든 profile에서 잘못된 allow/deny, panic, 데이터 손실은 실패다. 과부하의 의도된 503은 stress 결과에 포함하되 정상 baseline 실패를 제외하는 핑계로 쓰지 않는다.

@@ -26,7 +26,7 @@ READ COMMITTED에서 여러 SELECT를 실행하면 각 statement가 다른 시�
 
 모든 실제 write가 revision을 증가시키고 revision은 재사용하지 않는다. 복구된 오래된 DB snapshot에서는 revision도 과거로 돌아갈 수 있으므로 재해 복구 시 key를 교체하고 클라이언트 재동기화를 수행한다. 영구 전역 revision이라고 표현하지 않는다.
 
-receipt 보존 정리: 24시간 초과만 trusted admin maintenance에서 batch delete. 삭제 job은 후속 구현 작업에 포함하되 권한 의미를 바꾸지 않는다. 감사 데이터는 v0.1 자동 삭제하지 않으며 용량을 관측한다.
+receipt 보존 정리: 24시간 초과만 trusted admin maintenance에서 batch delete. 삭제는 M2의 운영 CLI 명령으로 수행하며 상주 scheduler는 범위 밖이다. 감사 데이터는 v0.1 자동 삭제하지 않으며 용량을 관측한다.
 
 ## 외부 앱 DB와의 경계
 
@@ -50,3 +50,9 @@ T1: 앱 DB의 문서를 수정
 단순 외부 권한 API는 이 경쟁을 제거하지 못한다. revision을 응답에 넣거나 action 직전 재조회해도 두 DB 사이 gap은 남는다. v0.1은 check 시점의 권한을 제공하며, 수정 commit까지의 권한을 보장하지 않는다. 엄격한 취소 의미가 필요하면 앱과 공유하는 fencing/locking/transaction 설계가 필요하고 후속 범위다.
 
 [근거 자료](11-references.md)의 Zanzibar/SpiceDB는 문제를 이해하기 위한 자료이지 우리 제품이 같은 보장을 가진다는 근거가 아니다.
+
+## 재시도와 restore 계약 확정
+
+예제 client는 최초 시도 포함 최대 3회, 총 8초 예산 안에서 transient failure만 재시도한다. attempt timeout은 최대 2.5초와 남은 예산 중 작은 값, retry delay는 full jitter로 첫 retry 0–100ms, 둘째 0–200ms다. write는 같은 key/정규화 payload를 유지하며 REVISION_EXHAUSTED는 운영 조치가 필요하므로 retry하지 않는다. commit outcome이 불명확한 상태에서 새 key를 만들지 않는다.
+
+재해 복구에서는 traffic을 차단한 상태로 restore하고, 모든 caller credential을 새 key_id/secret으로 교체한 뒤 관계와 caller 의도를 reconcile한다. 이전 revision/receipt/키의 유효성을 보장하지 않는다. 검증된 backup 자체가 오래되었다면 그 이후 revoke도 복구에서 사라질 수 있으므로 상태 확인 없이 traffic을 열지 않는다. 이 서비스는 PITR 이후 자동 권한 복원을 제공하지 않는다.
