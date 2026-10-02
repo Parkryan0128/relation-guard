@@ -1,10 +1,10 @@
 # Relation Guard
 
-**A design-first, relationship-based authorization service in Rust.** Backends written in any language will use its HTTP API to register or revoke relationships and check access to resources.
+**A relationship-based authorization service in Rust.** Backends written in any language can use its HTTP API to register or revoke relationships and check access to resources.
 
-> **Status: v0.1 design baseline; implementation has not started.** The repository contains specifications, design SQL, example contracts, and a document checker. It does not contain a running server, Cargo workspace, or container image. Performance numbers are acceptance targets, not measured results.
+> **Status: implementation in progress, not production-ready.** The pure evaluator, PostgreSQL transactions, HTTP API, and admin CLI are implemented and tested locally. Docker deployment and the full release gates are not yet verified. Performance targets are not measured HTTP results. See [verification status](verification/status.md).
 
-## What it will do
+## What it does
 
 ```mermaid
 flowchart LR
@@ -30,7 +30,7 @@ An explicit deny rule is not supported. Removing one grant does not revoke acces
 
 ## Stack
 
-| Component | Planned choice |
+| Component | Choice |
 |---|---|
 | Language | Stable Rust, edition 2024 |
 | HTTP and async I/O | Axum and Tokio |
@@ -41,11 +41,17 @@ An explicit deny rule is not supported. Removing one grant does not revoke acces
 | Performance experiments | Criterion for the core; k6 for end-to-end HTTP |
 | Deployment | Separate containers with Docker Compose |
 
-Exact toolchain and dependency versions will be verified and pinned in M0. Rust is chosen for learning and safe systems implementation, not an unmeasured speed advantage over Java, Go, or C++.
+Rust 1.96.1 and resolved dependency versions are pinned in rust-toolchain.toml and Cargo.lock. Rust is chosen for learning and safe systems implementation, not an unmeasured speed advantage over Java, Go, or C++.
+
+## Try the implementation
+
+Build with `cargo build --locked --workspace`. Provision the dedicated database and a tenant using `authz-admin`, then start `authz-server` with `DATABASE_URL` and `AUTHZ_KEYS_FILE`. See the [step-by-step guide](docs/13-running.md). The standard-library [Python client](examples/client.py) demonstrates grant, check, revoke, and fail-closed enforcement.
+
+Run `PYTHON=.venv/bin/python scripts/verify.sh` with an isolated `TEST_DATABASE_URL` after installing `scripts/requirements-test.txt`. This runs the implemented regression suite; it does not certify the unfinished release gates.
 
 ## Stage gates
 
-All stages below are **not started**. Detailed test cases, required evidence, and pass/fail rules are defined in the [implementation roadmap](docs/09-roadmap.md) and [acceptance test matrix](docs/12-acceptance-tests.md).
+M0 and M1 have local test evidence. M2 and M3 have passing implementation tests but incomplete acceptance gates; M4 and M5 remain unverified. Detailed test cases, required evidence, and pass/fail rules are defined in the [implementation roadmap](docs/09-roadmap.md) and [acceptance test matrix](docs/12-acceptance-tests.md).
 
 | Stage | Deliverable | Required validation |
 |---|---|---|
@@ -81,11 +87,11 @@ The README is in English. Detailed design documents currently use Korean; API id
 11. [Primary references and their applicability](docs/11-references.md)
 12. [Acceptance test matrix](docs/12-acceptance-tests.md)
 
-Supporting artifacts: [design DDL](spec/schema.sql), [API examples](spec/examples/contracts.json), and [authorization cases](spec/examples/authorization-cases.json). The SQL has not been executed against PostgreSQL yet. Examples specify expected behavior; they are not recorded server responses.
+Supporting artifacts: [design DDL](spec/schema.sql), [API examples](spec/examples/contracts.json), and [authorization cases](spec/examples/authorization-cases.json). The initial migration and constraints have been tested against PostgreSQL 18. Examples specify expected behavior; they are not recorded server responses.
 
 ## Working on this repository
 
-Read [AGENTS.md](AGENTS.md) before implementation. The current task covers documentation only. Server implementation starts after a separate implementation request.
+Read [AGENTS.md](AGENTS.md) before changes. Follow the [running and testing guide](docs/13-running.md) for native binaries, local credentials, the Python client, and the draft Compose setup.
 
 Run the current document checks from the repository root:
 

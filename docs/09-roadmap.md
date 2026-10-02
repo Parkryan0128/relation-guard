@@ -1,10 +1,10 @@
 # 09. 구현 순서와 완료 체크리스트
 
-현재 완료된 작업은 설계 문서 작성뿐이다. 아래 항목은 전부 미구현이다. 다음 구현 요청 시 M0부터 시작한다. 예상 일정 대신 검증 가능한 산출물로 단계를 나눈다.
+구현을 시작했다. M0/M1의 로컬 검증과 M2/M3의 부분 검증 결과는 [현재 증거](../verification/status.md)를 따른다. 아래 stage 완료는 모든 필수 case와 증거가 있을 때만 인정한다.
 
 ## 모든 stage에 적용하는 gate
 
-아래 테스트는 **계획이며 아직 실행 가능한 test-stage script나 Rust 테스트가 없다**. 각 stage 구현 시 `scripts/test-stage.sh M0` 같은 진입점을 함께 만들고 실제 내부 명령을 문서화한다. 현재 실행 가능한 검사는 `python3 scripts/check_docs.py`뿐이다.
+`scripts/verify.sh`는 구현된 Rust/실제 PostgreSQL/TCP 회귀 검사를 실행한다. `scripts/test-stage.sh`는 별도 stage gate이며 미완료 case가 있는 stage의 PASS를 거부한다. 정확한 재현 방법은 docs/13-running.md를 따른다.
 
 각 gate는 [테스트 매트릭스](12-acceptance-tests.md)의 해당 ID 전부를 요구한다. stage가 올라가면 이전 stage gate도 누적 실행한다. 실패/skip/환경 없음은 PASS가 아니다. 실패한 stage는 미완료로 남기고 관련 결과를 보고한다. 예상 오류를 검증하는 negative test는 지정된 오류와 무변경 조건까지 확인해야 성공이다.
 

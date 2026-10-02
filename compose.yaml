@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:18-alpine@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873
+    environment:
+      POSTGRES_DB: relation_guard
+      POSTGRES_USER: relation_guard
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets: [db_password]
+    volumes: [postgres_data:/var/lib/postgresql]
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U relation_guard -d relation_guard]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+  migrate:
+    build: .
+    image: relation-guard:local
+    entrypoint: [authz-admin, migrate]
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?Run scripts/bootstrap-local.py first}
+    depends_on:
+      db: {condition: service_healthy}
+  server:
+    build: .
+    image: relation-guard:local
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?Run scripts/bootstrap-local.py first}
+      AUTHZ_KEYS_FILE: /run/secrets/service_keys
+      RUST_LOG: info
+    secrets: [service_keys]
+    ports: ['127.0.0.1:${AUTHZ_PORT:-8080}:8080']
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+    stop_grace_period: 12s
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ['no-new-privileges:true']
+secrets:
+  db_password:
+    file: ./secrets/db_password
+  service_keys:
+    file: ./secrets/keys.json
+volumes:
+  postgres_data:

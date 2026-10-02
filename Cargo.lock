@@ -92,6 +92,7 @@ dependencies = [
  "hex",
  "serde",
  "serde_json",
+ "serde_urlencoded",
  "sha2",
  "sqlx",
  "subtle",

@@ -71,4 +71,4 @@
 
 ## 테스트가 해결하지 않는 문제
 
-아직 모든 case는 계획이다. property tests는 형식 증명이 아니며, local Docker 부하는 운영 SLA가 아니다. 타 앱의 DB commit과 권한 check 사이 경쟁은 v0.1에서 제거하지 않는다. 의도한 제한을 버그처럼 숨기지 않고 integration test/report에서 명시한다.
+각 case의 실행 여부는 verification 보고서에서 구분한다. property tests는 형식 증명이 아니며, local Docker 부하는 운영 SLA가 아니다. 타 앱의 DB commit과 권한 check 사이 경쟁은 v0.1에서 제거하지 않는다. 의도한 제한을 버그처럼 숨기지 않고 integration test/report에서 명시한다.

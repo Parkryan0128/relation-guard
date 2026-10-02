@@ -21,3 +21,4 @@ base64.workspace = true
 subtle.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
+serde_urlencoded = "0.7"

@@ -3,7 +3,7 @@ on: [push, pull_request]
 permissions:
   contents: read
 jobs:
-  m0:
+  implemented-regression:
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -27,5 +27,5 @@ jobs:
         with:
           python-version: '3.13'
       - run: pip install -r scripts/requirements-test.txt
-      - run: scripts/test-stage.sh M0
+      - run: scripts/verify.sh
       - run: python scripts/check_docs.py

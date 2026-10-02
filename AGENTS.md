@@ -2,7 +2,7 @@
 
 ## Status and boundaries
 
-This repository currently contains a design proposal, not an implemented service. Read README and docs/01 through docs/09 before implementation. Do not silently turn proposed behavior or performance targets into verified claims. The user requested scoping and repository publication first; implement only after a subsequent implementation request.
+Implementation is authorized and in progress. Read README and docs/01 through docs/09 before changes. The current evidence and remaining release gates are in verification/status.md. Do not turn proposed behavior or performance targets into verified claims.
 
 ## Normative order
 

@@ -15,6 +15,18 @@ if [[ "$stage" != M0 ]]; then
   PROPTEST_CASES="${PROPTEST_CASES:-10000}" cargo test -p authz-core --locked m1_
 fi
 if [[ "$stage" != M0 && "$stage" != M1 ]]; then
-  echo 'M2 and later gates are not yet implemented; refusing to report PASS' >&2
+  cargo test -p authz-store --locked --test transactions
+  if [[ "$stage" != M2 ]]; then
+    cargo test -p authz-server --locked
+    "$python_cmd" scripts/test_http.py
+  fi
+  echo 'Implemented regression cases passed; M2+ acceptance evidence is incomplete. See verification/status.md. Gate is NOT PASS.' >&2
   exit 1
+fi
+if [[ "$stage" == M1 ]]; then
+  if [[ -z "${BENCHMARK_CPU:-}" ]]; then
+    echo 'M1 functional checks passed; formal baseline requires accurate BENCHMARK_CPU metadata. Gate is NOT PASS.' >&2
+    exit 1
+  fi
+  cargo bench --locked -p authz-core --bench evaluation
 fi
