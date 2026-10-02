@@ -40,7 +40,7 @@ jobs:
           done
       - run: scripts/verify.sh | tee verification/ci-regression.log
         env:
-          QUERY_PLAN_OUTPUT: verification/ci-query-plans.json
+          QUERY_PLAN_OUTPUT: ${{ github.workspace }}/verification/ci-query-plans.json
       - name: Native application recovery against the isolated PostgreSQL service
         run: |
           mkdir -p "$RUNNER_TEMP/rg-pg-client"
