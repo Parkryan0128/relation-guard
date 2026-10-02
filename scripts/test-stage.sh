@@ -29,4 +29,5 @@ EXISTING_TEST_DATABASE_URL="${EXISTING_TEST_DATABASE_URL:-$TEST_DATABASE_URL}" "
 : "${AUDIT_JSON:?Fresh cargo-audit JSON report required; see docs/14-native-verification.md}"
 "$python_cmd" scripts/check_security.py
 cargo build --release --locked -p authz-server -p authz-admin
+EXISTING_TEST_DATABASE_URL="${EXISTING_TEST_DATABASE_URL:-$TEST_DATABASE_URL}" AUTHZ_BIN="$PWD/target/release" "$python_cmd" scripts/compare_batch.py
 EXISTING_TEST_DATABASE_URL="${EXISTING_TEST_DATABASE_URL:-$TEST_DATABASE_URL}" AUTHZ_BIN="$PWD/target/release" "$python_cmd" scripts/run_native_load.py

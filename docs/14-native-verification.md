@@ -32,7 +32,25 @@ cargo build --release --locked -p authz-server -p authz-admin
 export AUTHZ_BIN="$PWD/target/release"
 export K6_BIN=/absolute/path/to/k6
 export RG_LOAD_DIR=/absolute/private/scratch/directory
+python3 scripts/compare_batch.py
 python3 scripts/run_native_load.py
 ```
 
+`compare_batch.py`는 S 데이터에서 100개 판정을 순차 단건·10개 동시 단건·배치 1회로 실행하는 별도 소규모 비교다. Python client scheduling이 포함되며 arrival-rate 부하/SLO 결과와 섞지 않는다. 본 부하 테스트와 동시에 실행하지 않는다.
+
 `RG_LOAD_DIR`에는 테스트 토큰이 있으므로 Git에 넣지 않는다. `verification/load`에는 토큰 없는 통계만 저장한다. 결과에는 요청 수·실패·미시작 iteration·정확성 불일치·백분위수·애플리케이션 내부 카운터와 실행 환경을 포함한다. macOS sandbox에서 다른 프로세스 목록을 읽는 `ps`는 거절되었으므로 전체 호스트 프로세스를 스캔하지 않는다. 자식 서버 종료 시 부모의 wait4로 얻은 해당 서버의 CPU/RSS 사용량만 기록한다.
+
+
+## 의존성 검토 재현
+
+RustSec DB의 최신 revision을 기록한 JSON을 만든 뒤 실제 활성 dependency closure를 검토한다. 현재 lockfile의 optional SQLx/MySQL 의존성에는 rsa advisory가 있으므로 raw audit의 nonzero exit를 무조건 무시하면 안 된다. `check_security.py`는 server/admin의 macOS arm64 및 Linux arm64/x86_64 활성 의존성에 advisory가 있으면 실패한다. 지원 target 또는 feature를 바꾸면 다시 검토한다.
+
+```bash
+cargo install --locked cargo-audit --version 0.22.2
+# finding이 있으면 nonzero exit와 JSON을 함께 검토한다.
+cargo audit --json > /absolute/private/scratch/audit.json
+export AUDIT_JSON=/absolute/private/scratch/audit.json
+python3 scripts/check_security.py
+```
+
+`verification/security-review.json`에 advisory DB revision, finding 처리 이유, 활성 라이선스 목록과 tracked 파일 secret-pattern 검토 결과를 기록한다. 패턴 검사는 모든 secret 부재의 증명이 아니다.

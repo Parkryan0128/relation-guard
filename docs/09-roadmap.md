@@ -82,23 +82,27 @@
 
 ## M4 — 통합과 배포
 
+현재 실행 경로는 [승인된 native 계획](14-native-verification.md)의 M4-native다. 아래 Docker 관련 조건은 원래 배포 gate로 남긴다. native 복구 통과는 컨테이너 배포 통과를 뜻하지 않는다.
+
 - [ ] multi-stage Docker, non-root image, Compose private network/volume.
-- [ ] 비밀값 없는 env/secret template와 key 생성 절차.
-- [ ] Python 표준 라이브러리 예제: create→grant→check→revoke→check.
-- [ ] 앱에서 check error/deny를 처리하는 연동 예제, revision conflict 처리 안내.
-- [ ] backup/restore 실험, migration 운영 및 key rotation 문서.
+- [x] 비밀값 없는 env/secret template와 key 생성 절차.
+- [x] Python 표준 라이브러리 예제: create→grant→check→revoke→check.
+- [x] 앱에서 check error/deny를 처리하는 연동 예제, revision conflict 처리 안내.
+- [x] native backup/restore 실험, migration 운영 및 key rotation 문서.
 
 완료: 새 환경에서 문서만 보고 시나리오 재현. Rust 설치 없는 client도 HTTP 호출 가능.
 
 ### M4 테스트 방법과 통과 기준
 
 - 환경: 고유 Compose project/임시 volume. 기존 개발·사용자 DB는 건드리지 않는다. Rust가 없는 별도 client 컨테이너에서 HTTP 호출.
-- 예정 진입점: `scripts/test-stage.sh M4`. clean build/bootstrap→Python scenario→restart→backup/restore→rotation→shutdown 순서로 실행.
+- 현재 진입점: `scripts/test-stage.sh M4`는 native 누적 검증을 실행한다. 원래 clean Compose gate의 별도 진입점은 `scripts/test_deployment.py`이며 배포 검증 재개 시 실행한다.
 - 필수 case: M4-01–M4-06. 테스트 정리 명령은 자신이 만든 project/volume에만 적용한다.
 - 통과: 새 환경에서 문서만으로 재현, DB 재시작 뒤 데이터 유지, restore 뒤 기대 결과 일치, 제거한 키는 모든 실행 replica에서 401, 개발 host에 DB/metrics port 비공개.
 - 증거: verification/M4-report.md, image digest, 구성 검토 결과, 복구 전후 revision/tuple count/check 결과. secret은 포함하지 않는다.
 
 ## M5 — 증거와 릴리스
+
+`scripts/test-stage.sh M5`는 현재 M5-native 경로다. 아래 Linux 제한 환경의 정식 배포 성능 gate는 별도로 남는다. 수치 기준은 동일하게 유지하며 미달 회차를 평균으로 숨기지 않는다.
 
 - [ ] docs/08의 성능 profile, p95/p99/오류/자원 측정 보고서.
 - [ ] correctness gates 재확인, secret/dependency/license 점검.

@@ -1,16 +1,14 @@
-# M2 partial verification
+# M2 verification — PASS
 
-Full implemented regression rerun: `3a2c49dab8e5736ca6f4ed20a3be4becd69f899d`, 2026-10-02 UTC. See [log](regression.log).
+Tested production source: `afc0fe192681eba11e6867f6bf85413baa4598fb`. [Full regression](regression.log), [measured query plans](query-plans.json).
 
-Command: `cargo test -p authz-store --test transactions` against isolated PostgreSQL 18. Six tests passed, no ignored tests.
+Commands: `cargo test -p authz-store --locked --test transactions` (eight tests) and `cargo test -p authz-store --locked --test query_plans` (one test), against PostgreSQL 18.6 with pg_stat_statements enabled. M2-01–M2-08 passed; no ignored tests.
 
-- Atomic writes, rollback, cross-tenant deny, revoke/replay without resurrecting a grant, hash mismatch, no-op receipt and stale revision.
-- Snapshot acquired before revoke continues to see the coherent old graph; a subsequent check denies. Same-revision writers use a barrier for 100 rounds; exactly one commits. Same-key concurrent writes replay the same receipt.
-- Depth 32 accepted, depth 33/cycle/multiple-parent/self-parent rejected; revision overflow rolls back.
-- 100 duplicate batch items preserve results; 10,001 matching grant facts return EVALUATION_LIMIT.
-- Receipt cleanup deletes at most 1,000 expired rows per call, preserves recent receipts and graph/audit revision; deleting/recreating a user does not restore old grants; a different credential key does not replay another key's receipt.
-- Competing A→B and B→A writes run 100 rounds with a barrier. Stale revisions conflict, retrying the inverse at the current revision detects the cycle. A valid final-state move succeeds; concurrent no-ops both succeed.
+- Atomic graph/revision/audit/receipt updates and rollback; tenant isolation, revocation, idempotent replay, mismatched payload rejection, no-op receipts and revision overflow.
+- Barrier-controlled same-revision writers, same-key writers, competing inverse parent edges, and batch snapshot interleavings run 100 rounds per schedule. A batch keeps one coherent snapshot across concurrent revocation; a later snapshot observes the revocation.
+- Depth 32/33, self/cycle/multiple-parent edges, and subtree moves whose descendants would exceed the limit are checked. Final-state moves are validated atomically.
+- Receipt retention checks before/exactly/after the 24-hour boundary using one transaction timestamp. Cleanup removes at most 1,000 of 1,001 expired receipts, leaves recent receipts and audit intact, and does not change revision. Recreated entities and rotated credentials do not resurrect access or replay another key's receipt.
+- 100 duplicate checks preserve ordering; 10,001 matching grants return EVALUATION_LIMIT without a partial decision.
+- pg_stat_statements measures exactly three data SELECTs for both one target and 100 distinct targets sharing ancestors. EXPLAIN ANALYZE BUFFERS artifacts accompany the count. Transaction setup/commit statements are not data SELECTs.
 
-M2-01–M2-08 have coverage, but the gate remains **incomplete**: measured query-count/EXPLAIN artifacts, exact 24-hour boundary, descendant-depth move schedules and all snapshot/batch interleavings are not yet recorded. The loader contains three data SELECTs (revision, ancestors, grants); that code inspection is not presented as a measured query-count result.
-
-Real PostgreSQL testing found and fixed C-collation mismatch in a recursive CTE and PostgreSQL 18 RESTRICT violation SQLSTATE 23001 mapping.
+Measured load prompted a setup optimization: BEGIN, isolation and local timeouts now share one constant protocol request, and checkout ping is disabled. Snapshot semantics, timeout limits and fail-closed connection errors remain unchanged; the full suite and native outage recovery were rerun after this change. See ADR-012.

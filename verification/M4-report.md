@@ -1,7 +1,11 @@
-# M4 blocked container verification
+# M4-native — PASS; container deployment deferred
 
-Dockerfile, Compose, local credential bootstrap, admin CLI and Python client are present. The Python client passed against native binaries and PostgreSQL.
+Tested production source: `afc0fe192681eba11e6867f6bf85413baa4598fb`. [Recovery report](native-recovery.json), [recovery log](native-recovery.log). The scope adjustment is recorded in the [approved native plan](../docs/14-native-verification.md).
 
-The attempted `docker build -t relation-guard:local .` failed before building: Docker Buildx could not update its activity file under the host's `~/.docker/buildx` directory. A filesystem permission request did not grant access. No alternative path was used to bypass that restriction.
+Command: `PG_BIN=<postgresql-18-bin> EXISTING_TEST_DATABASE_URL=<dedicated-test-endpoint> python3 scripts/test_native_recovery.py`. Native application processes use isolated, randomly named databases; teardown drops only those databases.
 
-M4-01, M4-03–M4-06: not verified. M4-02: happy-path external client verified; the full retry/failure contract remains partial. Image build, non-root runtime, private ports, volume restart, backup/restore, key rotation and container SIGTERM acceptance must be executed before marking this stage complete. The Docker base image tag has not been resolved/pinned by a successful build.
+Passed: non-root application process, restricted runtime database role (no tenant provisioning or audit deletion), external Python client, application restart persistence and receipt replay, database connection loss/recovery, backup and restore into a separate empty database, restored graph/revision/audit/receipt comparison, restored-instance credential replacement, overlapping-key rotation followed by old-key rejection, schema mismatch and outage readiness, and graceful SIGTERM within ten seconds.
+
+The existing PostgreSQL instance stayed running. The database fault rejects new connections and terminates connections to the generated test database; it is **not** a PostgreSQL process or volume restart test. The extended [clean Linux CI](https://github.com/Parkryan0128/relation-guard/actions/runs/37040865393) on `72f6dd3` also passed an active-request drain: an incomplete body held an observed request permit, SIGTERM stopped acceptance, the request returned 504 at its deadline, and the process exited in about two seconds. [CI recovery evidence](ci-native-recovery.json). The commit adds harness/CI changes only; production source is unchanged.
+
+Docker image build succeeded and base images are pinned by digest. Clean Compose execution remained blocked by macOS Documents bind-mount access. Following the user's instruction, testing moved to native processes. Container non-root/readonly enforcement, private-network exposure, volume restart, container backup/restore and container shutdown remain unverified. No container release PASS is claimed.

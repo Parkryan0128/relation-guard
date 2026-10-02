@@ -2,7 +2,7 @@
 
 **A relationship-based authorization service in Rust.** Backends written in any language can use its HTTP API to register or revoke relationships and check access to resources.
 
-> **Status: implementation in progress, not production-ready.** The pure evaluator, PostgreSQL transactions, HTTP API, and admin CLI are implemented and tested locally. Docker deployment and the full release gates are not yet verified. Performance targets are not measured HTTP results. See [verification status](verification/status.md).
+> **Status: functional implementation verified; native load validation in progress.** The evaluator, PostgreSQL transactions, HTTP API, admin CLI, recovery and key rotation have passed real tests. Clean Linux CI also passes functional regression. Container deployment and resource-limited release performance remain unverified. See [verification status](verification/status.md).
 
 ## What it does
 

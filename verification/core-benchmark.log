@@ -1,0 +1,88 @@
+    Finished `bench` profile [optimized] target(s) in 0.39s
+     Running benches/evaluation.rs (target/release/deps/evaluation-c536ada8caa85318)
+Gnuplot not found, using plotters backend
+Benchmarking direct/depth-0
+Benchmarking direct/depth-0: Warming up for 100.00 ms
+Benchmarking direct/depth-0: Collecting 10 samples in estimated 200.01 ms (783k iterations)
+Benchmarking direct/depth-0: Analyzing
+direct/depth-0          time:   [252.89 ns 254.02 ns 255.26 ns]
+                        change: [-18.247% -14.518% -10.126%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) low severe
+
+Benchmarking team/depth-0
+Benchmarking team/depth-0: Warming up for 100.00 ms
+Benchmarking team/depth-0: Collecting 10 samples in estimated 200.02 ms (553k iterations)
+Benchmarking team/depth-0: Analyzing
+team/depth-0            time:   [350.39 ns 352.94 ns 357.06 ns]
+                        change: [-27.371% -19.821% -11.120%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 2 outliers among 10 measurements (20.00%)
+  1 (10.00%) low severe
+  1 (10.00%) high mild
+
+Benchmarking deny/depth-0
+Benchmarking deny/depth-0: Warming up for 100.00 ms
+Benchmarking deny/depth-0: Collecting 10 samples in estimated 200.00 ms (2.4M iterations)
+Benchmarking deny/depth-0: Analyzing
+deny/depth-0            time:   [81.942 ns 83.733 ns 86.628 ns]
+                        change: [-20.812% -15.962% -11.035%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 2 outliers among 10 measurements (20.00%)
+  2 (20.00%) high mild
+
+Benchmarking direct/depth-8
+Benchmarking direct/depth-8: Warming up for 100.00 ms
+Benchmarking direct/depth-8: Collecting 10 samples in estimated 200.01 ms (39k iterations)
+Benchmarking direct/depth-8: Analyzing
+direct/depth-8          time:   [3.6558 µs 3.7522 µs 3.9253 µs]
+                        change: [-19.040% -7.8861% +5.1150%] (p = 0.28 > 0.05)
+                        No change in performance detected.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
+
+Benchmarking team/depth-8
+Benchmarking team/depth-8: Warming up for 100.00 ms
+Benchmarking team/depth-8: Collecting 10 samples in estimated 200.29 ms (33k iterations)
+Benchmarking team/depth-8: Analyzing
+team/depth-8            time:   [3.7424 µs 4.0337 µs 4.7131 µs]
+                        change: [-6.3992% +13.940% +38.603%] (p = 0.26 > 0.05)
+                        No change in performance detected.
+
+Benchmarking deny/depth-8
+Benchmarking deny/depth-8: Warming up for 100.00 ms
+Benchmarking deny/depth-8: Collecting 10 samples in estimated 200.15 ms (69k iterations)
+Benchmarking deny/depth-8: Analyzing
+deny/depth-8            time:   [2.8597 µs 2.8704 µs 2.8803 µs]
+                        change: [-13.663% -9.3000% -5.7271%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) low mild
+
+Benchmarking direct/depth-32
+Benchmarking direct/depth-32: Warming up for 100.00 ms
+Benchmarking direct/depth-32: Collecting 10 samples in estimated 201.59 ms (4070 iterations)
+Benchmarking direct/depth-32: Analyzing
+direct/depth-32         time:   [47.868 µs 48.287 µs 48.567 µs]
+                        change: [-12.771% -7.8310% -3.1575%] (p = 0.01 < 0.05)
+                        Performance has improved.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
+
+Benchmarking team/depth-32
+Benchmarking team/depth-32: Warming up for 100.00 ms
+Benchmarking team/depth-32: Collecting 10 samples in estimated 200.16 ms (4125 iterations)
+Benchmarking team/depth-32: Analyzing
+team/depth-32           time:   [48.111 µs 48.631 µs 49.399 µs]
+                        change: [-5.4367% -3.9259% -2.2700%] (p = 0.00 < 0.05)
+                        Performance has improved.
+
+Benchmarking deny/depth-32
+Benchmarking deny/depth-32: Warming up for 100.00 ms
+Benchmarking deny/depth-32: Collecting 10 samples in estimated 201.40 ms (4345 iterations)
+Benchmarking deny/depth-32: Analyzing
+deny/depth-32           time:   [46.035 µs 46.358 µs 46.746 µs]
+                        change: [-6.5092% -5.3132% -4.1046%] (p = 0.00 < 0.05)
+                        Performance has improved.
+

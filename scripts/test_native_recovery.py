@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Native replacement for deployment-dependent acceptance, per user instruction."""
-import http.client,json,os,pathlib,socket,subprocess,sys,time
+import datetime,hashlib,http.client,json,os,pathlib,socket,subprocess,sys,time
 from native_lab import Lab,ROOT
 lab=Lab(os.environ.get('RG_NATIVE_DIR'));restore=None
 try:
@@ -39,8 +39,8 @@ try:
  except OSError:pass
  else:unexpected.close();raise AssertionError('Data listener still accepts connections after shutdown')
  lab.start_server()
- result={'environment':sys.platform+' native application processes; isolated test PostgreSQL databases','passed':['runtime_role','python_client','server_restart_database_reconnect','backup_restore_new_credentials','rotation','database_schema_readiness','SIGTERM_inflight_drain'],'snapshot':json.loads(state),'shutdown_seconds':elapsed,'inflight_shutdown_response':504}
- (ROOT/'verification/native-recovery.json').write_text(json.dumps(result,indent=2));print('PASS: native restart, backup/restore, key rotation, readiness/outage recovery, privilege separation and SIGTERM.')
+ result={'source_commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'binary_sha256':hashlib.sha256((lab.bin/'authz-server').read_bytes()).hexdigest(),'executed_at_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'environment':sys.platform+' native application processes; isolated test PostgreSQL databases','passed':['runtime_role','python_client','server_restart_database_reconnect','backup_restore_new_credentials','rotation','database_schema_readiness','SIGTERM_inflight_drain'],'snapshot':json.loads(state),'shutdown_seconds':elapsed,'inflight_shutdown_response':504}
+ pathlib.Path(os.environ.get('RECOVERY_OUTPUT',str(ROOT/'verification/native-recovery.json'))).write_text(json.dumps(result,indent=2));print('PASS: native restart, backup/restore, key rotation, readiness/outage recovery, privilege separation and SIGTERM.')
 finally:
  if restore:restore.close()
  lab.close()

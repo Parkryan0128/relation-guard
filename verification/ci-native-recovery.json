@@ -1,0 +1,24 @@
+{
+  "environment": "linux native application processes; isolated test PostgreSQL databases",
+  "passed": [
+    "runtime_role",
+    "python_client",
+    "server_restart_database_reconnect",
+    "backup_restore_new_credentials",
+    "rotation",
+    "database_schema_readiness",
+    "SIGTERM_inflight_drain"
+  ],
+  "snapshot": {
+    "revision": 3,
+    "entities": 4,
+    "relationships": 1,
+    "audit": 3,
+    "receipts": 3,
+    "edges_hash": "8d8f8877eb7b300a0a5047d5b1d1d733"
+  },
+  "shutdown_seconds": 2.002034457000036,
+  "inflight_shutdown_response": 504,
+  "source_commit": "72f6dd3",
+  "ci_run": "https://github.com/Parkryan0128/relation-guard/actions/runs/37040865393"
+}

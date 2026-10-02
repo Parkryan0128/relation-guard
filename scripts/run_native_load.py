@@ -5,19 +5,7 @@ from native_lab import Lab,ROOT
 run=pathlib.Path(os.environ['RG_LOAD_DIR']);run.mkdir(exist_ok=True);run.chmod(0o700)
 lab=Lab(run/'lab');k6=os.environ['K6_BIN'];out=ROOT/'verification/load';out.mkdir(exist_ok=True)
 manifest={'seed':424242,'environment':'native macOS loopback; no cgroup CPU/memory limits','os':platform.platform(),'architecture':platform.machine(),'source_dirty':bool(subprocess.check_output(['git','diff','--name-only','HEAD','--','Cargo.toml','Cargo.lock','crates'],cwd=ROOT)),'logical_cpus':os.cpu_count(),'postgres':subprocess.check_output([str(lab.pg/'postgres'),'--version'],text=True).strip(),'commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'binary_sha256':hashlib.sha256((lab.bin/'authz-server').read_bytes()).hexdigest(),'runs':[]}
-# Fixed shape: 125 independent chains of eight folders; docs attach to their index modulo 1000.
-def seed(tenant,documents,total):
- entities=[(kind,f'{prefix}{i}') for kind,prefix,n in [('user','u',1000),('team','t',100),('folder','f',1000),('document','d',documents)] for i in range(n)]
- rows=[]
- for i in range(1000):
-  rows.append(('team',f't{i%100}','member','user',f'u{i}',''))
-  if i%8:rows.append(('folder',f'f{i}','parent','folder',f'f{i-1}',''))
- for i in range(documents):
-  rows.extend([('document',f'd{i}','parent','folder',f'f{i%1000}',''),('document',f'd{i}','viewer','user',f'u{i%500}',''),('document',f'd{i}','editor','user',f'u{(i+1)%500}',''),('document',f'd{i}','viewer','team',f't{i%50}','member')])
- for i in range(total-len(rows)):rows.append(('document',f'd{i}','viewer','user',f'u{(i+2)%500}',''))
- assert len(rows)==total and len(set(rows))==total
- sql="BEGIN;\nINSERT INTO tenants(id) VALUES('"+tenant+"') ON CONFLICT DO NOTHING;\nCOPY entities(tenant_id,kind,id) FROM STDIN;\n"+''.join('\t'.join((tenant,*e))+'\n' for e in entities)+"\\.\nCOPY relationships FROM STDIN;\n"+''.join('\t'.join((tenant,*r))+'\n' for r in rows)+"\\.\nCOMMIT;\nANALYZE;\n"
- lab.sql(sql);return {'tenant':tenant,'users':1000,'teams':100,'folders':1000,'documents':documents,'relationships':total,'max_depth':8}
+from load_dataset import seed
 def configure(tenants,documents):
  cfg=run/'load-config.json';cfg.write_text(json.dumps({'url':f'http://127.0.0.1:{lab.port}','tenants':tenants,'documents':documents}));cfg.chmod(0o600);return cfg
 def measured(profile,duration,rate,label,cfg,gate=True):
@@ -39,7 +27,7 @@ def measured(profile,duration,rate,label,cfg,gate=True):
 
  return record
 try:
- lab.initialize();(run/'context.json').write_text(json.dumps(lab.context(),indent=2));manifest['S']=seed(lab.tenant,10000,50000);cfg=configure([{'id':lab.tenant,'token':lab.token}],10000)
+ lab.initialize();(run/'context.json').write_text(json.dumps(lab.context(),indent=2));manifest['S']=seed(lab,lab.tenant,10000,50000);cfg=configure([{'id':lab.tenant,'token':lab.token}],10000)
  assert lab.sql('SELECT count(*) FROM relationships')=='50000'
  for profile,rate in [('single',100),('batch',10)]:
   for repeat in range(1,4):
@@ -48,7 +36,7 @@ try:
  # Replace S with an independently seeded M dataset.
  lab.stop_server();manifest['S_server_resource_usage']=lab.resource_usage;lab.sql('TRUNCATE audit_events,mutation_receipts,relationships,entities,tenants CASCADE');lab.keys=[];tenants=[];shapes=[]
  for i in range(10):
-  tenant=str(uuid.uuid5(uuid.NAMESPACE_DNS,f'relation-guard-424242-{i}'));shapes.append(seed(tenant,20000,100000));lab.tenant=tenant;token=lab.new_key('m'+str(i));tenants.append({'id':tenant,'token':token})
+  tenant=str(uuid.uuid5(uuid.NAMESPACE_DNS,f'relation-guard-424242-{i}'));shapes.append(seed(lab,tenant,20000,100000));lab.tenant=tenant;token=lab.new_key('m'+str(i));tenants.append({'id':tenant,'token':token})
  manifest['M']=shapes;lab.start_server();cfg=configure(tenants,20000);assert lab.sql('SELECT count(*) FROM relationships')=='1000000'
  measured('single',60,100,'M-single',cfg,False)
  for profile in ['mixed-hot','mixed-distributed']:measured(profile,60,100,'M-'+profile,cfg,False)

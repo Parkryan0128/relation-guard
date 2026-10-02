@@ -1,12 +1,9 @@
-# M0 local verification
+# M0 verification — PASS
 
-Full implemented regression rerun: `3a2c49dab8e5736ca6f4ed20a3be4becd69f899d`, 2026-10-02 UTC. See [log](regression.log).
+Tested production source: `afc0fe192681eba11e6867f6bf85413baa4598fb`, 2026-10-02 UTC. Tests ran immediately before the evidence commit, against the same source bytes. [Full regression log](regression.log).
 
-Tested core/contracts checkpoint: `af1c3b644e05c79c096a708e68cc4977f397f857`; later full-workspace regression is recorded in status and the regression log.
+Environment: Rust 1.96.1 (edition 2024), macOS arm64, PostgreSQL 18.6, Python 3.13 with jsonschema 4.26.0. Dependencies are pinned in Cargo.lock. The application and test processes ran natively; PostgreSQL was the existing dedicated test endpoint.
 
-- Rust 1.96.1, edition 2024, macOS aarch64; local installed toolchain alias `stable` resolves to the pinned version.
-- PostgreSQL 18 Alpine image: `sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873`.
-- Python 3.13, jsonschema 4.26.0.
-- Command: `scripts/test-stage.sh M0` with isolated TEST_DATABASE_URL and the configured Python interpreter.
+Command: `PYTHON=<python-with-jsonschema> TEST_DATABASE_URL=<isolated-test-db> scripts/verify.sh`.
 
-M0-01 through M0-05: local PASS. Workspace fmt/Clippy/build, strict typed contracts, JSON Schema fixture validation, canonical hash golden fixture, migration replay and PostgreSQL constraint rejection were executed. PostgreSQL tests use generated schemas. The migration permits cross-row cycles at SQL level; service transaction validation enforces graph invariants.
+M0-01–M0-05 passed: workspace format, Clippy with warnings denied, build, typed and OpenAPI contracts, canonical hash golden fixture, migration replay, and real PostgreSQL CHECK/FK/unique constraints. Cross-row cycle and depth constraints are enforced by the service transaction, not by SQL CHECK constraints alone. No tests were ignored.

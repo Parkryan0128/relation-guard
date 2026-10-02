@@ -17,11 +17,19 @@ cargo run --locked -p authz-admin -- key 11111111-1111-4111-8111-111111111111 lo
 `key` 출력의 token은 클라이언트용 secret이다. 출력의 config_entry를 `{ "version": 1, "keys": [ ... ] }`로 감싸 private 파일에 저장한다. 토큰을 Git·로그에 올리지 않는다. 예제 key는 전체 scope라서 운영 사용 시 각 클라이언트의 최소 scope로 줄인다. 서버는 시작 시 파일을 읽으며 key rotation은 새/옛 키를 함께 배포한 뒤 옛 키를 제거하고 재시작하는 방식이다.
 
 ```bash
+# 관리자 DATABASE_URL 상태에서 runtime 전용 role을 만든다.
+export AUTHZ_RUNTIME_PASSWORD="$(openssl rand -hex 32)"
+cargo run --locked -p authz-admin -- runtime-role
+# 앱에는 관리자 URL을 넘기지 않는다. 생성한 runtime 비밀번호를 사용한다.
+export DATABASE_URL="postgres://relation_guard_runtime:${AUTHZ_RUNTIME_PASSWORD}@127.0.0.1:5432/relation_guard"
+unset AUTHZ_RUNTIME_PASSWORD
 export AUTHZ_KEYS_FILE=/absolute/private/path/keys.json
 export AUTHZ_BIND=127.0.0.1:8088
 export AUTHZ_OPS_BIND=127.0.0.1:9098
 cargo run --locked -p authz-server
 ```
+
+키 파일은 소유자만 읽을 수 있도록 `chmod 600`으로 저장한다. 관리 명령(migrate/tenant/runtime-role/cleanup-receipts)을 실행할 때는 별도 관리자 DB 자격 증명을 사용한다. runtime role은 tenant 생성과 audit 삭제 권한이 없다.
 
 운영 listener의 `/healthz`, `/readyz`, `/metrics`와 데이터 listener를 분리한다. 기본 bind는 loopback이다. 데이터 port만 인증된 서비스 네트워크에 연결한다. 외부 HTTPS는 reverse proxy에서 종료한다. 이 구현이 TLS 서버 또는 end-user 로그인 서버는 아니다.
 
@@ -43,6 +51,7 @@ python3 examples/client.py
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -r scripts/requirements-test.txt
+# DB 관리자가 pg_stat_statements를 shared_preload_libraries에 추가하고 재시작해야 한다.
 export TEST_DATABASE_URL='postgres://postgres@127.0.0.1:5432/relation_guard_test'
 PYTHON=.venv/bin/python scripts/verify.sh
 scripts/test-stage.sh M0
