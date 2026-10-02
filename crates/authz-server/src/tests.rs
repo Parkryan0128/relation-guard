@@ -15,6 +15,9 @@ impl Drop for Harness {
     }
 }
 async fn harness() -> Harness {
+    harness_with_hook(None).await
+}
+async fn harness_with_hook(hook: Option<Arc<CommitBarrier>>) -> Harness {
     let url = std::env::var("TEST_DATABASE_URL").expect("isolated database required");
     let pool = pool(&url).await.unwrap();
     authz_store::MIGRATOR.run(&pool).await.unwrap();
@@ -29,6 +32,7 @@ async fn harness() -> Harness {
         draining: AtomicBool::new(false),
         requests: AtomicU64::new(0),
         errors: AtomicU64::new(0),
+        before_commit: hook,
     });
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
     let address = listener.local_addr().unwrap();
@@ -100,7 +104,7 @@ async fn m3_real_tcp_inflight_limit_and_deadline() {
     let mut connections = Vec::new();
     for _ in 0..128 {
         let mut connection = tokio::net::TcpStream::connect(h.address).await.unwrap();
-        connection.write_all(format!("POST /v1/tenants/{}/check HTTP/1.1\r\nHost: localhost\r\nContent-Length: 100\r\n\r\n",h.tenant).as_bytes()).await.unwrap();
+        connection.write_all(format!("POST /v1/tenants/{}/check HTTP/1.1\r\nHost: localhost\r\nContent-Length: 100\r\nConnection: close\r\n\r\n",h.tenant).as_bytes()).await.unwrap();
         connections.push(connection);
     }
     tokio::time::timeout(Duration::from_secs(1), async {
@@ -114,9 +118,9 @@ async fn m3_real_tcp_inflight_limit_and_deadline() {
     assert_eq!(status, 503);
     assert_eq!(body["error"]["code"], "OVERLOADED");
     let mut first = connections.remove(0);
-    let mut bytes = vec![0; 4096];
-    let count = first.read(&mut bytes).await.unwrap();
-    let text = String::from_utf8_lossy(&bytes[..count]);
+    let mut bytes = Vec::new();
+    first.read_to_end(&mut bytes).await.unwrap();
+    let text = String::from_utf8_lossy(&bytes);
     assert!(text.contains("504"));
     assert!(text.contains("DEADLINE_EXCEEDED"));
     drop(connections);
@@ -165,4 +169,106 @@ async fn m3_batch_failure_is_not_partial_allow() {
     assert_eq!(status, 422);
     assert_eq!(body["error"]["code"], "EVALUATION_LIMIT");
     assert!(body.get("results").is_none());
+}
+
+#[tokio::test]
+async fn m3_statement_timeout_and_recovery() {
+    let h = harness().await;
+    let name = format!("slow_{}", h.tenant.simple());
+    sqlx::query(&format!("CREATE FUNCTION {name}() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.tenant_id='{}'::uuid THEN PERFORM pg_sleep(2); END IF; RETURN NEW; END $$",h.tenant)).execute(&h.app.pool).await.unwrap();
+    sqlx::query(&format!(
+        "CREATE TRIGGER {name} BEFORE INSERT ON entities FOR EACH ROW EXECUTE FUNCTION {name}() "
+    ))
+    .execute(&h.app.pool)
+    .await
+    .unwrap();
+    let write = json!({"expected_revision":"0","operations":[{"op":"put_entity","entity":{"kind":"user","id":"slow"}}]});
+    let (status, body) = request(&h, "write", Some(write.clone())).await;
+    assert_eq!(status, 504);
+    assert_eq!(body["error"]["code"], "DEADLINE_EXCEEDED");
+    sqlx::query(&format!("DROP TRIGGER {name} ON entities"))
+        .execute(&h.app.pool)
+        .await
+        .unwrap();
+    sqlx::query(&format!("DROP FUNCTION {name}()"))
+        .execute(&h.app.pool)
+        .await
+        .unwrap();
+    assert_eq!(request(&h, "revision", None).await.1["revision"], "0");
+    assert_eq!(request(&h, "write", Some(write)).await.0, 200);
+}
+#[tokio::test]
+async fn m3_invalid_startup_configuration() {
+    let h = harness().await;
+    let base = json!({"version":1,"keys":[{"key_id":"valid","tenant_id":h.tenant,"scopes":["check"],"secret_sha256":hex::encode(Sha256::digest([42u8;32]))}]});
+    let mut cases = Vec::new();
+    for (key, value) in [
+        ("key_id", json!("bad.dot")),
+        ("scopes", json!([])),
+        ("scopes", json!(["check", "check"])),
+        ("scopes", json!(["unknown"])),
+        ("secret_sha256", json!("A".repeat(64))),
+        ("tenant_id", json!(Uuid::new_v4())),
+    ] {
+        let mut c = base.clone();
+        c["keys"][0][key] = value;
+        cases.push(c);
+    }
+    let mut duplicate = base.clone();
+    duplicate["keys"] = json!([base["keys"][0], base["keys"][0]]);
+    cases.push(duplicate);
+    for value in cases {
+        let path = std::env::temp_dir().join(format!("rg-config-{}.json", Uuid::new_v4()));
+        std::fs::write(&path, serde_json::to_vec(&value).unwrap()).unwrap();
+        assert!(
+            auth::Config::load(path.to_str().unwrap(), &h.app.pool)
+                .await
+                .is_err()
+        );
+        std::fs::remove_file(path).unwrap();
+    }
+}
+
+pub(super) struct CommitBarrier {
+    pub entered: tokio::sync::Notify,
+    pub release: tokio::sync::Notify,
+}
+#[tokio::test]
+async fn m3_http_disconnect_before_commit() {
+    let hook = Arc::new(CommitBarrier {
+        entered: tokio::sync::Notify::new(),
+        release: tokio::sync::Notify::new(),
+    });
+    let h = harness_with_hook(Some(hook.clone())).await;
+    let mut connection = tokio::net::TcpStream::connect(h.address).await.unwrap();
+    let body=json!({"expected_revision":"0","operations":[{"op":"put_entity","entity":{"kind":"user","id":"disconnect"}}]}).to_string();
+    connection.write_all(format!("POST /v1/tenants/{}/write HTTP/1.1\r\nHost: localhost\r\nAuthorization: Bearer {}\r\nContent-Type: application/json\r\nIdempotency-Key: disconnect\r\nContent-Length: {}\r\n\r\n{}",h.tenant,h.token,body.len(),body).as_bytes()).await.unwrap();
+    tokio::time::timeout(Duration::from_secs(2), hook.entered.notified())
+        .await
+        .unwrap();
+    drop(connection);
+    tokio::time::timeout(Duration::from_secs(2), async {
+        while h.app.slots.available_permits() != 128 {
+            tokio::task::yield_now().await;
+        }
+    })
+    .await
+    .unwrap();
+    hook.release.notify_one();
+    // Taking the same tenant lock synchronizes with PostgreSQL rollback completion.
+    let mut tx = h.app.pool.begin().await.unwrap();
+    let revision: i64 = sqlx::query_scalar("SELECT revision FROM tenants WHERE id=$1 FOR UPDATE")
+        .bind(h.tenant)
+        .fetch_one(&mut *tx)
+        .await
+        .unwrap();
+    assert_eq!(revision, 0);
+    let count: i64 =
+        sqlx::query_scalar("SELECT count(*) FROM mutation_receipts WHERE tenant_id=$1")
+            .bind(h.tenant)
+            .fetch_one(&mut *tx)
+            .await
+            .unwrap();
+    assert_eq!(count, 0);
+    tx.rollback().await.unwrap();
 }

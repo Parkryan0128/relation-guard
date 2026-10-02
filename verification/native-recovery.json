@@ -1,0 +1,21 @@
+{
+  "environment": "native macOS application processes; isolated databases on an existing PostgreSQL endpoint",
+  "passed": [
+    "runtime_role",
+    "python_client",
+    "server_restart_database_reconnect",
+    "backup_restore_new_credentials",
+    "rotation",
+    "database_schema_readiness",
+    "SIGTERM_drain"
+  ],
+  "snapshot": {
+    "revision": 3,
+    "entities": 4,
+    "relationships": 1,
+    "audit": 3,
+    "receipts": 3,
+    "edges_hash": "672d5e2c3c2413c1afaa6d3e2a7b9d12"
+  },
+  "shutdown_seconds": 0.0013254161458462477
+}

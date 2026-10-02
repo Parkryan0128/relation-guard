@@ -21,6 +21,11 @@ keys=[];tokens={}
 for name,scopes in [('admin',['check','explain','relations:read','relations:write','audit:read']),('reader',['check']),('other',['check']),('writer',['relations:write'])]:
     pair=json.loads(admin('key',other if name=='other' else tenant,name))
     pair['config_entry']['scopes']=scopes;keys.append(pair['config_entry']);tokens[name]=pair['token']
+all_scopes=['check','explain','relations:read','relations:write','audit:read']
+for mask in range(1,32):
+    name='scope'+str(mask);pair=json.loads(admin('key',tenant,name))
+    pair['config_entry']['scopes']=[s for i,s in enumerate(all_scopes) if mask & (1<<i)]
+    keys.append(pair['config_entry']);tokens[name]=pair['token']
 fixture=json.loads((ROOT/'spec/examples/contracts.json').read_text())
 count=0
 with tempfile.TemporaryDirectory(prefix='relation-guard-http-') as td:
@@ -52,6 +57,16 @@ with tempfile.TemporaryDirectory(prefix='relation-guard-http-') as td:
                     time.sleep(.05)
             else:raise AssertionError('Readiness timeout')
             check=fixture['check']['request'];write=fixture['write']['request']
+            for mask in range(1,32):
+                name='scope'+str(mask);scopes={s for i,s in enumerate(all_scopes) if mask & (1<<i)}
+                for route,body,required in [('check',{**check,'explain':False},{'check'}),('check',check,{'check','explain'}),('batch-check',{**fixture['batch_check']['request'],'explain':True},{'check','explain'}),('write',{'expected_revision':'0','operations':[{'op':'delete_entity','entity':{'kind':'user','id':'absent'}}]},{'relations:write'}),('revision',None,{'relations:read'}),('relationships?resource_kind=folder&resource_id=f10',None,{'relations:read'}),('audit',None,{'audit:read'})]:
+                    allowed=required<=scopes
+                    call(route,body,key=name,headers={'Idempotency-Key':'scope'},expected=200 if allowed else 403,code=None if allowed else 'FORBIDDEN')
+            for n,token in enumerate(['unknown.'+'A'*43,'bad.key.'+'A'*43,'admin.'+'A'*43,'admin.short','admin.'+'='*43]):
+                tokens['invalid'+str(n)]=token
+                call('revision',key='invalid'+str(n),expected=401,code='UNAUTHENTICATED')
+            valid=json.dumps(check).encode();call('check',raw=valid+b' '*(262144-len(valid)))
+            call('check',raw=b'{"nested":'+b'['*16+b'0'+b']'*16+b'}',expected=400,code='INVALID_REQUEST')
             call('revision',key=None,expected=401,code='UNAUTHENTICATED')
             call('check',check,key='other',expected=403,code='FORBIDDEN')
             call('write',write,key='reader',expected=403,code='FORBIDDEN')
@@ -86,6 +101,15 @@ with tempfile.TemporaryDirectory(prefix='relation-guard-http-') as td:
             noexplain={**check,'explain':False};result,_=call('check',noexplain,key='reader');assert 'proof' not in result
             with urllib.request.urlopen(f'http://127.0.0.1:{ops}/metrics') as r:assert b'relation_guard_requests_total' in r.read()
             call('healthz',expected=404,code='NOT_FOUND')
+            grants=[{'op':'put_relation','relationship':{'resource':{'kind':'document','id':'d100'},'relation':'viewer','subject':subject,'subject_relation':relation}} for subject,relation in [({'kind':'user','id':'u42'},''),({'kind':'team','id':'dev'},'member')]]
+            call('write',{'expected_revision':'2','operations':grants},headers={'Idempotency-Key':'page-seed'})
+            page,_=call('relationships?resource_kind=document&resource_id=d100&limit=1');cursor=page['next_cursor'];assert cursor
+            call('relationships?resource_kind=folder&resource_id=f10&after='+cursor,expected=400,code='INVALID_REQUEST')
+            seen=page['relationships']
+            while cursor:
+                page,_=call('relationships?resource_kind=document&resource_id=d100&limit=1&after='+cursor);seen+=page['relationships'];cursor=page['next_cursor']
+            assert len(seen)==3
+            with urllib.request.urlopen(f'http://127.0.0.1:{ops}/healthz') as response:assert json.load(response)=={'status':'ok'}
             client_file=pathlib.Path(td)/'client.json'
             client_file.write_text(json.dumps({'tenant_id':tenant,'token':tokens['admin']}));client_file.chmod(0o600)
             subprocess.run([sys.executable,str(ROOT/'examples/client.py')],env={**ENV,'AUTHZ_URL':f'http://127.0.0.1:{data}','AUTHZ_CLIENT_FILE':str(client_file)},check=True)

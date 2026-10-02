@@ -20,17 +20,25 @@ services:
       DATABASE_URL: ${DATABASE_URL:?Run scripts/bootstrap-local.py first}
     depends_on:
       db: {condition: service_healthy}
+  roles:
+    image: relation-guard:local
+    entrypoint: [authz-admin, runtime-role]
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?Run scripts/bootstrap-local.py first}
+      AUTHZ_RUNTIME_PASSWORD: ${AUTHZ_RUNTIME_PASSWORD:?Run scripts/bootstrap-local.py first}
+    depends_on:
+      migrate: {condition: service_completed_successfully}
   server:
     build: .
     image: relation-guard:local
     environment:
-      DATABASE_URL: ${DATABASE_URL:?Run scripts/bootstrap-local.py first}
+      DATABASE_URL: ${RUNTIME_DATABASE_URL:?Run scripts/bootstrap-local.py first}
       AUTHZ_KEYS_FILE: /run/secrets/service_keys
       RUST_LOG: info
     secrets: [service_keys]
     ports: ['127.0.0.1:${AUTHZ_PORT:-8080}:8080']
     depends_on:
-      migrate: {condition: service_completed_successfully}
+      roles: {condition: service_completed_successfully}
     stop_grace_period: 12s
     read_only: true
     cap_drop: [ALL]

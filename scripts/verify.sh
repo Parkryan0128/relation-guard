@@ -11,3 +11,5 @@ cargo build --workspace --locked
 "$python_cmd" scripts/check_contracts.py
 PROPTEST_CASES="${PROPTEST_CASES:-10000}" PROPTEST_RNG_SEED="${PROPTEST_RNG_SEED:-424242}" cargo test --workspace --locked
 "$python_cmd" scripts/test_http.py
+
+"$python_cmd" scripts/test_commit_faults.py

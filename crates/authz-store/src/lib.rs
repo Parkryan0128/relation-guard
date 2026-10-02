@@ -1,3 +1,4 @@
+pub mod metrics;
 use authz_core::*;
 use serde_json::{Value, json};
 use sqlx::{PgPool, Postgres, Row, Transaction, postgres::PgPoolOptions};
@@ -41,12 +42,17 @@ impl From<sqlx::Error> for StoreError {
             }
             sqlx::Error::Database(d) => match d.code().as_deref() {
                 Some("55P03") => "OVERLOADED",
+                Some("55000") if d.message().contains("not currently accepting connections") => {
+                    "DATABASE_UNAVAILABLE"
+                }
                 Some("57014") => "DEADLINE_EXCEEDED",
                 Some("23503") => "UNKNOWN_ENTITY",
                 Some("23505") => "INVALID_HIERARCHY",
                 Some("23514") if d.constraint() == Some("no_self_parent") => "INVALID_HIERARCHY",
                 Some("23514") => "INVALID_RELATION",
-                Some(c) if c.starts_with("08") || c == "57P01" => "DATABASE_UNAVAILABLE",
+                Some(c) if c.starts_with("08") || matches!(c, "57P01" | "57P02" | "57P03") => {
+                    "DATABASE_UNAVAILABLE"
+                }
                 _ => "INTERNAL_ERROR",
             },
             _ => "INTERNAL_ERROR",
@@ -60,6 +66,12 @@ pub async fn pool(url: &str) -> Result<PgPool, StoreError> {
         .acquire_timeout(Duration::from_millis(250))
         .connect(url)
         .await?)
+}
+async fn begin(pool: &PgPool) -> Result<Transaction<'static, Postgres>, StoreError> {
+    let timer = metrics::POOL_WAIT.timer();
+    let connection = pool.acquire().await?;
+    drop(timer);
+    Ok(Transaction::begin(connection, None).await?)
 }
 async fn limits(tx: &mut Transaction<'_, Postgres>) -> Result<(), StoreError> {
     sqlx::query("SET LOCAL statement_timeout = '1s'")
@@ -91,16 +103,18 @@ pub struct ReadSnapshot {
     pub tenant: Uuid,
 }
 pub async fn begin_read(pool: &PgPool, tenant: Uuid) -> Result<ReadSnapshot, StoreError> {
-    let mut tx = pool.begin().await?;
+    let mut tx = begin(pool).await?;
     sqlx::query("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY")
         .execute(&mut *tx)
         .await?;
     limits(&mut tx).await?;
+    let query_timer = metrics::DATA_SQL.timer();
     let revision = sqlx::query_scalar::<_, i64>("SELECT revision FROM tenants WHERE id=$1")
         .bind(tenant)
         .fetch_optional(&mut *tx)
         .await?
         .ok_or(StoreError::new("FORBIDDEN"))?;
+    drop(query_timer);
     Ok(ReadSnapshot {
         tx,
         revision,
@@ -113,12 +127,14 @@ pub async fn load(
 ) -> Result<Snapshot, StoreError> {
     request.validate()?;
     let resources: BTreeSet<_> = request.checks.iter().map(|c| c.resource.clone()).collect();
+    let query_timer = metrics::DATA_SQL.timer();
     let row = sqlx::query(include_str!("../sql/ancestors.sql"))
         .bind(snapshot.tenant)
         .bind(json!(resources))
         .bind(request.subject.id.as_str())
         .fetch_one(&mut *snapshot.tx)
         .await?;
+    drop(query_timer);
     if row.try_get::<bool, _>("corrupt")? {
         return Err(StoreError::new("INTERNAL_ERROR"));
     }
@@ -134,6 +150,7 @@ pub async fn load(
     if row.try_get::<bool, _>("subject_exists")? {
         facts.entities.insert(request.subject.clone());
     }
+    let query_timer = metrics::DATA_SQL.timer();
     let rows = sqlx::query(include_str!("../sql/grants.sql"))
         .bind(snapshot.tenant)
         .bind(json!(
@@ -146,6 +163,7 @@ pub async fn load(
         .bind(request.subject.id.as_str())
         .fetch_all(&mut *snapshot.tx)
         .await?;
+    drop(query_timer);
     if rows.len() > MAX_GRANTS {
         return Err(StoreError::new("EVALUATION_LIMIT"));
     }
@@ -163,6 +181,7 @@ pub async fn load(
         }
         facts.relationships.insert(e);
     }
+    metrics::FACTS.observe(facts.relationships.len() as u64);
     Ok(facts)
 }
 pub async fn check(
@@ -172,7 +191,10 @@ pub async fn check(
 ) -> Result<(i64, Evaluation), StoreError> {
     let mut read = begin_read(pool, tenant).await?;
     let facts = load(&mut read, request).await?;
+    let timer = metrics::CORE.timer();
     let result = evaluate(&facts, request)?;
+    drop(timer);
+    metrics::WORK.observe(result.work as u64);
     read.tx.commit().await?;
     Ok((read.revision, result))
 }
@@ -200,14 +222,16 @@ pub async fn prepare_write(
         return Err(StoreError::new("INVALID_REQUEST"));
     }
     let hash = request.hash()?;
-    let mut tx = pool.begin().await?;
+    let mut tx = begin(pool).await?;
     limits(&mut tx).await?;
+    let lock_timer = metrics::LOCK_WAIT.timer();
     let revision =
         sqlx::query_scalar::<_, i64>("SELECT revision FROM tenants WHERE id=$1 FOR UPDATE")
             .bind(tenant)
             .fetch_optional(&mut *tx)
             .await?
             .ok_or(StoreError::new("FORBIDDEN"))?;
+    drop(lock_timer);
     if let Some(row)=sqlx::query("SELECT request_hash,response FROM mutation_receipts WHERE tenant_id=$1 AND key_id=$2 AND idempotency_key=$3").bind(tenant).bind(key_id).bind(key).fetch_optional(&mut *tx).await?{
   if row.try_get::<Vec<u8>,_>("request_hash")?!=hash{return Err(StoreError::new("IDEMPOTENCY_CONFLICT"))}
   return Ok(PreparedWrite{tx,response:row.try_get("response")?,replayed:true});
@@ -309,6 +333,8 @@ pub async fn write(
         .map_err(|_| StoreError::new("WRITE_OUTCOME_UNKNOWN"))?;
     Ok((prepared.response, prepared.replayed))
 }
-pub async fn cleanup_receipts(pool: &PgPool) -> Result<u64, StoreError> {
-    Ok(sqlx::query("DELETE FROM mutation_receipts WHERE (tenant_id,key_id,idempotency_key) IN (SELECT tenant_id,key_id,idempotency_key FROM mutation_receipts WHERE recorded_at < CURRENT_TIMESTAMP - INTERVAL '24 hours' ORDER BY recorded_at LIMIT 1000)").execute(pool).await?.rows_affected())
+pub async fn cleanup_receipts<'e, E: sqlx::Executor<'e, Database = Postgres>>(
+    executor: E,
+) -> Result<u64, StoreError> {
+    Ok(sqlx::query("DELETE FROM mutation_receipts WHERE (tenant_id,key_id,idempotency_key) IN (SELECT tenant_id,key_id,idempotency_key FROM mutation_receipts WHERE recorded_at < CURRENT_TIMESTAMP - INTERVAL '24 hours' ORDER BY recorded_at LIMIT 1000)").execute(executor).await?.rows_affected())
 }

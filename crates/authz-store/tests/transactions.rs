@@ -212,17 +212,31 @@ async fn m2_snapshot_and_concurrent_writers() {
         let err = if let Err(e) = ra { e } else { rb.unwrap_err() };
         assert_eq!(err.code, "REVISION_CONFLICT");
     }
-    let now = counts(&p, t).await.0;
-    let w = WriteRequest {
-        expected_revision: Revision(now),
-        operations: vec![Operation::PutEntity {
-            entity: entity(Kind::User, "same"),
-        }],
-    };
-    let (a, b) = tokio::join!(put(&p, t, "same-key", &w), put(&p, t, "same-key", &w));
-    let (a, b) = (a.unwrap(), b.unwrap());
-    assert_eq!(a.0, b.0);
-    assert_ne!(a.1, b.1);
+    for i in 0..100 {
+        let now = counts(&p, t).await.0;
+        let w = WriteRequest {
+            expected_revision: Revision(now),
+            operations: vec![Operation::PutEntity {
+                entity: entity(Kind::User, &format!("same-{i}")),
+            }],
+        };
+        let key = format!("same-key-{i}");
+        let barrier = tokio::sync::Barrier::new(2);
+        let (a, b) = tokio::join!(
+            async {
+                barrier.wait().await;
+                put(&p, t, &key, &w).await
+            },
+            async {
+                barrier.wait().await;
+                put(&p, t, &key, &w).await
+            }
+        );
+        let (a, b) = (a.unwrap(), b.unwrap());
+        assert_eq!(a.0, b.0);
+        assert_ne!(a.1, b.1);
+        assert_eq!(counts(&p, t).await.0, now + 1);
+    }
 }
 #[tokio::test]
 async fn m2_hierarchy_and_revision_exhaustion() {
@@ -496,4 +510,115 @@ async fn m2_concurrent_cycles_and_final_state_moves() {
     let (a, b) = tokio::join!(put(&p, t, "noop-a", &noop), put(&p, t, "noop-b", &noop));
     assert!(!a.unwrap().0["changed"].as_bool().unwrap());
     assert!(!b.unwrap().0["changed"].as_bool().unwrap());
+}
+
+#[tokio::test]
+async fn m2_exact_retention_boundary_and_descendant_move() {
+    let (p, t) = setup().await;
+    let mut tx = p.begin().await.unwrap();
+    sqlx::query("INSERT INTO mutation_receipts(tenant_id,key_id,idempotency_key,request_hash,response,recorded_at) SELECT $1,'test',label,decode(repeat('00',32),'hex'),'{}'::jsonb,CURRENT_TIMESTAMP-INTERVAL '24 hours'+offset_value FROM (VALUES ('before',INTERVAL '-1 microsecond'),('exact',INTERVAL '0 microsecond'),('after',INTERVAL '1 microsecond')) v(label,offset_value)").bind(t).execute(&mut *tx).await.unwrap();
+    assert_eq!(cleanup_receipts(&mut *tx).await.unwrap(), 1);
+    let keys: Vec<String> = sqlx::query_scalar(
+        "SELECT idempotency_key FROM mutation_receipts WHERE tenant_id=$1 ORDER BY idempotency_key",
+    )
+    .bind(t)
+    .fetch_all(&mut *tx)
+    .await
+    .unwrap();
+    assert_eq!(keys, vec!["after", "exact"]);
+    tx.rollback().await.unwrap();
+    let mut ops = Vec::new();
+    for i in 0..34 {
+        ops.push(Operation::PutEntity {
+            entity: entity(Kind::Folder, &format!("f{i}")),
+        });
+        if i > 0 && i < 33 {
+            ops.push(parent(
+                entity(Kind::Folder, &format!("f{i}")),
+                entity(Kind::Folder, &format!("f{}", i - 1)),
+            ));
+        }
+    }
+    put(
+        &p,
+        t,
+        "chain",
+        &WriteRequest {
+            expected_revision: Revision(0),
+            operations: ops,
+        },
+    )
+    .await
+    .unwrap();
+    let before = counts(&p, t).await;
+    let movement = WriteRequest {
+        expected_revision: Revision(1),
+        operations: vec![parent(
+            entity(Kind::Folder, "f0"),
+            entity(Kind::Folder, "f33"),
+        )],
+    };
+    assert_eq!(
+        put(&p, t, "too-deep", &movement).await.unwrap_err().code,
+        "INVALID_HIERARCHY"
+    );
+    assert_eq!(counts(&p, t).await, before);
+}
+#[tokio::test]
+async fn m2_batch_snapshot_between_loads() {
+    let (p, t) = setup().await;
+    put(&p, t, "initial", &fixture()).await.unwrap();
+    for round in 0..100 {
+        let mut snapshot = begin_read(&p, t).await.unwrap();
+        let mut batch = request();
+        batch.checks = vec![batch.checks[0].clone(); 100];
+        let first = load(&mut snapshot, &batch).await.unwrap();
+        let current = snapshot.revision;
+        let Operation::PutRelation { relationship } = fixture().operations[4].clone() else {
+            unreachable!()
+        };
+        put(
+            &p,
+            t,
+            &format!("revoke-{round}"),
+            &WriteRequest {
+                expected_revision: Revision(current),
+                operations: vec![Operation::DeleteRelation {
+                    relationship: relationship.clone(),
+                }],
+            },
+        )
+        .await
+        .unwrap();
+        let second = load(&mut snapshot, &batch).await.unwrap();
+        assert_eq!(first.relationships, second.relationships);
+        assert!(
+            evaluate(&second, &batch)
+                .unwrap()
+                .decisions
+                .iter()
+                .all(|x| x.decision == Verdict::Allow)
+        );
+        snapshot.tx.commit().await.unwrap();
+        assert!(
+            check(&p, t, &batch)
+                .await
+                .unwrap()
+                .1
+                .decisions
+                .iter()
+                .all(|x| x.decision == Verdict::Deny)
+        );
+        put(
+            &p,
+            t,
+            &format!("restore-{round}"),
+            &WriteRequest {
+                expected_revision: Revision(current + 1),
+                operations: vec![Operation::PutRelation { relationship }],
+            },
+        )
+        .await
+        .unwrap();
+    }
 }

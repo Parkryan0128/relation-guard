@@ -16,6 +16,7 @@ pub struct Config {
 pub struct Key {
     pub key_id: String,
     pub tenant_id: Uuid,
+    #[serde(deserialize_with = "unique_scopes")]
     pub scopes: BTreeSet<String>,
     pub secret_sha256: String,
 }
@@ -78,4 +79,15 @@ impl Config {
         let actual = hex::encode(Sha256::digest(raw));
         bool::from(actual.as_bytes().ct_eq(key.secret_sha256.as_bytes())).then_some(key)
     }
+}
+
+fn unique_scopes<'de, D: serde::Deserializer<'de>>(
+    deserializer: D,
+) -> Result<BTreeSet<String>, D::Error> {
+    let values = Vec::<String>::deserialize(deserializer)?;
+    let set: BTreeSet<_> = values.iter().cloned().collect();
+    if set.len() != values.len() {
+        return Err(serde::de::Error::custom("duplicate scope"));
+    }
+    Ok(set)
 }

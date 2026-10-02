@@ -27,5 +27,13 @@ jobs:
         with:
           python-version: '3.13'
       - run: pip install -r scripts/requirements-test.txt
+      - name: Enable measured PostgreSQL query statistics
+        run: |
+          docker exec ${{ job.services.postgres.id }} psql -U postgres -d relation_guard_test -c "ALTER SYSTEM SET shared_preload_libraries='pg_stat_statements'"
+          docker restart ${{ job.services.postgres.id }}
+          for i in $(seq 1 30); do
+            if docker exec ${{ job.services.postgres.id }} pg_isready -U postgres; then break; fi
+            sleep 1
+          done
       - run: scripts/verify.sh
       - run: python scripts/check_docs.py

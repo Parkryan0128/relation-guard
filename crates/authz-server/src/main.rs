@@ -21,6 +21,11 @@ use std::{
 use tokio::sync::{Semaphore, watch};
 use uuid::Uuid;
 
+static HTTP_LATENCY: authz_store::metrics::Metric = authz_store::metrics::Metric::new();
+static ALLOW: AtomicU64 = AtomicU64::new(0);
+static DENY: AtomicU64 = AtomicU64::new(0);
+static CONFLICTS: AtomicU64 = AtomicU64::new(0);
+
 struct App {
     pool: sqlx::PgPool,
     keys: auth::Config,
@@ -28,6 +33,8 @@ struct App {
     draining: AtomicBool,
     requests: AtomicU64,
     errors: AtomicU64,
+    #[cfg(test)]
+    before_commit: Option<Arc<tests::CommitBarrier>>,
 }
 fn error(e: StoreError, id: Uuid) -> Response {
     let status = match e.code {
@@ -57,6 +64,7 @@ fn error(e: StoreError, id: Uuid) -> Response {
         .into_response()
 }
 async fn endpoint(State(app): State<Arc<App>>, request: Request) -> Response {
+    let _timer = HTTP_LATENCY.timer();
     let id = Uuid::new_v4();
     app.requests.fetch_add(1, Ordering::Relaxed);
     let result = dispatch(&app, request, id).await;
@@ -64,6 +72,9 @@ async fn endpoint(State(app): State<Arc<App>>, request: Request) -> Response {
         Ok(r) => r,
         Err(e) => {
             app.errors.fetch_add(1, Ordering::Relaxed);
+            if e.code == "REVISION_CONFLICT" {
+                CONFLICTS.fetch_add(1, Ordering::Relaxed);
+            }
             error(e, id)
         }
     };
@@ -151,13 +162,18 @@ async fn dispatch(app: &Arc<App>, request: Request, id: Uuid) -> Result<Response
         )
         .await
         .map_err(|_| StoreError::new("DEADLINE_EXCEEDED"))??;
+        #[cfg(test)]
+        if let Some(hook) = &app.before_commit {
+            hook.entered.notify_one();
+            hook.release.notified().await;
+        }
         if tokio::time::Instant::now() >= deadline {
             return Err(StoreError::new("DEADLINE_EXCEEDED"));
         }
         // Once COMMIT starts, cancellation must not be reported as a known rollback.
         let commit = tokio::spawn(async move {
             let outcome = prepared.tx.commit().await;
-            tracing::info!(request_id=%id,committed=outcome.is_ok(),"write commit completed");
+            tracing::info!(request_id=%id,outcome=if outcome.is_ok(){"committed"}else{"unknown"},"write commit completed");
             outcome
                 .map(|_| (prepared.response, prepared.replayed))
                 .map_err(|_| StoreError::new("WRITE_OUTCOME_UNKNOWN"))
@@ -186,6 +202,16 @@ async fn dispatch(app: &Arc<App>, request: Request, id: Uuid) -> Result<Response
                 return Err(StoreError::new("FORBIDDEN"));
             }
             let (revision, result) = authz_store::check(&app.pool, tenant, &data).await?;
+            for decision in &result.decisions {
+                match decision.decision {
+                    Verdict::Allow => {
+                        ALLOW.fetch_add(1, Ordering::Relaxed);
+                    }
+                    Verdict::Deny => {
+                        DENY.fetch_add(1, Ordering::Relaxed);
+                    }
+                }
+            }
             let mut body = if route == "check" {
                 serde_json::to_value(
                     result
@@ -215,11 +241,38 @@ async fn ops(State(app): State<Arc<App>>, request: Request) -> Response {
     if request.method() != axum::http::Method::GET {
         return StatusCode::METHOD_NOT_ALLOWED.into_response();
     }
-    match request.uri().path(){
-        "/healthz"=>StatusCode::OK.into_response(),
-        "/readyz"=>if !app.draining.load(Ordering::Acquire) && tokio::time::timeout(Duration::from_millis(250),authz_store::ready(&app.pool)).await.unwrap_or(false){StatusCode::OK.into_response()}else{StatusCode::SERVICE_UNAVAILABLE.into_response()},
-        "/metrics"=>([("content-type","text/plain; version=0.0.4")],format!("# TYPE relation_guard_requests_total counter\nrelation_guard_requests_total {}\n# TYPE relation_guard_errors_total counter\nrelation_guard_errors_total {}\n",app.requests.load(Ordering::Relaxed),app.errors.load(Ordering::Relaxed))).into_response(),
-        _=>StatusCode::NOT_FOUND.into_response(),
+    match request.uri().path() {
+        "/healthz" => axum::Json(json!({"status":"ok"})).into_response(),
+        "/readyz" => {
+            if !app.draining.load(Ordering::Acquire)
+                && tokio::time::timeout(Duration::from_millis(250), authz_store::ready(&app.pool))
+                    .await
+                    .unwrap_or(false)
+            {
+                axum::Json(json!({"status":"ready"})).into_response()
+            } else {
+                (
+                    StatusCode::SERVICE_UNAVAILABLE,
+                    axum::Json(json!({"status":"not_ready"})),
+                )
+                    .into_response()
+            }
+        }
+        "/metrics" => {
+            let mut output = format!(
+                "relation_guard_requests_total {}\nrelation_guard_errors_total {}\nrelation_guard_allow_total {}\nrelation_guard_deny_total {}\nrelation_guard_conflicts_total {}\nrelation_guard_inflight {}\n",
+                app.requests.load(Ordering::Relaxed),
+                app.errors.load(Ordering::Relaxed),
+                ALLOW.load(Ordering::Relaxed),
+                DENY.load(Ordering::Relaxed),
+                CONFLICTS.load(Ordering::Relaxed),
+                128 - app.slots.available_permits()
+            );
+            output.push_str(&HTTP_LATENCY.render("relation_guard_http_seconds", 1e9));
+            output.push_str(&authz_store::metrics::render());
+            ([("content-type", "text/plain; version=0.0.4")], output).into_response()
+        }
+        _ => StatusCode::NOT_FOUND.into_response(),
     }
 }
 #[tokio::main]
@@ -240,6 +293,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         draining: AtomicBool::new(false),
         requests: AtomicU64::new(0),
         errors: AtomicU64::new(0),
+        #[cfg(test)]
+        before_commit: None,
     });
     let data = tokio::net::TcpListener::bind(
         std::env::var("AUTHZ_BIND").unwrap_or("127.0.0.1:8080".into()),
