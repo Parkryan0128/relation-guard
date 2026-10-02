@@ -9,7 +9,7 @@ v0.1 서비스 인증: CSPRNG로 생성한 정확히 32바이트 secret, key_id,
 
 credential secret 파일은 read-only mount, app DB에는 넣지 않는다. key rotation은 새·옛 key 잠시 중복 배포 후 옛 key 제거 및 모든 replica 재시작으로 처리한다. v0.1은 hot reload/즉시 분산 credential 회수를 약속하지 않는다. startup 시 잘못된 tenant/scope/key 중복 설정은 fail-fast. admin CLI는 별도 privileged DB credential로 tenant와 초기 revision 0을 생성하며 runtime 서버에 그 credential을 제공하지 않는다.
 
-caller scope: check, explain, relations:read, relations:write, audit:read. writer scope는 변경 API를 호출할 수 있는 서비스 범위다. 실제 grant/revoke 자격은 엔진이 X-Actor-Id의 사용자 기준으로 검사한다. check-only key는 writer 호출을 할 수 없고, writer key도 actor의 부족한 권한을 보충하지 않는다. 신뢰된 백엔드는 로그인 세션에서 actor를 선택하며 외부 헤더를 그대로 전달하지 않는다. 서비스 키를 가진 신원 증언자의 거짓말까지 방어하는 end-user 인증 시스템은 아니다.
+caller scope: check, explain, relations:read, relations:write, audit:read. writer scope는 변경 API를 호출할 수 있는 서비스 범위다. 실제 grant/revoke 자격은 엔진이 X-Actor-Id의 사용자 기준으로 검사한다. check-only key는 writer 호출을 할 수 없고, writer key도 actor의 부족한 권한을 보충하지 않는다. 신뢰된 백엔드는 로그인 세션에서 tenant와 actor를 선택하고 해당 tenant의 서비스 키를 사용하며 외부 헤더를 그대로 전달하지 않는다. 서비스 키를 가진 신원 증언자의 거짓말까지 방어하는 end-user 인증 시스템은 아니다.
 
 ## 실패 정책
 

@@ -52,7 +52,9 @@ Build with `cargo build --locked --workspace`. Provision the dedicated database 
 
 Run `PYTHON=.venv/bin/python scripts/verify.sh` with an isolated `TEST_DATABASE_URL` after installing `scripts/requirements-test.txt`. This runs the implemented regression suite; it does not certify the unfinished release gates.
 
-## Stage gates
+## Validation
+
+Current V1 evidence is collected in the [managed authorization report](verification/v1/report.md). The following M0–M5 results describe the historical v0.1 baseline.
 
 M0–M3 functional verification and M4-native recovery checks pass. M5-native measurement is complete, but its acceptance gate did not pass: batch repetition 3 returned six HTTP 503 responses out of 3,001 requests (0.20%, against a <0.1% target). No wrong authorization decision was observed. Container deployment verification is deferred under the [approved native testing plan](docs/14-native-verification.md). Detailed test cases, required evidence, and pass/fail rules are defined in the [implementation roadmap](docs/09-roadmap.md) and [acceptance test matrix](docs/12-acceptance-tests.md).
 
@@ -120,6 +122,6 @@ This checks local links, English README text, JSON examples, stage/test referenc
 
 ## Out of scope
 
-Login, a document-management UI, arbitrary policy languages, nested teams, explicit deny rules, Redis, gRPC, multi-region operation, read replicas, and mandatory Kubernetes deployment are excluded from v0.1. This is not an OpenFGA/SpiceDB-compatible implementation or a security-certified product.
+Login, a document-management UI, arbitrary policy languages, nested teams, explicit deny rules, Redis, gRPC, multi-region operation, read replicas, and mandatory Kubernetes deployment are excluded from V1. This is not an OpenFGA/SpiceDB-compatible implementation or a security-certified product.
 
 Design baseline: 2026-10-01. The repository is private. An open-source license has not been selected.

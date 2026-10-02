@@ -38,7 +38,7 @@ receipt 보존 정리: 24시간 초과만 trusted admin maintenance에서 batch 
 - 폴더 이동: 앱 표시 계층과 권한 계층을 동시에 바꾸는 전역 transaction은 없다. 불일치 중 동작을 차단하는 앱 상태 전이 또는 별도 coordination이 필요하다.
 - async outbox/CDC를 채택하면 반영 지연이 생긴다. v0.1에 Kafka나 자동 동기화를 구현했다고 주장하지 않는다.
 
-클라이언트는 409에서 /revision만 새로 읽고 옛 작업을 무조건 반복하지 않는다. 현재 비즈니스 의도가 여전히 유효한지 재확인한 뒤 새 key로 새 요청을 만든다. 네트워크 retry는 원래 key/payload 그대로 bounded exponential backoff+jitter; 400/401/403/409/422는 자동 retry 금지. 503/504도 자신의 deadline 안에서만 재시도한다.
+클라이언트는 409에서 /revision만 새로 읽고 옛 작업을 무조건 반복하지 않는다. 현재 비즈니스 의도가 여전히 유효한지 재확인한 뒤 새 key로 새 요청을 만든다. 네트워크 retry는 원래 key/payload/actor 그대로 제한된 횟수로 재시도; 400/401/403/409/422는 자동 retry 금지. 503/504도 자신의 deadline 안에서만 재시도한다.
 
 ## check → action 경쟁
 
@@ -54,7 +54,7 @@ T1: 앱 DB의 문서를 수정
 
 ## 재시도와 restore 계약 확정
 
-예제 client는 최초 시도 포함 최대 3회, 총 8초 예산 안에서 transient failure만 재시도한다. attempt timeout은 최대 2.5초와 남은 예산 중 작은 값, retry delay는 full jitter로 첫 retry 0–100ms, 둘째 0–200ms다. write는 같은 key/정규화 payload를 유지하며 REVISION_EXHAUSTED는 운영 조치가 필요하므로 retry하지 않는다. commit outcome이 불명확한 상태에서 새 key를 만들지 않는다.
+현재 표준 라이브러리 예제 client는 최초 시도 포함 최대 3회, urllib 요청 timeout 3초와 retry 사이 100ms/200ms 대기를 사용한다. 전체 8초 hard deadline이나 full jitter를 구현한 SDK라고 주장하지 않는다. 호출 애플리케이션이 별도 전체 요청 예산을 관리해야 한다. write는 같은 key/정규화 payload를 유지하며 REVISION_EXHAUSTED는 운영 조치가 필요하므로 retry하지 않는다. commit outcome이 불명확한 상태에서 새 key를 만들지 않는다.
 
 재해 복구에서는 traffic을 차단한 상태로 restore하고, 모든 caller credential을 새 key_id/secret으로 교체한 뒤 관계와 caller 의도를 reconcile한다. 이전 revision/receipt/키의 유효성을 보장하지 않는다. 검증된 backup 자체가 오래되었다면 그 이후 revoke도 복구에서 사라질 수 있으므로 상태 확인 없이 traffic을 열지 않는다. 이 서비스는 PITR 이후 자동 권한 복원을 제공하지 않는다.
 

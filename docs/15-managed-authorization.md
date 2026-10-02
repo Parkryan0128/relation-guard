@@ -4,7 +4,7 @@
 
 ## 신뢰 경계와 API
 
-로그인은 기존 앱이 담당한다. 모든 data API 요청은 tenant-bound 서비스 키와 정확히 하나의 `X-Actor-Id`를 요구한다. 앱은 로그인 세션에서 얻은 ID만 이 헤더에 넣으며, 외부 사용자가 보낸 동일 이름의 헤더를 그대로 전달하지 않는다. 서비스 키 소유자는 신원을 증언하는 신뢰된 백엔드다. 이 헤더는 자체 인증 토큰이 아니며, 탈취된 서비스 키나 악의적인 신원 제공자를 방어한다고 주장하지 않는다. 서비스는 ID 형식, 조직 소속과 실제 권한을 DB에서 검증한다. 일반 사용자가 authz에 직접 접속하는 방식은 지원하지 않는다.
+로그인은 기존 앱이 담당한다. 모든 data API 요청은 tenant-bound 서비스 키와 정확히 하나의 `X-Actor-Id`를 요구한다. 앱은 로그인 세션에서 tenant와 사용자 ID를 얻어 해당 조직의 서비스 키와 헤더를 선택하며, 외부 사용자가 보낸 동일 이름의 헤더를 그대로 전달하지 않는다. 서비스 키 소유자는 신원을 증언하는 신뢰된 백엔드다. 이 헤더는 자체 인증 토큰이 아니며, 탈취된 서비스 키나 악의적인 신원 제공자를 방어한다고 주장하지 않는다. 서비스는 ID 형식, 조직 소속과 실제 권한을 DB에서 검증한다. 일반 사용자가 authz에 직접 접속하는 방식은 지원하지 않는다.
 
 서비스 scope는 기존대로 필요한 최소 호출 범위이며 사용자 자격을 대체하지 않는다. 누락/중복/잘못된 actor 헤더는 401, 등록되지 않은 actor나 권한 부족은 403. HTTP의 actor 없는 write 경로는 제거한다. 관리자 CLI만 별도 privileged DB credential로 최초 관리자 지정/긴급 관리자 복구를 수행한다.
 
@@ -43,3 +43,5 @@ DB migration 2로 manager 관계, 조직 역할, actor별 receipt, audit 근거�
 3. 동시성: 박탈→변경/변경→박탈 순서, 동시 마지막 admin 강등, 같은 revision 경쟁, 동일 actor receipt 경쟁, 다른 actor key 충돌 없는 격리. sleep이 아니라 DB lock/barrier로 순서를 통제한다.
 4. HTTP: actor 누락/중복/형식/미등록/다른 tenant, scope와 actor 둘 다 검사, 무관리 권한 변경과 조회 차단, 기존 우회 API 없음, 오류/타임아웃/commit 불명확과 재시도.
 5. 통합: CLI 초기화/복구, 기존 데이터 migration, Python client, 문서/OpenAPI, 전체 회귀·복구·Docker 배포·성능 검증. 실행하지 않은 검증은 완료로 표시하지 않는다.
+
+구체적인 요청 순서는 [관리 권한 예제](../spec/examples/managed-flow.json)를 따른다. 기존 contracts.json의 revision 0 fixture는 초기 core/store 회귀 검사용이며, 새 HTTP 조직 초기화 후 실제 첫 revision은 1이다. HTTP 테스트는 이 초기화 revision을 명시적으로 반영한다.

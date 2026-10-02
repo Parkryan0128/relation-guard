@@ -67,5 +67,5 @@ assert 'FOREIGN KEY (tenant_id, resource_kind, resource_id)' in sql
 assert 'FOREIGN KEY (tenant_id, subject_kind, subject_id)' in sql
 if errors:
     raise SystemExit('\n'.join(errors))
-print(f'PASS: {len(markdown)} Markdown documents, local links, English README, 37 acceptance IDs, 2 JSON fixtures, contract and DDL artifact checks')
+print(f'PASS: {len(markdown)} Markdown documents, local links, English README, 37 acceptance IDs, {len(list(examples.glob("*.json")))} JSON fixtures, contract and DDL artifact checks')
 print('NOT CHECKED: Rust service behavior, PostgreSQL execution, security, performance, external URL availability')

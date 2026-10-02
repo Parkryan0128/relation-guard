@@ -20,3 +20,7 @@ for field,value in [('extra',1),('subject',None),('action','admin')]:
  except Exception:pass
  else:raise AssertionError('Invalid contract accepted')
 print('PASS: OpenAPI 3.1 schemas and positive/negative contract examples')
+
+flow=json.loads((r/"spec/examples/managed-flow.json").read_text())
+for step in flow["steps"]:validate(step["schema"],step["request"])
+print("PASS: managed grant/check/revoke workflow request schemas")

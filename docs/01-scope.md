@@ -1,7 +1,7 @@
 # 01. 범위와 제품 목표
 
 > 현재 확장 계약: [사용자 기준 권한 관리](15-managed-authorization.md). 아래 v0.1 설명 중 신뢰된 writer의 무조건 변경, view/edit만 지원, actor 없는 감사/receipt 규칙은 이 확장에서 대체된다.
-상태: 제안된 v0.1 구현 계약. 사용자 검토 후 바뀔 수 있지만 구현 중 임의 확대하지 않는다.
+상태: 승인된 V1 범위. 사용자 기준 관리 권한 확장은 docs/15에 구체화돼 있다.
 
 ## 문제
 
@@ -9,17 +9,17 @@
 
 제품 대상은 같은 운영 조직이 신뢰하는 백엔드 서비스다. 인터넷의 임의 사용자에게 직접 공개하는 멀티테넌트 SaaS까지 만들지 않는다. `tenant`는 고객 조직 경계이며 운영자가 사전 생성한다.
 
-## MVP 포함
+## V1 포함
 
 | 항목 | 구체적 범위 | 완료 증거 |
 |---|---|---|
 | 객체 등록/삭제 | user, team, folder, document의 최소 ID registry | 존재 검증, 삭제 제한 테스트 |
-| 관계 변경 | member, parent, viewer, editor 관계의 원자적 batch write | 실패 시 전부 rollback |
-| 단건 판단 | user가 folder/document에 view/edit 가능한지 | 규칙별 allow/deny fixture |
+| 관계 변경 | member, parent, viewer, editor, manager 관계와 조직 역할의 원자적 batch write | 실패 시 전부 rollback |
+| 단건 판단 | user가 folder/document에 view/edit/manage 가능한지 | 규칙별 allow/deny fixture |
 | 일괄 판단 | 같은 사용자에 대해 최대 100개 check | 단일 snapshot, 입력 순서 유지 |
 | 설명 | allow를 뒷받침하는 유효 경로 하나 | explain scope 및 경로 검증 |
 | 격리 | 요청, query, FK 모두 tenant 포함 | 다른 tenant의 동일 ID 테스트 |
-| 일관성 | primary snapshot, tenant revision, idempotency | 회수·재시도·충돌 스케줄 테스트 |
+| 일관성 | primary snapshot, tenant revision, actor별 idempotency | 회수·재시도·충돌 스케줄 테스트 |
 | 운영 | health/readiness, 구조화 로그, 제한, graceful shutdown | DB 장애 및 과부하 테스트 |
 | 연동 예제 | 별도 Python 표준 라이브러리 클라이언트와 테스트 시나리오 | 다른 프로세스에서 grant→check→revoke→check |
 

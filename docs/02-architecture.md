@@ -33,7 +33,7 @@ examples/python/   # small HTTP caller, not another business service
 benchmarks/        # seeded data, load profiles, reports
 ```
 
-위 디렉터리는 구현 계획이며 현재 생성하지 않는다. 핵심 의존 방향은 store → core, server → core/store다. core는 HTTP/SQL/runtime에 의존하지 않는다. 저장소가 같은 snapshot에서 조회한 제한된 facts를 core에 넘긴다. core는 결정과 증명 경로를 계산한다.
+위 계층은 현재 구현돼 있다. Python 클라이언트는 examples/client.py에 있다. 핵심 의존 방향은 store → core, server → core/store다. core는 HTTP/SQL/runtime에 의존하지 않는다. 저장소가 같은 snapshot에서 조회한 제한된 facts를 core에 넘긴다. core는 결정과 증명 경로를 계산한다.
 
 ## 배포 경계
 
