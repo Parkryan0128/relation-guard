@@ -1,0 +1,375 @@
+{
+  "_note": "Expected semantics for org-doc-v1. This fixture does not implement an evaluator.",
+  "model_version": "org-doc-v1",
+  "tenants": [
+    {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "entities": [
+        {
+          "kind": "user",
+          "id": "u42"
+        },
+        {
+          "kind": "user",
+          "id": "u7"
+        },
+        {
+          "kind": "team",
+          "id": "dev"
+        },
+        {
+          "kind": "folder",
+          "id": "f10"
+        },
+        {
+          "kind": "document",
+          "id": "d100"
+        },
+        {
+          "kind": "document",
+          "id": "private"
+        }
+      ],
+      "relationships": [
+        {
+          "resource": {
+            "kind": "team",
+            "id": "dev"
+          },
+          "relation": "member",
+          "subject": {
+            "kind": "user",
+            "id": "u42"
+          },
+          "subject_relation": ""
+        },
+        {
+          "resource": {
+            "kind": "folder",
+            "id": "f10"
+          },
+          "relation": "editor",
+          "subject": {
+            "kind": "team",
+            "id": "dev"
+          },
+          "subject_relation": "member"
+        },
+        {
+          "resource": {
+            "kind": "document",
+            "id": "d100"
+          },
+          "relation": "parent",
+          "subject": {
+            "kind": "folder",
+            "id": "f10"
+          },
+          "subject_relation": ""
+        }
+      ]
+    },
+    {
+      "id": "22222222-2222-4222-8222-222222222222",
+      "entities": [
+        {
+          "kind": "user",
+          "id": "u42"
+        },
+        {
+          "kind": "folder",
+          "id": "f10"
+        },
+        {
+          "kind": "document",
+          "id": "d100"
+        }
+      ],
+      "relationships": []
+    }
+  ],
+  "cases": [
+    {
+      "name": "team_inherited_edit",
+      "tenant_index": 0,
+      "subject": {
+        "kind": "user",
+        "id": "u42"
+      },
+      "resource": {
+        "kind": "document",
+        "id": "d100"
+      },
+      "action": "edit",
+      "decision": "allow"
+    },
+    {
+      "name": "edit_implies_view",
+      "tenant_index": 0,
+      "subject": {
+        "kind": "user",
+        "id": "u42"
+      },
+      "resource": {
+        "kind": "document",
+        "id": "d100"
+      },
+      "action": "view",
+      "decision": "allow"
+    },
+    {
+      "name": "nonmember_denied",
+      "tenant_index": 0,
+      "subject": {
+        "kind": "user",
+        "id": "u7"
+      },
+      "resource": {
+        "kind": "document",
+        "id": "d100"
+      },
+      "action": "view",
+      "decision": "deny"
+    },
+    {
+      "name": "same_ids_different_tenant",
+      "tenant_index": 1,
+      "subject": {
+        "kind": "user",
+        "id": "u42"
+      },
+      "resource": {
+        "kind": "document",
+        "id": "d100"
+      },
+      "action": "edit",
+      "decision": "deny"
+    },
+    {
+      "name": "unknown_resource",
+      "tenant_index": 0,
+      "subject": {
+        "kind": "user",
+        "id": "u42"
+      },
+      "resource": {
+        "kind": "document",
+        "id": "missing"
+      },
+      "action": "view",
+      "decision": "deny",
+      "reason": "NOT_FOUND"
+    },
+    {
+      "name": "registered_but_unshared",
+      "tenant_index": 0,
+      "subject": {
+        "kind": "user",
+        "id": "u42"
+      },
+      "resource": {
+        "kind": "document",
+        "id": "private"
+      },
+      "action": "view",
+      "decision": "deny"
+    },
+    {
+      "name": "membership_revoked",
+      "tenant_index": 0,
+      "remove_relationships": [
+        {
+          "resource": {
+            "kind": "team",
+            "id": "dev"
+          },
+          "relation": "member",
+          "subject": {
+            "kind": "user",
+            "id": "u42"
+          },
+          "subject_relation": ""
+        }
+      ],
+      "subject": {
+        "kind": "user",
+        "id": "u42"
+      },
+      "resource": {
+        "kind": "document",
+        "id": "d100"
+      },
+      "action": "edit",
+      "decision": "deny"
+    },
+    {
+      "name": "direct_grant_survives_team_removal",
+      "tenant_index": 0,
+      "remove_relationships": [
+        {
+          "resource": {
+            "kind": "team",
+            "id": "dev"
+          },
+          "relation": "member",
+          "subject": {
+            "kind": "user",
+            "id": "u42"
+          },
+          "subject_relation": ""
+        }
+      ],
+      "add_relationships": [
+        {
+          "resource": {
+            "kind": "document",
+            "id": "d100"
+          },
+          "relation": "editor",
+          "subject": {
+            "kind": "user",
+            "id": "u42"
+          },
+          "subject_relation": ""
+        }
+      ],
+      "subject": {
+        "kind": "user",
+        "id": "u42"
+      },
+      "resource": {
+        "kind": "document",
+        "id": "d100"
+      },
+      "action": "edit",
+      "decision": "allow"
+    },
+    {
+      "name": "viewer_does_not_edit",
+      "tenant_index": 0,
+      "remove_relationships": [
+        {
+          "resource": {
+            "kind": "folder",
+            "id": "f10"
+          },
+          "relation": "editor",
+          "subject": {
+            "kind": "team",
+            "id": "dev"
+          },
+          "subject_relation": "member"
+        }
+      ],
+      "add_relationships": [
+        {
+          "resource": {
+            "kind": "folder",
+            "id": "f10"
+          },
+          "relation": "viewer",
+          "subject": {
+            "kind": "team",
+            "id": "dev"
+          },
+          "subject_relation": "member"
+        }
+      ],
+      "subject": {
+        "kind": "user",
+        "id": "u42"
+      },
+      "resource": {
+        "kind": "document",
+        "id": "d100"
+      },
+      "action": "edit",
+      "decision": "deny"
+    },
+    {
+      "name": "viewer_inherits_view",
+      "tenant_index": 0,
+      "remove_relationships": [
+        {
+          "resource": {
+            "kind": "folder",
+            "id": "f10"
+          },
+          "relation": "editor",
+          "subject": {
+            "kind": "team",
+            "id": "dev"
+          },
+          "subject_relation": "member"
+        }
+      ],
+      "add_relationships": [
+        {
+          "resource": {
+            "kind": "folder",
+            "id": "f10"
+          },
+          "relation": "viewer",
+          "subject": {
+            "kind": "team",
+            "id": "dev"
+          },
+          "subject_relation": "member"
+        }
+      ],
+      "subject": {
+        "kind": "user",
+        "id": "u42"
+      },
+      "resource": {
+        "kind": "document",
+        "id": "d100"
+      },
+      "action": "view",
+      "decision": "allow"
+    },
+    {
+      "name": "parent_removed",
+      "tenant_index": 0,
+      "remove_relationships": [
+        {
+          "resource": {
+            "kind": "document",
+            "id": "d100"
+          },
+          "relation": "parent",
+          "subject": {
+            "kind": "folder",
+            "id": "f10"
+          },
+          "subject_relation": ""
+        }
+      ],
+      "subject": {
+        "kind": "user",
+        "id": "u42"
+      },
+      "resource": {
+        "kind": "document",
+        "id": "d100"
+      },
+      "action": "edit",
+      "decision": "deny"
+    },
+    {
+      "name": "unknown_user",
+      "tenant_index": 0,
+      "subject": {
+        "kind": "user",
+        "id": "missing"
+      },
+      "resource": {
+        "kind": "document",
+        "id": "d100"
+      },
+      "action": "view",
+      "decision": "deny",
+      "reason": "NOT_FOUND"
+    }
+  ]
+}

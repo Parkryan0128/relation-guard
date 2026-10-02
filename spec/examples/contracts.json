@@ -1,0 +1,269 @@
+{
+  "_note": "DESIGN EXAMPLES, not observed server responses. Tokens are intentionally omitted.",
+  "tenant_id": "11111111-1111-4111-8111-111111111111",
+  "write": {
+    "method": "POST",
+    "path": "/v1/tenants/11111111-1111-4111-8111-111111111111/write",
+    "headers": {
+      "Idempotency-Key": "bootstrap-001"
+    },
+    "request": {
+      "expected_revision": "0",
+      "operations": [
+        {
+          "op": "put_entity",
+          "entity": {
+            "kind": "user",
+            "id": "u42"
+          }
+        },
+        {
+          "op": "put_entity",
+          "entity": {
+            "kind": "team",
+            "id": "dev"
+          }
+        },
+        {
+          "op": "put_entity",
+          "entity": {
+            "kind": "folder",
+            "id": "f10"
+          }
+        },
+        {
+          "op": "put_entity",
+          "entity": {
+            "kind": "document",
+            "id": "d100"
+          }
+        },
+        {
+          "op": "put_relation",
+          "relationship": {
+            "resource": {
+              "kind": "team",
+              "id": "dev"
+            },
+            "relation": "member",
+            "subject": {
+              "kind": "user",
+              "id": "u42"
+            },
+            "subject_relation": ""
+          }
+        },
+        {
+          "op": "put_relation",
+          "relationship": {
+            "resource": {
+              "kind": "folder",
+              "id": "f10"
+            },
+            "relation": "editor",
+            "subject": {
+              "kind": "team",
+              "id": "dev"
+            },
+            "subject_relation": "member"
+          }
+        },
+        {
+          "op": "put_relation",
+          "relationship": {
+            "resource": {
+              "kind": "document",
+              "id": "d100"
+            },
+            "relation": "parent",
+            "subject": {
+              "kind": "folder",
+              "id": "f10"
+            },
+            "subject_relation": ""
+          }
+        }
+      ]
+    },
+    "response": {
+      "changed": true,
+      "revision": "1",
+      "model_version": "org-doc-v1",
+      "request_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+    }
+  },
+  "check": {
+    "request": {
+      "subject": {
+        "kind": "user",
+        "id": "u42"
+      },
+      "resource": {
+        "kind": "document",
+        "id": "d100"
+      },
+      "action": "edit",
+      "explain": true
+    },
+    "response": {
+      "decision": "allow",
+      "reason": "MATCHING_RELATION",
+      "evaluated_revision": "1",
+      "model_version": "org-doc-v1",
+      "request_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "proof": [
+        {
+          "resource": {
+            "kind": "document",
+            "id": "d100"
+          },
+          "relation": "parent",
+          "subject": {
+            "kind": "folder",
+            "id": "f10"
+          },
+          "subject_relation": ""
+        },
+        {
+          "resource": {
+            "kind": "folder",
+            "id": "f10"
+          },
+          "relation": "editor",
+          "subject": {
+            "kind": "team",
+            "id": "dev"
+          },
+          "subject_relation": "member"
+        },
+        {
+          "resource": {
+            "kind": "team",
+            "id": "dev"
+          },
+          "relation": "member",
+          "subject": {
+            "kind": "user",
+            "id": "u42"
+          },
+          "subject_relation": ""
+        }
+      ]
+    }
+  },
+  "batch_check": {
+    "request": {
+      "subject": {
+        "kind": "user",
+        "id": "u42"
+      },
+      "checks": [
+        {
+          "resource": {
+            "kind": "document",
+            "id": "d100"
+          },
+          "action": "view"
+        },
+        {
+          "resource": {
+            "kind": "document",
+            "id": "missing"
+          },
+          "action": "edit"
+        }
+      ],
+      "explain": false
+    },
+    "response": {
+      "evaluated_revision": "1",
+      "model_version": "org-doc-v1",
+      "request_id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      "results": [
+        {
+          "decision": "allow",
+          "reason": "MATCHING_RELATION"
+        },
+        {
+          "decision": "deny",
+          "reason": "NOT_FOUND"
+        }
+      ]
+    }
+  },
+  "revoke": {
+    "headers": {
+      "Idempotency-Key": "revoke-001"
+    },
+    "request": {
+      "expected_revision": "1",
+      "operations": [
+        {
+          "op": "delete_relation",
+          "relationship": {
+            "resource": {
+              "kind": "team",
+              "id": "dev"
+            },
+            "relation": "member",
+            "subject": {
+              "kind": "user",
+              "id": "u42"
+            },
+            "subject_relation": ""
+          }
+        }
+      ]
+    },
+    "response": {
+      "changed": true,
+      "revision": "2",
+      "model_version": "org-doc-v1",
+      "request_id": "dddddddd-dddd-4ddd-8ddd-dddddddddddd"
+    }
+  },
+  "check_after_revoke": {
+    "request": {
+      "subject": {
+        "kind": "user",
+        "id": "u42"
+      },
+      "resource": {
+        "kind": "document",
+        "id": "d100"
+      },
+      "action": "edit",
+      "explain": false
+    },
+    "response": {
+      "decision": "deny",
+      "reason": "NO_MATCHING_RELATION",
+      "evaluated_revision": "2",
+      "model_version": "org-doc-v1",
+      "request_id": "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee"
+    }
+  },
+  "revision_conflict": {
+    "http_status": 409,
+    "response": {
+      "error": {
+        "code": "REVISION_CONFLICT",
+        "message": "Tenant revision changed. Reconcile intent before a new write.",
+        "request_id": "ffffffff-ffff-4fff-8fff-ffffffffffff",
+        "details": {
+          "current_revision": "2"
+        }
+      }
+    }
+  },
+  "database_failure": {
+    "http_status": 503,
+    "response": {
+      "error": {
+        "code": "DATABASE_UNAVAILABLE",
+        "message": "Authorization could not be evaluated.",
+        "request_id": "99999999-9999-4999-8999-999999999999"
+      }
+    }
+  }
+}

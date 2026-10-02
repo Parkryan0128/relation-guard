@@ -1,0 +1,12 @@
+# Secrets and local artifacts
+.env
+.env.*
+!.env.example
+secrets/
+*.pem
+*.key
+/target/
+/benchmark-results/raw/
+.DS_Store
+__pycache__/
+*.pyc

@@ -1,0 +1,57 @@
+# 05. 저장 구조와 구현 알고리즘
+
+## 테이블
+
+[설계 DDL](../spec/schema.sql)은 다음 구조를 제안한다. 실행·migration 테스트 전 배포용으로 취급하지 않는다.
+
+- tenants: UUID, 단조 증가 revision. 조직 경계 및 write serialization lock.
+- entities: tenant + kind + opaque ID. 표시명/문서 본문/개인정보 저장하지 않음.
+- relationships: typed resource/relation/subject/subject_relation. 양 끝점은 tenant 포함 composite FK.
+- mutation_receipts: tenant + key_id + idempotency_key, normalized request hash, 성공 response, 생성 시점.
+- audit_events: tenant + revision별 변경 diff, key_id, request ID, timestamp.
+
+API key는 DDL에 넣지 않는다. v0.1은 운영자가 배포하는 secret 설정 파일에서 key_id → tenant/scopes/token digest를 읽는다. 상세 정책은 [운영](07-operations.md).
+
+## DB가 보장하는 것
+
+- 동일 tuple 중복 방지, 허용된 relation/type 조합, tenant 존재와 양 끝점 참조.
+- parent resource당 유일성은 부분 unique index. 같은 tenant 안의 parent만 가능.
+- resource별 관계 조회의 covering key와 subject 방향 index.
+- revision별 감사 행 유일성과 receipt key 유일성.
+
+cycle·최대 depth는 여러 행을 보므로 CHECK로 해결하지 않는다. 서버 write transaction에서 tenant lock 획득 후 final graph에 대해 검증한다. DB 직접 쓰기는 금지한다. RLS는 v0.1에서 도입하지 않는다. tenant-bound SQL·FK·테스트가 격리 수단이며 RLS를 이미 쓴다고 주장하지 않는다.
+
+## Write 알고리즘
+
+1. 서비스 key/scope/path/body/한도를 검증. canonical hash 계산.
+2. READ COMMITTED transaction 시작. `SELECT revision FROM tenants WHERE id=$1 FOR UPDATE`.
+3. 같은 tenant/key_id/idempotency_key의 receipt를 조회. 동일 hash면 replay, 다르면 충돌.
+4. expected_revision 비교. 불일치면 rollback.
+5. relation deletes → entity deletes → entity puts → relation puts. 모든 query에 tenant 인자.
+6. FK/type/parent constraints와 최종 계층을 검증. 폴더 이동은 새 ancestor 길이 + 이동 subtree 최대 깊이로 32 edges를 검사한다. 변경 subtree 순회에도 작업 한도 20,000과 statement timeout을 적용; 초과 시 422 EVALUATION_LIMIT 후 rollback. v0.1은 거대 subtree 이동을 강제로 지원하지 않는다.
+7. 실제 row 변경 여부로 changed 결정. 변경 있으면 revision+1 및 실제 diff audit 1행. 요청 순서가 아닌 정렬된 effective diff를 저장.
+8. 성공 response와 receipt 저장. no-op도 receipt는 저장하고 audit/revision은 유지.
+9. commit 성공을 확인한 후 성공 응답. 연결 단절로 commit 확정 불가하면 unknown outcome.
+
+FK는 처음에는 immediate, deletion은 관계 제거 후 객체 제거하므로 문제없다. 관계가 남은 entity delete는 FK 에러를 ENTITY_IN_USE로 매핑한다. SQL exception 뒤 실패 transaction에서 계속 작업하지 않는다.
+
+## Check fact loading
+
+한 요청당 `REPEATABLE READ READ ONLY` transaction, primary 연결 1개다.
+
+1. tenant revision을 읽어 snapshot을 확정한다.
+2. subject user 존재, 대상 resource 존재, 대상들의 ancestor chain을 bounded recursive CTE로 조회한다. 입력 ordinal을 유지한다. SQL에서도 visited path/cycle/depth guard를 둔다.
+3. target+ancestor 집합의 viewer/editor 중 direct user 일치 또는 `(team,member,user)`가 존재하는 grant만 set-based 조회한다. 필요한 membership 증거도 같은 statement에서 반환한다.
+4. facts를 순수 core에 넘겨 typed rule을 평가하고 proof를 구성한다. transaction을 종료하고 response를 반환한다.
+
+목표는 BEGIN/COMMIT/SET을 제외한 데이터 조회 statement 최대 3개다. step 2의 존재/ancestor 결과는 하나의 query 또는 동등한 구조로 작성한다. 모든 clause/CTE/join에 tenant 조건을 포함한다. max facts + 1개를 읽어 한도 초과를 감지하며 잘린 결과로 deny를 계산하지 않는다.
+
+parent 구조를 복구할 때 guard에 걸리면 500; 정상 API 입력의 evaluation 예산 초과는 422. 이 구별은 서버가 쓴 유효 계층이라는 invariant와 함께 테스트한다.
+
+## Rust 엔진의 실제 역할
+
+DB는 관계 저장, snapshot, ancestor/fact 집합 준비를 담당한다. Rust core는 action implication, subject matching, allow/deny, deterministic proof, 작업 예산을 담당한다. SQL 하나로 bool만 계산하고 Rust는 포장만 하는 엔진이라고 소개하지 않는다. 동시에 Rust를 강조하려고 DB에서 이미 효율적으로 처리할 일을 N+1 네트워크 탐색으로 바꾸지 않는다.
+
+## 성장 시점
+
+primary 1개, read-only snapshot, 테넌트당 직렬 write는 의도된 시작점이다. hot tenant write contention·큰 subtree·DB pool 포화는 측정할 한계다. closure table, caching, immutable in-memory graph, replicas는 측정 후 consistency 계약을 다시 설계해야 하는 후속 선택지다.
