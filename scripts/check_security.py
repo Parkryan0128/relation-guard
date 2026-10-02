@@ -25,7 +25,7 @@ assert all(license!='first-party/private' or name.startswith('authz-') for name,
 # Values are inspected without printing their contents. Generated/test-only public fixtures
 # do not contain actual service secrets; real token/key files belong outside the repo.
 files=subprocess.check_output(['git','ls-files','-z'],cwd=root).decode().split('\0');hits=[]
-patterns=[rb'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----',rb'gh[pousr]_[A-Za-z0-9]{30,}',rb'AKIA[0-9A-Z]{16}',rb'postgres(?:ql)?://[^\s/:]+:[A-Za-z0-9]{24,}@']
+patterns=[rb'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----',rb'gh[pousr]_[A-Za-z0-9]{30,}',rb'AKIA[0-9A-Z]{16}',rb'postgres(?:ql)?://[^\s/:]+:[A-Za-z0-9]{24,}@',rb'"token"\s*:\s*"[A-Za-z0-9_-]{1,64}\.[A-Za-z0-9_-]{43}"',rb'Bearer [A-Za-z0-9_-]{1,64}\.[A-Za-z0-9_-]{43}']
 for name in filter(None,files):
  path=root/name
  if not path.is_file():continue

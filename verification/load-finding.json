@@ -1,0 +1,19 @@
+{
+  "profile": "S-batch-3",
+  "scheduled": 3001,
+  "correct": 2995,
+  "unexpected_503": 6,
+  "dropped": 0,
+  "wrong_decisions": 0,
+  "unexpected_ratio": 0.001999333555481506,
+  "required_ratio_less_than": 0.001,
+  "passed": false,
+  "observations": {
+    "data_selects": 8985,
+    "expected_selects_for_successful_requests": 8985,
+    "core_evaluations": 2995,
+    "pool_wait_seconds": 1.732757233,
+    "error_sample_index": 50
+  },
+  "interpretation": "All six errors occurred before data SELECT/evaluation; the same five-second interval contains the pool-wait spike. Evidence is consistent with acquire timeout, but response error codes and host/DB scheduler traces were not captured. Exact underlying cause remains unestablished. Do not convert this failed repetition into a pass by averaging or an unchanged rerun."
+}

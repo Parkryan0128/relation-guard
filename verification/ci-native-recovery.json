@@ -1,4 +1,7 @@
 {
+  "source_commit": "9ae1c8be3ad636023e1bd8110a80f95341011fb6",
+  "binary_sha256": "33b0cc40ecb47db62b11c6d7cf92054429b84742876f4c08336d80738e4bd081",
+  "executed_at_utc": "2026-10-02T17:37:33.562746+00:00",
   "environment": "linux native application processes; isolated test PostgreSQL databases",
   "passed": [
     "runtime_role",
@@ -15,10 +18,9 @@
     "relationships": 1,
     "audit": 3,
     "receipts": 3,
-    "edges_hash": "8d8f8877eb7b300a0a5047d5b1d1d733"
+    "edges_hash": "731962e71d04cab4a9849582d9f87801"
   },
-  "shutdown_seconds": 2.002034457000036,
+  "shutdown_seconds": 2.00979873,
   "inflight_shutdown_response": 504,
-  "source_commit": "72f6dd3",
-  "ci_run": "https://github.com/Parkryan0128/relation-guard/actions/runs/37040865393"
+  "ci_run": "https://github.com/Parkryan0128/relation-guard/actions/runs/37041474310"
 }

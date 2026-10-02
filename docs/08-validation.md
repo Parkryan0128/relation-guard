@@ -41,7 +41,7 @@ transaction 시작이 아닌 첫 snapshot statement 시점을 test hook으로 �
 
 ## 성능 실험
 
-측정 전 목표값이며 현재 결과가 없다. 고정 환경 baseline: authz container 2 vCPU/512 MiB, PostgreSQL 2 vCPU/1 GiB, 같은 Linux host의 private bridge network. 전용 load generator의 자원을 별도 확보하고 CPU 모델, storage, host memory, OS, Rust/DB 버전, image digest와 commit을 기록한다. 개발 Mac 결과는 별도 표기한다.
+아래 수치는 구현 전에 정한 목표이며, 실제 실행 결과는 [M5 보고서](../verification/M5-report.md)에 별도로 기록한다. 원래 배포 성능 gate의 고정 환경 baseline: authz container 2 vCPU/512 MiB, PostgreSQL 2 vCPU/1 GiB, 같은 Linux host의 private bridge network. 전용 load generator의 자원을 별도 확보하고 CPU 모델, storage, host memory, OS, Rust/DB 버전, image digest와 commit을 기록한다. 개발 Mac 결과는 별도 표기한다.
 
 데이터 S: 1 tenant, 1,000 users, 100 teams, 1,000 folders, 10,000 documents, 약 50,000 relationships, 최대 깊이 8. M: 총 약 1,000,000 relationships의 10 tenants, 정확한 분포/seed/allow ratio는 generator manifest로 기록. edge에는 parent/member/grant를 모두 포함한다.
 

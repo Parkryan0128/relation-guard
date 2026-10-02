@@ -40,7 +40,7 @@ primary REPEATABLE READ snapshot. replica/cache/token mode를 제공하지 않�
 
 ## ADR-010: 설계 먼저, 독립 저장소
 
-기존 세 프로젝트와 과거 지원 채팅 코드에 연결 의존성을 만들지 않는다. 현재 commit에는 문서·설계 DDL·계약 fixture·문서 검증만 포함한다. GitHub는 우선 비공개, 라이선스는 보류. 벤치마크 결과와 작동하는 API는 구현 후에만 추가한다.
+기존 세 프로젝트와 과거 지원 채팅 코드에 연결 의존성을 만들지 않는다. 초기 설계 commit에는 문서·설계 DDL·계약 fixture·문서 검증만 포함했다. GitHub는 우선 비공개, 라이선스는 보류. 벤치마크 결과와 작동하는 API는 구현 후에만 추가한다.
 
 ## ADR-011: 검증 가능한 stage gate와 경계 계약
 

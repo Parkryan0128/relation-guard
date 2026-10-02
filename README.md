@@ -2,7 +2,7 @@
 
 **A relationship-based authorization service in Rust.** Backends written in any language can use its HTTP API to register or revoke relationships and check access to resources.
 
-> **Status: functional implementation verified; native load validation in progress.** The evaluator, PostgreSQL transactions, HTTP API, admin CLI, recovery and key rotation have passed real tests. Clean Linux CI also passes functional regression. Container deployment and resource-limited release performance remain unverified. See [verification status](verification/status.md).
+> **Status: functional implementation verified; one native performance gate remains unmet.** Core, transactions, HTTP, recovery and key rotation pass locally and in clean Linux CI. All planned native load profiles ran, but one batch repetition exceeded the failure-rate target. Container deployment remains unverified. See [verification status](verification/status.md).
 
 ## What it does
 
@@ -51,7 +51,7 @@ Run `PYTHON=.venv/bin/python scripts/verify.sh` with an isolated `TEST_DATABASE_
 
 ## Stage gates
 
-M0–M3 functional verification and native recovery checks now pass. Native load testing is in progress. Container deployment verification is deferred under the [approved native testing plan](docs/14-native-verification.md). Detailed test cases, required evidence, and pass/fail rules are defined in the [implementation roadmap](docs/09-roadmap.md) and [acceptance test matrix](docs/12-acceptance-tests.md).
+M0–M3 functional verification and M4-native recovery checks pass. M5-native measurement is complete, but its acceptance gate did not pass: batch repetition 3 returned six HTTP 503 responses out of 3,001 requests (0.20%, against a <0.1% target). No wrong authorization decision was observed. Container deployment verification is deferred under the [approved native testing plan](docs/14-native-verification.md). Detailed test cases, required evidence, and pass/fail rules are defined in the [implementation roadmap](docs/09-roadmap.md) and [acceptance test matrix](docs/12-acceptance-tests.md).
 
 | Stage | Deliverable | Required validation |
 |---|---|---|
@@ -63,6 +63,17 @@ M0–M3 functional verification and native recovery checks now pass. Native load
 | M5 | Release evidence | Full regression, reproducible load tests, fault recovery, dependency and secret review |
 
 A stage passes only when its required cases pass and evidence is recorded for the tested commit. A skipped or unavailable required test is not a pass. Implementation and testing of later stages must not hide an unresolved earlier gate.
+
+## Measured local results
+
+Release build on macOS arm64 with a local PostgreSQL 18.6 endpoint; no CPU/memory caps. Each profile used a 60-second warmup and three 300-second measurements.
+
+| Workload | Successful-response latency across runs | Errors and acceptance |
+|---|---|---|
+| 100 single checks/s | p95 6.08–6.41 ms; p99 17.99–21.84 ms | 90,002/90,002 correct responses; all three runs passed |
+| 10 batches/s, 100 checks each | p95 29.16–30.46 ms | Six 503 responses in run 3; failure-rate gate missed |
+
+The one-million-relationship dataset, mixed writes, stress and recovery profiles also ran. Stress results include dropped load-generator iterations. See the [complete report](verification/M5-report.md), including preserved failures, internal costs and environment limits. These are engineering measurements, not production SLA guarantees.
 
 ## Consistency boundaries
 

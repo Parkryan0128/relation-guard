@@ -23,7 +23,7 @@
 ### M0 테스트 방법과 통과 기준
 
 - 환경: pinned Rust toolchain + 빈 PostgreSQL 18 DB. 각 테스트에는 고유 DB/schema를 할당한다.
-- 예정 진입점: `scripts/test-stage.sh M0`. 내부에서 fmt check, Clippy warnings denied, workspace build, typed DTO/OpenAPI fixture tests, migration/constraint tests 실행.
+- 진입점: `scripts/test-stage.sh M0`. 내부에서 fmt check, Clippy warnings denied, workspace build, typed DTO/OpenAPI fixture tests, migration/constraint tests 실행.
 - 필수 case: M0-01–M0-05. DB CHECK/FK/unique는 실패 SQLSTATE와 rollback 후 상태까지 확인한다.
 - 통과: contract의 valid/invalid fixture 전부 일치, migration 재실행이 schema를 바꾸지 않음, first-party unsafe 금지 확인. core 성능이나 권한 결과는 이 단계에서 달성했다고 보고하지 않는다.
 - 증거: verification/M0-report.md, pin 파일/lockfile, schema 검증 및 DB test 로그.
@@ -39,7 +39,7 @@
 ### M1 테스트 방법과 통과 기준
 
 - 환경: DB/HTTP 없는 core 테스트. 정상 fixture마다 독립 초기 상태를 사용한다.
-- 예정 진입점: `scripts/test-stage.sh M1`. core unit/proptest와 reference comparison, proof validation 실행. property당 PR에서 1,000 cases, stage gate에서 10,000 cases; seed와 minimized counterexample 저장.
+- 진입점: `scripts/test-stage.sh M1`. core unit/proptest와 reference comparison, proof validation 실행. property당 PR에서 1,000 cases, stage gate에서 10,000 cases; seed와 minimized counterexample 저장.
 - 필수 case: M1-01–M1-06. 경계는 바로 아래/동일/바로 위를 모두 확인한다.
 - 통과: 차등 결과 불일치 0, 모든 allow proof 검증 성공, malformed snapshot은 error, core runtime/DB 의존 0. Criterion은 baseline 기록만 하며 이 단계의 통과 시간을 임의로 정하지 않는다.
 - 증거: verification/M1-report.md, property seed/회귀 fixture, baseline artifact.
@@ -57,7 +57,7 @@
 ### M2 테스트 방법과 통과 기준
 
 - 환경: pinned PostgreSQL, 별도 pool/connection으로 reader와 writer 실행. transaction boundary에 test-only barrier 삽입; sleep으로 순서를 맞추지 않는다.
-- 예정 진입점: `scripts/test-stage.sh M2`. 모든 PG integration과 동시성 schedule 실행. stage gate에서 각 schedule 100회 반복하고 첫 실패에 fail; flaky retry로 녹색 처리하지 않는다.
+- 진입점: `scripts/test-stage.sh M2`. 모든 PG integration과 동시성 schedule 실행. stage gate에서 각 schedule 100회 반복하고 첫 실패에 fail; flaky retry로 녹색 처리하지 않는다.
 - 필수 case: M2-01–M2-08. rollback 확인 대상은 graph, revision, audit, receipt 네 가지 모두다.
 - 통과: commit 횟수/최종 revision/증명 경로가 예상과 일치, batch 데이터 SELECT ≤3, 잘린 facts로 정상 deny를 반환하지 않음.
 - 증거: verification/M2-report.md, query count와 EXPLAIN 출력, sanitized transaction schedule 로그.
@@ -75,7 +75,7 @@
 ### M3 테스트 방법과 통과 기준
 
 - 환경: 실제 TCP listener의 Axum 서버 + 실제 PostgreSQL. mock storage를 이용한 unit test만으로 대체하지 않는다.
-- 예정 진입점: `scripts/test-stage.sh M3`. OpenAPI request/response validation, HTTP auth/contract test, deterministic fault injection 실행.
+- 진입점: `scripts/test-stage.sh M3`. OpenAPI request/response validation, HTTP auth/contract test, deterministic fault injection 실행.
 - 필수 case: M3-01–M3-07. test-only fault hook은 production build에 포함하지 않는다.
 - 통과: 모든 status/code/envelope 일치, unknown outcome을 rollback으로 오인하지 않음, credential/tenant/proof 누출 0, overload와 deadline 뒤 연결 풀 정상 복구.
 - 증거: verification/M3-report.md, sanitized HTTP transcripts, scope matrix, fault recovery 로그.
@@ -102,19 +102,21 @@
 
 ## M5 — 증거와 릴리스
 
+**실행 결과: M5-native 전 시나리오 실행 완료, acceptance 미달.** 마지막 batch 회차에서 3,001건 중 503 6건(0.20%)으로 오류율 목표를 넘었다. 아래 산출물은 완성했지만 stage 통과를 의미하지 않는다. 상세 수치와 한계는 verification/M5-report.md를 따른다.
+
 `scripts/test-stage.sh M5`는 현재 M5-native 경로다. 아래 Linux 제한 환경의 정식 배포 성능 gate는 별도로 남는다. 수치 기준은 동일하게 유지하며 미달 회차를 평균으로 숨기지 않는다.
 
-- [ ] docs/08의 성능 profile, p95/p99/오류/자원 측정 보고서.
-- [ ] correctness gates 재확인, secret/dependency/license 점검.
-- [ ] README에 실제 지원 기능·한계·실행법·측정 결과 반영.
-- [ ] 모든 목표의 달성/미달 사유 공개. revision과 모델 호환 정책 명시.
+- [x] docs/08의 성능 profile, p95/p99/오류/자원 측정 보고서.
+- [x] correctness gates 재확인, secret/dependency/license 점검.
+- [x] README에 실제 지원 기능·한계·실행법·측정 결과 반영.
+- [x] 모든 목표의 달성/미달 사유 공개. revision과 모델 호환 정책 명시.
 
 완료: 재현 가능한 v0.1 candidate. public 전환/오픈소스 라이선스는 사용자가 결정한다.
 
 ### M5 테스트 방법과 통과 기준
 
 - 환경: docs/08의 고정 Linux 자원/데이터/부하 조건. 다른 환경 결과를 정식 baseline으로 대체하지 않는다.
-- 예정 진입점: `scripts/test-stage.sh M5`. 이전 gate 전체 + load/fault/recovery + release review 실행.
+- 진입점: `scripts/test-stage.sh M5`. 이전 gate 전체 + load/fault/recovery + release review 실행.
 - 필수 case: M5-01–M5-05. 단건 profile과 batch profile은 각 3회 독립 측정한다.
 - 통과: 정확성/보안 gate 전부 통과, 단건 3회 각각 p95≤20ms·p99≤50ms·예상 밖 실패율<0.1%, batch 3회 각각 p95≤100ms·예상 밖 실패율<0.1%. 불가능하거나 미달이면 M5 미완료. 측정 후 숫자를 몰래 낮추지 않으며 목표 변경은 이유/새 조건을 ADR로 먼저 기록하고 다시 측정한다.
 - 증거: verification/M5-report.md, sanitized metrics와 benchmark manifest, 의존성/secret 검토, 알려진 한계. 취약점 검토 미해결은 release gate를 통과하지 못한다.

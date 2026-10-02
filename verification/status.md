@@ -1,6 +1,8 @@
 # Verification status
 
-Production implementation: `afc0fe192681eba11e6867f6bf85413baa4598fb`, 2026-10-02 UTC. [Local regression](regression.log) and [clean Linux CI](https://github.com/Parkryan0128/relation-guard/actions/runs/37039157433) passed. Later CI/harness changes do not change the production source. This is a tested implementation, not a certified production release.
+All planned implementation stages and approved native test scenarios have been executed. Functional and recovery checks passed; **M5-native acceptance did not pass** because one batch repetition exceeded its error budget. This is not a production release or a container certification.
+
+Production source: `afc0fe192681eba11e6867f6bf85413baa4598fb`. Later commits add test tooling, CI and evidence without changing the production source. [Local regression](regression.log) and [clean Linux functional/recovery CI](https://github.com/Parkryan0128/relation-guard/actions/runs/37041474310) passed.
 
 | Stage | Evidence | Status |
 |---|---|---|
@@ -8,12 +10,14 @@ Production implementation: `afc0fe192681eba11e6867f6bf85413baa4598fb`, 2026-10-0
 | M1 | [Reference/property tests and core baseline](M1-report.md) | Functional PASS; native baseline with hardware limitations |
 | M2 | [Transactions, deterministic races and measured SQL](M2-report.md) | PASS |
 | M3 | [261 HTTP assertions, scopes, deadlines, COMMIT fault proxy and client](M3-report.md) | PASS |
-| M4-native | [Restart, restore, rotation and native recovery](M4-report.md) | PASS, including active-request drain in clean Linux CI |
-| M5-native | [Load and release review](M5-report.md) | Full optimized workload running |
+| M4-native | [Restart, restore, rotation and active-request drain](M4-report.md) | PASS locally and in clean Linux CI |
+| M5-native | [All S/M/mixed/stress/recovery profiles and security review](M5-report.md) | Executed; batch run 3 failure-rate target missed |
 | Original container gates | [Approved environment change](../docs/14-native-verification.md) | Deferred, not a container PASS |
 
-The first native load attempt missed its second single-check run's error and p99 targets. [Original raw evidence](load-before-setup-optimization/manifest.json) is retained. Transaction setup round trips were reduced, all functional/native recovery tests passed again, and the same fixed performance thresholds are being measured again. No failed run is removed from the record or averaged away.
+S single-check runs all passed. S batch run 3 had six 503 responses out of 3,001 requests (0.20% versus the <0.1% target), with no incorrect decision or dropped iteration. The other two batch runs passed. [Finding and diagnostic limits](load-finding.json). No average or unchanged rerun is used to hide the failed repetition. The [earlier pre-optimization failure](load-before-setup-optimization/manifest.json) is retained as well.
 
-Docker image build succeeded. Clean Compose execution remained blocked by host bind-mount access. At the user's instruction, native application/test processes now use the existing dedicated test PostgreSQL instance. Generated recovery/load databases are isolated and removed by their harnesses. No Linux cgroup-limited performance or container restart/restore claim is made.
+All million-relationship profiles completed. The normal-load recovery after stress returned 6,001/6,001 correct responses. The [100-decision comparison](batch-comparison.json) and release-binary native recovery also passed. Disposable benchmark/recovery databases were removed by their harnesses; the existing dedicated PostgreSQL service was retained.
 
-Run `scripts/verify.sh` for functional regression, or cumulative `scripts/test-stage.sh M4` for native recovery as well. See [commands and environment](../docs/14-native-verification.md). Credentials and private load-generator configuration are excluded from tracked evidence.
+Docker image build succeeded earlier. Clean Compose execution remained blocked by host bind-mount access. At the user's instruction, native application/test processes used the existing dedicated test PostgreSQL instance. No Linux cgroup-limited performance or container restart/restore claim is made.
+
+Run `scripts/verify.sh` for functional regression, or cumulative `scripts/test-stage.sh M4` for native recovery as well. M5 runs load and security checks and returns failure when the fixed targets are missed. See [commands and environment](../docs/14-native-verification.md). Credentials and private load-generator configuration are excluded from tracked evidence.
