@@ -1,5 +1,7 @@
 # M0 local verification
 
+Full implemented regression rerun: `3a2c49dab8e5736ca6f4ed20a3be4becd69f899d`, 2026-10-02 UTC. See [log](regression.log).
+
 Tested core/contracts checkpoint: `af1c3b644e05c79c096a708e68cc4977f397f857`; later full-workspace regression is recorded in status and the regression log.
 
 - Rust 1.96.1, edition 2024, macOS aarch64; local installed toolchain alias `stable` resolves to the pinned version.

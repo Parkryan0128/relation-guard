@@ -1,5 +1,7 @@
 # M3 partial verification
 
+Full implemented regression rerun: `3a2c49dab8e5736ca6f4ed20a3be4becd69f899d`, 2026-10-02 UTC. See [log](regression.log).
+
 Commands: `cargo test -p authz-server` and `python scripts/test_http.py`, with real TCP listeners and PostgreSQL 18.
 
 - 32 HTTP assertions validate response schemas, authorization and scope separation, strict/duplicate/unknown JSON, invalid UTF-8, oversized bodies, media/method/path errors, revision conflicts, revoke/replay request IDs, audit pagination and proof omission.

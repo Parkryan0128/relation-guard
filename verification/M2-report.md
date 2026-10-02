@@ -1,5 +1,7 @@
 # M2 partial verification
 
+Full implemented regression rerun: `3a2c49dab8e5736ca6f4ed20a3be4becd69f899d`, 2026-10-02 UTC. See [log](regression.log).
+
 Command: `cargo test -p authz-store --test transactions` against isolated PostgreSQL 18. Six tests passed, no ignored tests.
 
 - Atomic writes, rollback, cross-tenant deny, revoke/replay without resurrecting a grant, hash mismatch, no-op receipt and stale revision.

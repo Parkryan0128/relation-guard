@@ -1,6 +1,6 @@
 # Verification status
 
-Implementation checkpoint, 2026-10-02 UTC. This is not a production release or a completed M0–M5 certification.
+Implementation checkpoint, 2026-10-02 UTC. Full implemented regression suite passed on commit `3a2c49dab8e5736ca6f4ed20a3be4becd69f899d`; see [sanitized log](regression.log). The evidence-only follow-up commit changes no executable code. This is not a production release or a completed M0–M5 certification.
 
 | Stage | Evidence | Gate status |
 |---|---|---|
