@@ -15,7 +15,7 @@
     "relationships": 1,
     "audit": 3,
     "receipts": 3,
-    "edges_hash": "672d5e2c3c2413c1afaa6d3e2a7b9d12"
+    "edges_hash": "747c78ba8b1caeb8512f4312f2bfac5b"
   },
-  "shutdown_seconds": 0.0013254161458462477
+  "shutdown_seconds": 0.010795499896630645
 }

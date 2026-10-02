@@ -63,24 +63,27 @@ impl From<sqlx::Error> for StoreError {
 pub async fn pool(url: &str) -> Result<PgPool, StoreError> {
     Ok(PgPoolOptions::new()
         .max_connections(10)
+        // BEGIN detects a stale socket; never turn connection failure into a decision.
+        .test_before_acquire(false)
         .acquire_timeout(Duration::from_millis(250))
         .connect(url)
         .await?)
 }
-async fn begin(pool: &PgPool) -> Result<Transaction<'static, Postgres>, StoreError> {
+async fn begin(
+    pool: &PgPool,
+    read_only: bool,
+) -> Result<Transaction<'static, Postgres>, StoreError> {
     let timer = metrics::POOL_WAIT.timer();
     let connection = pool.acquire().await?;
     drop(timer);
-    Ok(Transaction::begin(connection, None).await?)
-}
-async fn limits(tx: &mut Transaction<'_, Postgres>) -> Result<(), StoreError> {
-    sqlx::query("SET LOCAL statement_timeout = '1s'")
-        .execute(&mut **tx)
-        .await?;
-    sqlx::query("SET LOCAL lock_timeout = '500ms'")
-        .execute(&mut **tx)
-        .await?;
-    Ok(())
+    // Constant setup statements share a single PostgreSQL protocol round trip.
+    // The first data SELECT still establishes the repeatable-read snapshot.
+    let setup = if read_only {
+        "BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY; SET LOCAL statement_timeout='1s'; SET LOCAL lock_timeout='500ms'"
+    } else {
+        "BEGIN; SET LOCAL statement_timeout='1s'; SET LOCAL lock_timeout='500ms'"
+    };
+    Ok(Transaction::begin(connection, Some(setup.into())).await?)
 }
 pub async fn provision(pool: &PgPool, tenant: Uuid) -> Result<(), StoreError> {
     sqlx::query("INSERT INTO tenants(id) VALUES ($1) ON CONFLICT(id) DO NOTHING")
@@ -103,11 +106,7 @@ pub struct ReadSnapshot {
     pub tenant: Uuid,
 }
 pub async fn begin_read(pool: &PgPool, tenant: Uuid) -> Result<ReadSnapshot, StoreError> {
-    let mut tx = begin(pool).await?;
-    sqlx::query("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY")
-        .execute(&mut *tx)
-        .await?;
-    limits(&mut tx).await?;
+    let mut tx = begin(pool, true).await?;
     let query_timer = metrics::DATA_SQL.timer();
     let revision = sqlx::query_scalar::<_, i64>("SELECT revision FROM tenants WHERE id=$1")
         .bind(tenant)
@@ -222,8 +221,7 @@ pub async fn prepare_write(
         return Err(StoreError::new("INVALID_REQUEST"));
     }
     let hash = request.hash()?;
-    let mut tx = begin(pool).await?;
-    limits(&mut tx).await?;
+    let mut tx = begin(pool, false).await?;
     let lock_timer = metrics::LOCK_WAIT.timer();
     let revision =
         sqlx::query_scalar::<_, i64>("SELECT revision FROM tenants WHERE id=$1 FOR UPDATE")

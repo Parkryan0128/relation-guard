@@ -1,0 +1,79 @@
+{
+  "seed": 424242,
+  "environment": "native macOS loopback; no cgroup CPU/memory limits",
+  "os": "Darwin-25.2.0-arm64-arm-64bit-Mach-O",
+  "architecture": "arm64",
+  "source_dirty": true,
+  "logical_cpus": 8,
+  "postgres": "postgres (PostgreSQL) 18.6",
+  "commit": "8c34535375bb30aebebad5c049e1f41224170987",
+  "binary_sha256": "d35b0ee421ff837412bb93e77e61bbfd4cc926fb640102831a5b421a515eacf1",
+  "runs": [
+    {
+      "label": "S-single-1-warmup",
+      "scheduled": 6000,
+      "correct": 6001,
+      "unexpected": 0,
+      "dropped": 0,
+      "p50_ms": 3.907,
+      "p95_ms": 8.62,
+      "p99_ms": 25.874,
+      "exit_code": 0,
+      "http_requests": 6001,
+      "revision_conflicts": 0
+    },
+    {
+      "label": "S-single-1",
+      "scheduled": 30000,
+      "correct": 30001,
+      "unexpected": 0,
+      "dropped": 0,
+      "p50_ms": 4.005,
+      "p95_ms": 7.837,
+      "p99_ms": 24.551,
+      "exit_code": 0,
+      "http_requests": 30001,
+      "revision_conflicts": 0
+    },
+    {
+      "label": "S-single-2-warmup",
+      "scheduled": 6000,
+      "correct": 6001,
+      "unexpected": 0,
+      "dropped": 0,
+      "p50_ms": 3.988,
+      "p95_ms": 7.827,
+      "p99_ms": 20.62,
+      "exit_code": 0,
+      "http_requests": 6001,
+      "revision_conflicts": 0
+    },
+    {
+      "label": "S-single-2",
+      "scheduled": 30000,
+      "correct": 29946,
+      "unexpected": 38,
+      "dropped": 16,
+      "p50_ms": 3.979,
+      "p95_ms": 13.148249999999996,
+      "p99_ms": 88.26074999999989,
+      "exit_code": 99,
+      "http_requests": 29984,
+      "revision_conflicts": 0
+    }
+  ],
+  "S": {
+    "tenant": "32bc3648-4d25-471f-8a4f-7918b7a3c66c",
+    "users": 1000,
+    "teams": 100,
+    "folders": 1000,
+    "documents": 10000,
+    "relationships": 50000,
+    "max_depth": 8
+  },
+  "server_resource_usage": {
+    "user_cpu_seconds": 26.05012,
+    "system_cpu_seconds": 28.79182,
+    "peak_rss_bytes": 9502720
+  }
+}

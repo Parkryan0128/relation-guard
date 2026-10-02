@@ -45,3 +45,13 @@ primary REPEATABLE READ snapshot. replica/cache/token mode를 제공하지 않�
 ## ADR-011: 검증 가능한 stage gate와 경계 계약
 
 각 stage에 acceptance ID, 환경, 실행 진입점 계획, 통과 조건, evidence 형식을 연결했다. 기존 모호성을 해소한 결정: delete missing의 참조 검사 면제, replay body/header request ID 구분, final-state hierarchy 검증, COMMIT 이후 unknown outcome 우선, direct proof/deny proof 표현, ASCII key_id에서 dot 제외, 운영 listener 분리, 필수 성능 미달 시 M5 미완료. docs/03·04·05·06·07·08·09·12와 schema가 함께 기준을 이룬다. 새로운 기능을 추가하기보다 기존 계약을 구체화한 변경이다.
+
+## ADR-012 — Transaction setup round trips (2026-10-02)
+
+로컬 부하의 최초 baseline에서 단건 2회차의 요청 실패 38건, 미시작 iteration 16건, 성공 응답 p99 약 88ms를 관측했다. 해당 결과는 verification/load-before-setup-optimization에 보존한다. 오류 요청은 facts/evaluator에 도달하지 않았고 pool 획득·트랜잭션 준비 비용이 관측됐다.
+
+트랜잭션 시작, isolation, 두 timeout 설정을 각각 왕복하던 방식 대신 **상수 SQL로 이루어진 BEGIN + SET LOCAL 묶음**을 한 protocol 요청에 보낸다. SQLx 0.8.6의 transaction manager가 사용자 지정 BEGIN 문자열의 ReadyForQuery를 확인하고 rollback guard를 유지하는 구현을 확인했다. 사용자 입력은 이 문자열에 넣지 않는다. tenant/revision/tuple은 계속 bind parameter다.
+
+pool checkout의 선행 ping도 생략한다. 직후 BEGIN이 실제 연결 생존을 검증하며, stale socket은 명시적 DB 오류가 되고 allow/deny로 바뀌지 않는다. DB 연결 차단/복구, lock/statement timeout, snapshot, rollback, COMMIT ack 유실 테스트를 재실행한다. 데이터 SELECT는 여전히 최대 3개이며 일관성 모델, pool 10, acquire 250ms, 요청 2초 한도는 변경하지 않는다.
+
+목표 수치나 실패율 분모는 낮추지 않는다. 같은 workload를 다시 측정하고 실패 회차도 보존한다. 로컬 결과를 Linux 제한 환경 보장으로 표현하지 않는다.

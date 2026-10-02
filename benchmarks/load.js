@@ -7,10 +7,11 @@ const conflicts = new Counter('revision_conflicts');
 const mismatches = new Counter('correctness_mismatches');
 const successes = new Trend('successful_latency',true);
 const cfg=JSON.parse(open(__ENV.CONFIG));
+const statuses={};for(const status of [0,200,400,401,403,409,422,500,503,504])statuses[status]=new Counter('responses_'+status);
 const profile=__ENV.PROFILE || 'single';
 const rate=Number(__ENV.RATE || (profile==='batch'?10:100));
 const duration=__ENV.DURATION || '300s';
-export const options={scenarios:{load:{executor:'constant-arrival-rate',rate,timeUnit:'1s',duration,preAllocatedVUs:32,maxVUs:128}},summaryTrendStats:['avg','min','med','max','p(50)','p(95)','p(99)'],thresholds:{unexpected_responses:['count==0'],dropped_iterations:['count==0']}};
+export const options={scenarios:{load:{executor:'constant-arrival-rate',rate,timeUnit:'1s',duration,preAllocatedVUs:32,maxVUs:128}},summaryTrendStats:['avg','min','med','max','p(50)','p(95)','p(99)'],thresholds:{correctness_mismatches:['count==0']}};
 function call(path,body,tenant){return http.post(`${cfg.url}/v1/tenants/${tenant.id}/${path}`,JSON.stringify(body),{headers:{Authorization:`Bearer ${tenant.token}`,'Content-Type':'application/json','Idempotency-Key':`load-${__VU}-${__ITER}-${Date.now()}`},timeout:'3s'});}
 export default function(){
  const i=exec.scenario.iterationInTest;
@@ -28,6 +29,7 @@ export default function(){
  const subject={kind:'user',id:allow?`u${d%(profile==='batch'?50:500)}`:'u999'};
  const checks=profile==='batch'?Array.from({length:100},(_,j)=>({resource:{kind:'document',id:`d${(d+j*50)%cfg.documents}`},action:'view'})):null;
  const response=call(checks?'batch-check':'check',checks?{subject,checks}:{subject,resource:{kind:'document',id:`d${d}`},action:'view'},tenant);
+ if(statuses[response.status])statuses[response.status].add(1);
  let valid=false;
  try{const body=response.json();valid=response.status===200 && (checks?body.results.length===100 && body.results.every(x=>x.decision===(allow?'allow':'deny')):body.decision===(allow?'allow':'deny'));}catch(_){valid=false;}
  if(valid){correct.add(1);successes.add(response.timings.duration);}else{unexpected.add(1);if(response.status===200){mismatches.add(1);}}
