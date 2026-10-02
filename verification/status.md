@@ -1,5 +1,7 @@
 # Verification status
 
+**Latest refactor:** `b7c0dbc` separates responsibilities and removes redundant code/dependencies without changing authorization semantics. Local functional and fault/recovery suites pass; Linux functional/recovery and clean release-container CI also pass. [Refactor evidence](refactor/report.md). Performance figures below remain attributed to their original source commits.
+
 **Latest pool-timeout result:** the bounded 500ms wait passes controlled short-stall, functional and container tests. Independent Linux native load gates PASS: 99,006 normal-load requests, zero errors/drops; recovery 6,001/6,001. The macOS rerun FAILS during longer stalls (40 overloads, four deadline errors); their external cause remains unresolved. Exploratory Linux stress dropped work and is not a throughput guarantee. [Full evidence and limitations](pool-burst/report.md). The earlier V1 results below retain their original source attribution.
 
 **Current: managed-authorization V1 (`org-doc-v2`) implementation and approved verification complete.** [Full V1 report](v1/report.md).

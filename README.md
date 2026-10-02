@@ -61,6 +61,7 @@ Run `scripts/verify.sh` for the complete functional regression suite: formatting
 
 Evidence is attributed to the source and environment actually tested:
 
+- [Refactor verification](verification/refactor/report.md): module cleanup, dependency reduction, and functional/fault regression evidence.
 - [Managed authorization V1](verification/v1/report.md): functional, recovery, deployment, and native performance results.
 - [Pool reliability](verification/pool-burst/report.md): independent Linux normal-load gates passed with 99,006 correct requests and zero errors or drops. The local macOS rerun failed during longer stalls; the cause remains unresolved. Exploratory stress dropped work.
 - [Verification history](verification/status.md): earlier results, including the failed v0.1 performance gate, are retained.

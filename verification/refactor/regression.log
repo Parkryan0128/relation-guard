@@ -1,0 +1,149 @@
+    Checking authz-core v0.1.0 (/Users/jiwonpark/Documents/Codex/2026-10-01/new-chat/outputs/relation-guard/crates/authz-core)
+    Checking authz-store v0.1.0 (/Users/jiwonpark/Documents/Codex/2026-10-01/new-chat/outputs/relation-guard/crates/authz-store)
+    Checking authz-admin v0.1.0 (/Users/jiwonpark/Documents/Codex/2026-10-01/new-chat/outputs/relation-guard/crates/authz-admin)
+    Checking authz-server v0.1.0 (/Users/jiwonpark/Documents/Codex/2026-10-01/new-chat/outputs/relation-guard/crates/authz-server)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.09s
+   Compiling sqlx-core v0.8.6
+   Compiling authz-core v0.1.0 (/Users/jiwonpark/Documents/Codex/2026-10-01/new-chat/outputs/relation-guard/crates/authz-core)
+   Compiling sqlx-postgres v0.8.6
+   Compiling sqlx-macros-core v0.8.6
+   Compiling sqlx-macros v0.8.6
+   Compiling sqlx v0.8.6
+   Compiling authz-store v0.1.0 (/Users/jiwonpark/Documents/Codex/2026-10-01/new-chat/outputs/relation-guard/crates/authz-store)
+   Compiling authz-admin v0.1.0 (/Users/jiwonpark/Documents/Codex/2026-10-01/new-chat/outputs/relation-guard/crates/authz-admin)
+   Compiling authz-server v0.1.0 (/Users/jiwonpark/Documents/Codex/2026-10-01/new-chat/outputs/relation-guard/crates/authz-server)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 9.00s
+PASS: 28 Markdown documents, local links, English README, 37 acceptance IDs, 3 JSON fixtures, contract and DDL artifact checks
+NOT CHECKED: Rust service behavior, PostgreSQL execution, security, performance, external URL availability
+PASS: OpenAPI 3.1 schemas and positive/negative contract examples
+PASS: managed grant/check/revoke workflow request schemas
+   Compiling sqlx-core v0.8.6
+   Compiling authz-core v0.1.0 (/Users/jiwonpark/Documents/Codex/2026-10-01/new-chat/outputs/relation-guard/crates/authz-core)
+   Compiling sqlx-postgres v0.8.6
+   Compiling sqlx-macros-core v0.8.6
+   Compiling sqlx-macros v0.8.6
+   Compiling sqlx v0.8.6
+   Compiling authz-store v0.1.0 (/Users/jiwonpark/Documents/Codex/2026-10-01/new-chat/outputs/relation-guard/crates/authz-store)
+   Compiling authz-admin v0.1.0 (/Users/jiwonpark/Documents/Codex/2026-10-01/new-chat/outputs/relation-guard/crates/authz-admin)
+   Compiling authz-server v0.1.0 (/Users/jiwonpark/Documents/Codex/2026-10-01/new-chat/outputs/relation-guard/crates/authz-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.17s
+     Running unittests src/main.rs (target/debug/deps/authz_admin-914ff55ba9d2fed9)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/authz_core-9e2e8f608f757eeb)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contracts.rs (target/debug/deps/contracts-ffd4df8fa30445e9)
+
+running 2 tests
+test m0_canonicalization_golden ... ok
+test m0_typed_fixtures_and_boundaries ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/evaluator.rs (target/debug/deps/evaluator-5303d4f5c2188276)
+
+running 4 tests
+test m1_depth_and_budget_boundaries ... ok
+test m1_design_fixtures ... ok
+test m1_proof_priority_and_errors ... ok
+test m1_reference_and_properties ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.98s
+
+     Running tests/management.rs (target/debug/deps/management-061a6121b3b35503)
+
+running 3 tests
+test admin_does_not_allow_missing_resource_or_corrupt_graph ... ok
+test managed_permissions_matrix_and_inheritance ... ok
+test role_operations_are_strict_and_canonical ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (target/debug/deps/authz_server-07c81c43315808bc)
+
+running 7 tests
+test tests::m3_batch_failure_is_not_partial_allow ... ok
+test tests::m3_http_disconnect_before_commit ... ok
+test tests::m3_invalid_startup_configuration ... ok
+test tests::m3_pool_lock_and_recovery ... ok
+test tests::m3_real_tcp_inflight_limit_and_deadline ... ok
+test tests::m3_statement_timeout_and_recovery ... ok
+test tests::short_pool_saturation_waits_without_replaying_reads_or_writes ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.61s
+
+     Running unittests src/lib.rs (target/debug/deps/authz_store-16ec459a39f84d1d)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/management.rs (target/debug/deps/management-2878b459379e42a6)
+
+running 5 tests
+test managed_admin_lifecycle_receipts_and_mixed_rollback ... ok
+test managed_happy_paths_and_no_privilege_escalation ... ok
+test managed_resource_creation_moves_deletes_and_team_grants ... ok
+test managed_revocation_serializes_with_changes_and_last_admin ... ok
+test managed_role_transfer_removal_and_recreation_do_not_restore_admin ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.24s
+
+     Running tests/migration.rs (target/debug/deps/migration-12ab856449e06d70)
+
+running 2 tests
+test m0_real_postgres_constraints ... ok
+test managed_upgrade_preserves_legacy_data_without_implicit_admins ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+
+     Running tests/query_plans.rs (target/debug/deps/query_plans-499d961b0186d914)
+
+running 1 test
+test m2_measured_query_count_and_explain ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s
+
+     Running tests/transactions.rs (target/debug/deps/transactions-bdf17e80292d6b54)
+
+running 8 tests
+test m2_atomicity_replay_revocation_and_isolation ... ok
+test m2_batch_snapshot_between_loads ... ok
+test m2_cleanup_recreate_and_key_scope ... ok
+test m2_concurrent_cycles_and_final_state_moves ... ok
+test m2_exact_retention_boundary_and_descendant_move ... ok
+test m2_hierarchy_and_revision_exhaustion ... ok
+test m2_matching_grant_limit_and_duplicate_batch ... ok
+test m2_snapshot_and_concurrent_writers ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.42s
+
+   Doc-tests authz_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests authz_store
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+Granted: allow; the document manager shared access.
+Editor cannot share: forbidden; no self-promotion.
+Revoked: deny; protected operation blocked.
+PASS: 290 real TCP HTTP assertions with OpenAPI response validation; grant/revoke/replay, scope isolation, strict parsing and pagination.
+PASS M3-06: DB disconnect before COMMIT forwarding rolled back; lost durable COMMIT acknowledgement returned unknown and replayed exactly one receipt.
+...
+----------------------------------------------------------------------
+Ran 3 tests in 1.772s
+
+OK
