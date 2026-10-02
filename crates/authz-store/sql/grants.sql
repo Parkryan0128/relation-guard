@@ -2,7 +2,7 @@ SELECT jsonb_build_object('resource',jsonb_build_object('kind',r.resource_kind,'
  'relation',r.relation,'subject',jsonb_build_object('kind',r.subject_kind,'id',r.subject_id),'subject_relation',r.subject_relation) AS edge
 FROM relationships r JOIN jsonb_to_recordset($2::jsonb) AS n(kind text,id text)
  ON n.kind=r.resource_kind AND n.id=r.resource_id
-WHERE r.tenant_id=$1 AND r.relation IN ('viewer','editor') AND (
+WHERE r.tenant_id=$1 AND r.relation IN ('viewer','editor','manager') AND (
  (r.subject_kind='user' AND r.subject_id=$3 AND r.subject_relation='') OR
  (r.subject_kind='team' AND r.subject_relation='member' AND EXISTS(
  SELECT 1 FROM relationships m WHERE m.tenant_id=$1 AND m.resource_kind='team'

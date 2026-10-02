@@ -6,10 +6,10 @@ class AuthorizationError(Exception):
 class RevisionConflict(AuthorizationError):
     pass
 class Client:
-    def __init__(self,base,tenant,token):
-        self.base=f'{base}/v1/tenants/{tenant}';self.token=token
+    def __init__(self,base,tenant,token,actor):
+        self.base=f'{base}/v1/tenants/{tenant}';self.token=token;self.actor=actor
     def request(self,path,body=None,key=None):
-        headers={'Authorization':'Bearer '+self.token,'Content-Type':'application/json'}
+        headers={'X-Actor-Id':self.actor,'Authorization':'Bearer '+self.token,'Content-Type':'application/json'}
         if key:headers['Idempotency-Key']=key
         encoded=None if body is None else json.dumps(body).encode()
         # A write retry keeps exactly the same body and key. A conflict needs a new decision.
@@ -34,7 +34,7 @@ class Client:
         if not isinstance(result,dict):
             raise AuthorizationError('Invalid decision response')
         revision=result.get('evaluated_revision')
-        if (result.get('decision') not in ('allow','deny') or result.get('model_version')!='org-doc-v1'
+        if (result.get('decision') not in ('allow','deny') or result.get('model_version')!='org-doc-v2'
                 or not isinstance(revision,str) or not revision.isascii() or not revision.isdecimal()
                 or len(revision)>19 or (len(revision)>1 and revision[0]=='0') or int(revision)>9223372036854775807):
             raise AuthorizationError('Invalid decision response')
@@ -42,13 +42,13 @@ class Client:
         except (KeyError,ValueError,TypeError,AttributeError) as error:
             raise AuthorizationError('Invalid request ID') from error
         if result['decision']=='allow':
-            if result.get('reason')!='MATCHING_RELATION':raise AuthorizationError('Invalid allow reason')
+            if result.get('reason') not in ('MATCHING_RELATION','ORG_ADMIN'):raise AuthorizationError('Invalid allow reason')
             return True
         if result.get('reason') not in ('NOT_FOUND','NO_MATCHING_RELATION'):raise AuthorizationError('Invalid deny reason')
         return False
 def main():
     credentials=json.loads(pathlib.Path(os.environ.get('AUTHZ_CLIENT_FILE','secrets/client.json')).read_text())
-    client=Client(os.environ.get('AUTHZ_URL','http://127.0.0.1:8080'),credentials['tenant_id'],credentials['token'])
+    client=Client(os.environ.get('AUTHZ_URL','http://127.0.0.1:8080'),credentials['tenant_id'],credentials['token'],credentials['actor_id'])
     suffix=uuid.uuid4().hex;user={'kind':'user','id':'demo-'+suffix};doc={'kind':'document','id':'demo-'+suffix}
     edge={'resource':doc,'relation':'viewer','subject':user,'subject_relation':''}
     revision=client.request('revision')['revision']

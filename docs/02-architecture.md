@@ -1,5 +1,6 @@
 # 02. 스택과 구조
 
+> 현재 확장 계약: [사용자 기준 권한 관리](15-managed-authorization.md). 아래 v0.1 설명 중 신뢰된 writer의 무조건 변경, view/edit만 지원, actor 없는 감사/receipt 규칙은 이 확장에서 대체된다.
 ## 선택
 
 | 계층 | 선택 | 선택 이유 / 대가 |

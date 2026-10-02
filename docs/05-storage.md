@@ -1,5 +1,6 @@
 # 05. 저장 구조와 구현 알고리즘
 
+> 현재 확장 계약: [사용자 기준 권한 관리](15-managed-authorization.md). 아래 v0.1 설명 중 신뢰된 writer의 무조건 변경, view/edit만 지원, actor 없는 감사/receipt 규칙은 이 확장에서 대체된다.
 ## 테이블
 
 [설계 DDL](../spec/schema.sql)은 다음 구조를 제안한다. 실행·migration 테스트 전 배포용으로 취급하지 않는다.
@@ -64,3 +65,7 @@ primary 1개, read-only snapshot, 테넌트당 직렬 write는 의도된 시작�
 - revision이 동일한 두 no-op write는 모두 성공할 수 있다. "동시 writer 중 하나만 성공" 테스트는 실제 변경을 수행하는 두 요청에만 적용한다.
 - receipt row 정리는 `recorded_at < DB now - 24 hours` 조건으로 최대 1,000행씩 한다. 누적 삭제는 운영 CLI가 반복한다. 정리로 graph revision이나 audit를 수정하지 않는다. v0.1은 상주 정리 scheduler를 제공하지 않는다.
 - HTTP disconnect 전에 COMMIT을 보내지 않았다면 transaction을 rollback한다. 이미 보냈다면 bounded finalization으로 상태를 수습하고 결과/불명확 여부를 기록한다. 클라이언트 연결이 사라졌다는 이유로 commit이 취소됐다고 가정하지 않는다.
+
+## Schema 2 확장
+
+`0002_managed_authorization.sql`은 entities.org_admin, manager 관계, actor별 receipt PK와 actor/authorization_basis 감사 필드를 추가한다. 기존 데이터는 member 및 legacy_operator로 보존된다. role과 관계 변경은 모두 동일 tenant lock에 참여한다. 기존 loader의 세 SELECT 외에 HTTP 사용자 검증에서 actor 역할 SELECT가 하나 추가된다. 권한 변경 검사는 사전 상태의 bounded 리소스 집합을 한 번에 로드한다.

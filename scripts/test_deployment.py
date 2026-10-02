@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Isolated Compose release acceptance. Leaves the verified stack for load testing."""
-import base64,hashlib,json,os,pathlib,secrets,socket,subprocess,sys,tempfile,time,urllib.request,urllib.error,uuid
+import base64,hashlib,json,shutil,os,pathlib,secrets,socket,subprocess,sys,tempfile,time,urllib.request,urllib.error,uuid
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 PG='postgres:18-alpine@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873'
 PYTHON_IMAGE=os.environ.get('PYTHON_IMAGE','python:3.13-alpine')
@@ -20,7 +20,7 @@ def cid(service):return dc('ps','-q',service).stdout.decode().strip()
 def sql(statement,container=None):return shell(['docker','exec','-i',container or cid('db'),'psql','-X','-v','ON_ERROR_STOP=1','-U','relation_guard','-d','relation_guard','-At'],(statement+'\n').encode()).stdout.decode().strip()
 cred=json.loads((run/'secrets/client.json').read_text());tenant=cred['tenant_id'];base=f'http://127.0.0.1:{port}/v1/tenants/{tenant}'
 def http(route,body=None,token=None,target=None,key='deployment'):
- request=urllib.request.Request((target or base)+'/'+route,data=None if body is None else json.dumps(body).encode(),headers={'Authorization':'Bearer '+(token or cred['token']),'Content-Type':'application/json','Idempotency-Key':key})
+ request=urllib.request.Request((target or base)+'/'+route,data=None if body is None else json.dumps(body).encode(),headers={'X-Actor-Id':cred['actor_id'],'Authorization':'Bearer '+(token or cred['token']),'Content-Type':'application/json','Idempotency-Key':key})
  try:r=urllib.request.urlopen(request,timeout=4)
  except urllib.error.HTTPError as e:r=e
  return r.status,json.load(r)
@@ -41,7 +41,7 @@ def rotate_entry(key_id):
  return token,{'key_id':key_id,'tenant_id':tenant,'scopes':['check','explain','relations:read','relations:write','audit:read'],'secret_sha256':hashlib.sha256(raw).hexdigest()}
 def start_server():dc('up','-d','--force-recreate','server');ready()
 try:
- dc('run','--rm','migrate');dc('run','--rm','--entrypoint','authz-admin','migrate','tenant',tenant);dc('up','-d','server');ready()
+ dc('run','--rm','migrate');dc('run','--rm','--entrypoint','authz-admin','migrate','tenant',tenant);dc('run','--rm','--entrypoint','authz-admin','migrate','bootstrap-admin',tenant,cred['actor_id']);dc('up','-d','server');ready()
  for service in ('server','db'):
   inspect=json.loads(shell(['docker','inspect',cid(service)]).stdout)[0]
   assert all(not bindings for name,bindings in inspect['NetworkSettings']['Ports'].items() if service=='db' or name!='8080/tcp')
@@ -49,7 +49,8 @@ try:
  assert 'relation_guard_runtime' in next(v for v in inspect['Config']['Env'] if v.startswith('DATABASE_URL='))
  assert sql("SELECT has_table_privilege('relation_guard_runtime','tenants','INSERT')")=='f'
  assert sql("SELECT has_table_privilege('relation_guard_runtime','audit_events','DELETE')")=='f'
- shell(['docker','run','-d','--name',project+'-client','--network',project+'_default','-v',str(ROOT/'examples')+':/app:ro','-v',str(run/'secrets/client.json')+':/client.json:ro','-e','AUTHZ_URL=http://server:8080','-e','AUTHZ_CLIENT_FILE=/client.json',PYTHON_IMAGE,'sleep','infinity'])
+ shutil.copytree(ROOT/'examples',run/'client')
+ shell(['docker','run','-d','--name',project+'-client','--network',project+'_default','-v',str(run/'client')+':/app:ro','-v',str(run/'secrets/client.json')+':/client.json:ro','-e','AUTHZ_URL=http://server:8080','-e','AUTHZ_CLIENT_FILE=/client.json',PYTHON_IMAGE,'sleep','infinity'])
  assert internal('healthz')==[200,{'status':'ok'}];assert internal('readyz')==[200,{'status':'ready'}]
  client=shell(['docker','exec',project+'-client','python','/app/client.py']);assert b'Revoked: deny' in client.stdout
  # Stable grant retained through restart/restore.
@@ -85,13 +86,13 @@ try:
  old_token=cred['token'];cred['token']=token;ready();assert http('revision',token=old_token)[0]==401
  (run/'secrets/client.json').write_text(json.dumps(cred))
  # Schema change and outage affect readiness, not liveness.
- sql('UPDATE _sqlx_migrations SET version=2 WHERE version=1');assert internal('readyz')[0]==503;assert internal('healthz')[0]==200
- sql('UPDATE _sqlx_migrations SET version=1 WHERE version=2');assert internal('readyz')[0]==200
+ sql('UPDATE _sqlx_migrations SET version=999 WHERE version=2');assert internal('readyz')[0]==503;assert internal('healthz')[0]==200
+ sql('UPDATE _sqlx_migrations SET version=2 WHERE version=999');assert internal('readyz')[0]==200
  dc('stop','db');assert internal('healthz')[0]==200;assert internal('readyz')[0]==503;assert http('check',check)[0]==503
  dc('start','db');ready();assert internal('readyz')[0]==200;assert http('check',check)[1]['decision']=='allow'
  started=time.monotonic();dc('stop','server');assert time.monotonic()-started<12;dc('up','-d','server');ready()
  context={'project':project,'run_dir':str(run),'port':port,'tenant':tenant,'db':cid('db'),'server':cid('server'),'client':project+'-client','restore_db':restored,'restore_server':restored_server,'image':json.loads(shell(['docker','image','inspect','relation-guard:local']).stdout)[0]['Id']}
- (run/'context.json').write_text(json.dumps(context,indent=2));(ROOT/'verification/deployment-result.json').write_text(json.dumps({'passed':['M4-01','M4-02-happy-path','M4-03','M4-04','M4-05','M4-06'],'image':context['image'],'snapshot':json.loads(before),'runtime_uid':'10001:10001','database_and_operations_ports_published':False},indent=2))
+ (run/'context.json').write_text(json.dumps(context,indent=2));pathlib.Path(os.environ.get('DEPLOYMENT_OUTPUT',str(ROOT/'verification/deployment-result.json'))).write_text(json.dumps({'passed':['M4-01','M4-02-happy-path','M4-03','M4-04','M4-05','M4-06'],'image':context['image'],'snapshot':json.loads(before),'runtime_uid':'10001:10001','database_and_operations_ports_published':False},indent=2))
  print('PASS: isolated non-root Compose, separate runtime DB role, Python container client, restart persistence, backup/restore, key rotation, DB/schema readiness and shutdown.')
  print('Context: '+str(run/'context.json'))
 except BaseException:

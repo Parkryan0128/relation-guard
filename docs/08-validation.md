@@ -1,5 +1,6 @@
 # 08. 검증 계획과 성능 기준
 
+> 현재 확장 계약: [사용자 기준 권한 관리](15-managed-authorization.md). 아래 v0.1 설명 중 신뢰된 writer의 무조건 변경, view/edit만 지원, actor 없는 감사/receipt 규칙은 이 확장에서 대체된다.
 ## 정확성 gate
 
 [기대 결과 fixture](../spec/examples/authorization-cases.json)를 test runner로 실행한다. 단순 예시 fixture 외에 아래를 모두 추가한다.

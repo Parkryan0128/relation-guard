@@ -11,6 +11,7 @@ cargo build --locked --workspace
 export DATABASE_URL='postgres://postgres@127.0.0.1:5432/relation_guard'
 cargo run --locked -p authz-admin -- migrate
 cargo run --locked -p authz-admin -- tenant 11111111-1111-4111-8111-111111111111
+cargo run --locked -p authz-admin -- bootstrap-admin 11111111-1111-4111-8111-111111111111 local-admin
 cargo run --locked -p authz-admin -- key 11111111-1111-4111-8111-111111111111 local
 ```
 
@@ -40,6 +41,7 @@ python3 scripts/bootstrap-local.py
 docker compose run --rm migrate
 # bootstrap 출력의 tenant UUID 사용
 docker compose run --rm --entrypoint authz-admin migrate tenant TENANT_UUID
+docker compose run --rm --entrypoint authz-admin migrate bootstrap-admin TENANT_UUID local-admin
 docker compose up -d server
 python3 examples/client.py
 ```
@@ -66,3 +68,13 @@ cargo bench --locked -p authz-core --bench evaluation
 `authz-admin cleanup-receipts`는 24시간 초과 receipt를 한 번에 최대 1,000개 삭제한다. audit과 graph revision은 바꾸지 않는다. 자동 스케줄러는 포함하지 않는다. receipt 정리 이후에는 과거 성공 응답이 재생되지 않을 수 있으므로 expected_revision 충돌을 올바르게 처리해야 한다.
 
 백업·복구와 key rotation은 docs/07에 있는 운영 계획을 따른다. 별도 DB에 대한 native restore 실험은 통과했다. 컨테이너 볼륨/배포 검증은 별도이며 프로덕션 준비 완료를 주장하지 않는다.
+
+## org-doc-v1에서 전환
+
+1. 기존 writer와 구버전 서버를 멈추고 DB를 백업한다. 서로 다른 모델의 서버를 섞어서 실행하지 않는다.
+2. 운영자 자격으로 migrate를 실행한다. 기존 사용자는 자동으로 admin이 되지 않는다.
+3. 각 조직에 bootstrap-admin UUID USER_ID로 실제 관리자를 지정한다. revision과 감사 기록이 증가한다.
+4. 모든 호출에 검증된 로그인 사용자 X-Actor-Id를 추가하고 org-doc-v2 응답을 처리하도록 클라이언트를 갱신한다. Python Client의 네 번째 인자는 actor다. client.json도 actor_id가 필요하다.
+5. 새 서버를 시작하고 관리자/일반 사용자 허용·거부를 확인한 뒤 트래픽을 연다. 구버전으로 단순 바이너리 롤백하지 않는다. 필요하면 백업으로 별도 복구한다.
+
+bootstrap-admin은 기존 admin이 있으면 실패한다. 긴급 복구는 privileged DB 자격으로 recover-admin UUID USER_ID를 사용하며 감사 근거에 operator_recovery가 남는다. 일반 HTTP에는 이 경로가 없다.

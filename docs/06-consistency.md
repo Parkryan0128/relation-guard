@@ -1,5 +1,6 @@
 # 06. 일관성과 외부 앱 연동
 
+> 현재 확장 계약: [사용자 기준 권한 관리](15-managed-authorization.md). 아래 v0.1 설명 중 신뢰된 writer의 무조건 변경, view/edit만 지원, actor 없는 감사/receipt 규칙은 이 확장에서 대체된다.
 ## v0.1의 보장
 
 같은 정상 primary DB를 사용하고 failover/data loss가 없다는 전제에서:
@@ -56,3 +57,7 @@ T1: 앱 DB의 문서를 수정
 예제 client는 최초 시도 포함 최대 3회, 총 8초 예산 안에서 transient failure만 재시도한다. attempt timeout은 최대 2.5초와 남은 예산 중 작은 값, retry delay는 full jitter로 첫 retry 0–100ms, 둘째 0–200ms다. write는 같은 key/정규화 payload를 유지하며 REVISION_EXHAUSTED는 운영 조치가 필요하므로 retry하지 않는다. commit outcome이 불명확한 상태에서 새 key를 만들지 않는다.
 
 재해 복구에서는 traffic을 차단한 상태로 restore하고, 모든 caller credential을 새 key_id/secret으로 교체한 뒤 관계와 caller 의도를 reconcile한다. 이전 revision/receipt/키의 유효성을 보장하지 않는다. 검증된 backup 자체가 오래되었다면 그 이후 revoke도 복구에서 사라질 수 있으므로 상태 확인 없이 traffic을 열지 않는다. 이 서비스는 PITR 이후 자동 권한 복원을 제공하지 않는다.
+
+## V1 actor와 변경 경쟁
+
+일반 write는 tenant lock을 획득한 상태에서 actor의 소속·관리 권한을 확인한 후 변경한다. 다른 관리 요청은 같은 lock을 기다리므로 박탈과 부여의 순서가 분명하다. 이 보장은 authz DB 안의 변경에 적용되며 앱의 문서 DB 변경과 원자적이라는 의미는 아니다. receipt namespace는 tenant/key/actor/idempotency-key이고, 완료된 자기 작업 replay는 이미 박탈된 권한을 다시 실행하지 않는다.

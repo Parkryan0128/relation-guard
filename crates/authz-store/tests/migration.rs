@@ -17,7 +17,7 @@ async fn m0_real_postgres_constraints() {
         .fetch_one(&mut c)
         .await
         .unwrap();
-    assert_eq!(count, 1);
+    assert_eq!(count, 2);
     c.execute("INSERT INTO tenants(id) VALUES ('11111111-1111-4111-8111-111111111111'),('22222222-2222-4222-8222-222222222222')").await.unwrap();
     c.execute("INSERT INTO entities SELECT '11111111-1111-4111-8111-111111111111', k,i FROM (VALUES ('user','u'),('folder','f'),('folder','g'),('document','d')) v(k,i)").await.unwrap();
     for (sql, code) in [
@@ -65,4 +65,63 @@ async fn m0_real_postgres_constraints() {
     c.execute(format!("DROP SCHEMA {schema} CASCADE").as_str())
         .await
         .unwrap();
+}
+
+#[tokio::test]
+async fn managed_upgrade_preserves_legacy_data_without_implicit_admins() {
+    let url = std::env::var("TEST_DATABASE_URL").unwrap();
+    let mut c = sqlx::PgConnection::connect(&url).await.unwrap();
+    let schema = format!("upgrade_{}", uuid::Uuid::new_v4().simple());
+    c.execute(format!("CREATE SCHEMA {schema}").as_str())
+        .await
+        .unwrap();
+    c.execute(format!("SET search_path TO {schema}").as_str())
+        .await
+        .unwrap();
+    let initial = sqlx::migrate::Migrator {
+        migrations: std::borrow::Cow::Owned(
+            authz_store::MIGRATOR.iter().take(1).cloned().collect(),
+        ),
+        ignore_missing: false,
+        locking: true,
+        no_tx: false,
+    };
+    initial.run(&mut c).await.unwrap();
+    c.execute("INSERT INTO tenants(id,revision) VALUES('11111111-1111-4111-8111-111111111111',1); INSERT INTO entities VALUES('11111111-1111-4111-8111-111111111111','user','legacy'); INSERT INTO audit_events(tenant_id,revision,key_id,request_id,effective_changes) VALUES('11111111-1111-4111-8111-111111111111',1,'old','22222222-2222-4222-8222-222222222222','[{\"op\":\"put_entity\",\"entity\":{\"kind\":\"user\",\"id\":\"legacy\"}}]'); INSERT INTO mutation_receipts(tenant_id,key_id,idempotency_key,request_hash,response) VALUES('11111111-1111-4111-8111-111111111111','old','same',decode(repeat('00',32),'hex'),'{\"model_version\":\"org-doc-v1\"}')").await.unwrap();
+    authz_store::MIGRATOR.run(&mut c).await.unwrap();
+    assert!(
+        !sqlx::query_scalar::<_, bool>("SELECT org_admin FROM entities")
+            .fetch_one(&mut c)
+            .await
+            .unwrap()
+    );
+    let row = sqlx::query("SELECT actor_id,authorization_basis FROM audit_events")
+        .fetch_one(&mut c)
+        .await
+        .unwrap();
+    assert_eq!(row.get::<Option<String>, _>("actor_id"), None);
+    assert_eq!(
+        row.get::<serde_json::Value, _>("authorization_basis")["kind"],
+        "legacy_operator"
+    );
+    assert_eq!(
+        sqlx::query_scalar::<_, String>("SELECT actor_id FROM mutation_receipts")
+            .fetch_one(&mut c)
+            .await
+            .unwrap(),
+        ""
+    );
+    assert_eq!(
+        sqlx::query_scalar::<_, i64>("SELECT revision FROM tenants")
+            .fetch_one(&mut c)
+            .await
+            .unwrap(),
+        1
+    );
+    let error=c.execute("INSERT INTO entities VALUES('11111111-1111-4111-8111-111111111111','folder','bad',true)").await.unwrap_err();
+    assert_eq!(
+        error.as_database_error().unwrap().code().as_deref(),
+        Some("23514")
+    );
+    c.execute("INSERT INTO entities VALUES('11111111-1111-4111-8111-111111111111','folder','f',false); INSERT INTO relationships VALUES('11111111-1111-4111-8111-111111111111','folder','f','manager','user','legacy','')").await.unwrap();
 }

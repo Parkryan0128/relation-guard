@@ -37,6 +37,7 @@ fn m1_design_fixtures() {
     for case in fixture["cases"].as_array().unwrap() {
         let t = &fixture["tenants"][case["tenant_index"].as_u64().unwrap() as usize];
         let mut s = Snapshot {
+            administrators: Default::default(),
             entities: serde_json::from_value(t["entities"].clone()).unwrap(),
             relationships: serde_json::from_value(t["relationships"].clone()).unwrap(),
         };
@@ -91,7 +92,8 @@ fn reference(s: &Snapshot, u: &Entity, r: &Entity, a: Action) -> bool {
     }
     s.relationships.iter().any(|x| {
         reachable.contains(&x.resource)
-            && (x.relation == Relation::Editor
+            && (x.relation == Relation::Manager
+                || (a != Action::Manage && x.relation == Relation::Editor)
                 || (a == Action::View && x.relation == Relation::Viewer))
             && (x.subject == *u
                 || (x.subject.kind == Kind::Team
@@ -108,15 +110,20 @@ proptest! {
   for(i,p)in parents.iter().enumerate(){let f=e(Kind::Folder,&format!("f{i}"));s.entities.insert(f.clone());if i>0{s.relationships.insert(edge(f.clone(),Relation::Parent,e(Kind::Folder,&format!("f{}",p%i))));}
    if flags[i]&2!=0{s.relationships.insert(edge(f.clone(),Relation::Viewer,u.clone()));}
    if flags[i]&4!=0{s.relationships.insert(edge(f.clone(),Relation::Editor,team.clone()));}
+   if flags[i]&8!=0{s.relationships.insert(edge(f.clone(),Relation::Manager,u.clone()));}
+   if flags[i]&16!=0{s.relationships.insert(edge(f.clone(),Relation::Manager,team.clone()));}
   }
   let target=e(Kind::Folder,&format!("f{}",parents.len()-1));
-  let mut req=request(u.clone(),target.clone(),Action::Edit);
+  let mut req=request(u.clone(),target.clone(),Action::Manage);
+  let manage=evaluate(&s,&req).unwrap().decisions[0].decision==Verdict::Allow;
+  prop_assert_eq!(manage,reference(&s,&u,&target,Action::Manage));
+  req.checks[0].action=Action::Edit;
   let edit=evaluate(&s,&req).unwrap().decisions[0].decision==Verdict::Allow;
-  prop_assert_eq!(edit,reference(&s,&u,&target,Action::Edit));
+  prop_assert_eq!(edit,reference(&s,&u,&target,Action::Edit));prop_assert!(!manage||edit);
   req.checks[0].action=Action::View;let result=evaluate(&s,&req).unwrap();let view=result.decisions[0].decision==Verdict::Allow;
   prop_assert_eq!(view,reference(&s,&u,&target,Action::View));prop_assert!(!edit||view);
   if let Some(proof)=&result.decisions[0].proof{for x in proof{prop_assert!(s.relationships.contains(x));}}
-  if view { let proof_snapshot=Snapshot { entities:s.entities.clone(), relationships:result.decisions[0].proof.clone().unwrap().into_iter().collect() }; prop_assert!(reference(&proof_snapshot,&u,&target,Action::View)); }
+  if view { let proof_snapshot=Snapshot { administrators: Default::default(), entities:s.entities.clone(), relationships:result.decisions[0].proof.clone().unwrap().into_iter().collect() }; prop_assert!(reference(&proof_snapshot,&u,&target,Action::View)); }
         let before=result.decisions[0].clone();req.checks.push(req.checks[0].clone());let batch=evaluate(&s,&req).unwrap();prop_assert_eq!(&batch.decisions[0],&before);prop_assert_eq!(&batch.decisions[1],&before);
   s.relationships.insert(edge(target.clone(),Relation::Editor,u.clone()));prop_assert_eq!(evaluate(&s,&req).unwrap().decisions[0].decision.clone(),Verdict::Allow);
  }
@@ -129,6 +136,7 @@ fn m1_proof_priority_and_errors() {
     let d = e(Kind::Document, "d");
     let direct = edge(d.clone(), Relation::Viewer, u.clone());
     let mut s = Snapshot {
+        administrators: Default::default(),
         entities: BTreeSet::from([u.clone(), t.clone(), f.clone(), d.clone()]),
         relationships: BTreeSet::from([
             direct.clone(),

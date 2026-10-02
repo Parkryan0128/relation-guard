@@ -1,10 +1,11 @@
+pub mod management;
 pub mod metrics;
 use authz_core::*;
 use serde_json::{Value, json};
 use sqlx::{PgPool, Postgres, Row, Transaction, postgres::PgPoolOptions};
 use std::{collections::BTreeSet, time::Duration};
 use uuid::Uuid;
-pub const SCHEMA_VERSION: i64 = 1;
+pub const SCHEMA_VERSION: i64 = 2;
 pub static MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("../../migrations");
 
 #[derive(Debug, thiserror::Error)]
@@ -144,20 +145,28 @@ pub async fn load(
     snapshot: &mut ReadSnapshot,
     request: &BatchRequest,
 ) -> Result<Snapshot, StoreError> {
+    load_tx(&mut snapshot.tx, snapshot.tenant, request).await
+}
+pub(crate) async fn load_tx(
+    tx: &mut Transaction<'_, Postgres>,
+    tenant: Uuid,
+    request: &BatchRequest,
+) -> Result<Snapshot, StoreError> {
     request.validate()?;
     let resources: BTreeSet<_> = request.checks.iter().map(|c| c.resource.clone()).collect();
     let query_timer = metrics::DATA_SQL.timer();
     let row = sqlx::query(include_str!("../sql/ancestors.sql"))
-        .bind(snapshot.tenant)
+        .bind(tenant)
         .bind(json!(resources))
         .bind(request.subject.id.as_str())
-        .fetch_one(&mut *snapshot.tx)
+        .fetch_one(&mut **tx)
         .await?;
     drop(query_timer);
     if row.try_get::<bool, _>("corrupt")? {
         return Err(StoreError::new("INTERNAL_ERROR"));
     }
     let mut facts = Snapshot {
+        administrators: BTreeSet::new(),
         entities: serde_json::from_value(row.try_get("entities")?)
             .map_err(|_| StoreError::new("INTERNAL_ERROR"))?,
         relationships: serde_json::from_value(row.try_get("parents")?)
@@ -169,9 +178,12 @@ pub async fn load(
     if row.try_get::<bool, _>("subject_exists")? {
         facts.entities.insert(request.subject.clone());
     }
+    if row.try_get::<bool, _>("subject_admin")? {
+        facts.administrators.insert(request.subject.clone());
+    }
     let query_timer = metrics::DATA_SQL.timer();
     let rows = sqlx::query(include_str!("../sql/grants.sql"))
-        .bind(snapshot.tenant)
+        .bind(tenant)
         .bind(json!(
             facts
                 .entities
@@ -180,7 +192,7 @@ pub async fn load(
                 .collect::<Vec<_>>()
         ))
         .bind(request.subject.id.as_str())
-        .fetch_all(&mut *snapshot.tx)
+        .fetch_all(&mut **tx)
         .await?;
     drop(query_timer);
     if rows.len() > MAX_GRANTS {
@@ -231,6 +243,28 @@ pub async fn prepare_write(
     request: &WriteRequest,
     request_id: Uuid,
 ) -> Result<PreparedWrite, StoreError> {
+    prepare_write_inner(pool, tenant, key_id, key, request, request_id, None).await
+}
+pub async fn prepare_actor_write(
+    pool: &PgPool,
+    tenant: Uuid,
+    key_id: &str,
+    key: &str,
+    request: &WriteRequest,
+    request_id: Uuid,
+    actor: &Id,
+) -> Result<PreparedWrite, StoreError> {
+    prepare_write_inner(pool, tenant, key_id, key, request, request_id, Some(actor)).await
+}
+async fn prepare_write_inner(
+    pool: &PgPool,
+    tenant: Uuid,
+    key_id: &str,
+    key: &str,
+    request: &WriteRequest,
+    request_id: Uuid,
+    actor: Option<&Id>,
+) -> Result<PreparedWrite, StoreError> {
     request.validate()?;
     if key.is_empty()
         || key.len() > 128
@@ -250,10 +284,21 @@ pub async fn prepare_write(
             .await?
             .ok_or(StoreError::new("FORBIDDEN"))?;
     drop(lock_timer);
-    if let Some(row)=sqlx::query("SELECT request_hash,response FROM mutation_receipts WHERE tenant_id=$1 AND key_id=$2 AND idempotency_key=$3").bind(tenant).bind(key_id).bind(key).fetch_optional(&mut *tx).await?{
+    if let Some(row)=sqlx::query("SELECT request_hash,response FROM mutation_receipts WHERE tenant_id=$1 AND key_id=$2 AND idempotency_key=$3 AND actor_id=$4").bind(tenant).bind(key_id).bind(key).bind(actor.map_or("", Id::as_str)).fetch_optional(&mut *tx).await?{
   if row.try_get::<Vec<u8>,_>("request_hash")?!=hash{return Err(StoreError::new("IDEMPOTENCY_CONFLICT"))}
   return Ok(PreparedWrite{tx,response:row.try_get("response")?,replayed:true});
  }
+    let basis = if let Some(actor) = actor {
+        management::authorize_write(&mut tx, tenant, actor, request).await?
+    } else {
+        json!({"kind":"operator"})
+    };
+    let had_admin: bool = sqlx::query_scalar(
+        "SELECT EXISTS(SELECT 1 FROM entities WHERE tenant_id=$1 AND org_admin)",
+    )
+    .bind(tenant)
+    .fetch_one(&mut *tx)
+    .await?;
     if request.expected_revision.0 != revision {
         return Err(StoreError {
             code: "REVISION_CONFLICT",
@@ -267,6 +312,7 @@ pub async fn prepare_write(
             Operation::DeleteEntity { .. } => 1,
             Operation::PutEntity { .. } => 2,
             Operation::PutRelation { .. } => 3,
+            Operation::SetOrgRole { .. } => 4,
         };
         (
             phase,
@@ -279,6 +325,12 @@ pub async fn prepare_write(
     let mut hierarchy = BTreeSet::new();
     for op in ops {
         let count=match op {
+   Operation::SetOrgRole{user_id,role}=>{
+    let admin=*role==OrgRole::Admin;
+    let exists:bool=sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM entities WHERE tenant_id=$1 AND kind='user' AND id=$2)").bind(tenant).bind(user_id.as_str()).fetch_one(&mut *tx).await?;
+    if !exists{return Err(StoreError::new("UNKNOWN_ENTITY"));}
+    sqlx::query("UPDATE entities SET org_admin=$3 WHERE tenant_id=$1 AND kind='user' AND id=$2 AND org_admin<>$3").bind(tenant).bind(user_id.as_str()).bind(admin).execute(&mut *tx).await?.rows_affected()
+   },
    Operation::PutEntity{entity}=>sqlx::query("INSERT INTO entities(tenant_id,kind,id) VALUES($1,$2,$3) ON CONFLICT(tenant_id,kind,id) DO NOTHING").bind(tenant).bind(entity.kind.as_str()).bind(entity.id.as_str()).execute(&mut *tx).await?.rows_affected(),
    Operation::DeleteEntity{entity}=>match sqlx::query("DELETE FROM entities WHERE tenant_id=$1 AND kind=$2 AND id=$3").bind(tenant).bind(entity.kind.as_str()).bind(entity.id.as_str()).execute(&mut *tx).await{
     Ok(r)=>r.rows_affected(),Err(sqlx::Error::Database(d)) if matches!(d.code().as_deref(),Some("23503" | "23001"))=>return Err(StoreError::new("ENTITY_IN_USE")),Err(e)=>return Err(e.into())},
@@ -306,6 +358,16 @@ pub async fn prepare_write(
             return Err(StoreError::new("INVALID_HIERARCHY"));
         }
     }
+    if had_admin
+        && !sqlx::query_scalar::<_, bool>(
+            "SELECT EXISTS(SELECT 1 FROM entities WHERE tenant_id=$1 AND org_admin)",
+        )
+        .bind(tenant)
+        .fetch_one(&mut *tx)
+        .await?
+    {
+        return Err(StoreError::new("LAST_ADMIN"));
+    }
     let changed_any = !changed.is_empty();
     let new_revision = if changed_any {
         revision
@@ -325,10 +387,10 @@ pub async fn prepare_write(
                 .map(|v| v.to_string())
                 .unwrap_or_default()
         });
-        sqlx::query("INSERT INTO audit_events(tenant_id,revision,key_id,request_id,effective_changes) VALUES($1,$2,$3,$4,$5)").bind(tenant).bind(new_revision).bind(key_id).bind(request_id).bind(json!(changed)).execute(&mut *tx).await?;
+        sqlx::query("INSERT INTO audit_events(tenant_id,revision,key_id,request_id,effective_changes,actor_id,authorization_basis) VALUES($1,$2,$3,$4,$5,$6,$7)").bind(tenant).bind(new_revision).bind(key_id).bind(request_id).bind(json!(changed)).bind(actor.map(Id::as_str)).bind(&basis).execute(&mut *tx).await?;
     }
     let response = json!({"changed":changed_any,"revision":new_revision.to_string(),"model_version":MODEL,"request_id":request_id});
-    sqlx::query("INSERT INTO mutation_receipts(tenant_id,key_id,idempotency_key,request_hash,response) VALUES($1,$2,$3,$4,$5)").bind(tenant).bind(key_id).bind(key).bind(hash).bind(&response).execute(&mut *tx).await?;
+    sqlx::query("INSERT INTO mutation_receipts(tenant_id,key_id,idempotency_key,request_hash,response,actor_id) VALUES($1,$2,$3,$4,$5,$6)").bind(tenant).bind(key_id).bind(key).bind(hash).bind(&response).bind(actor.map_or("", Id::as_str)).execute(&mut *tx).await?;
     Ok(PreparedWrite {
         tx,
         response,
@@ -354,5 +416,5 @@ pub async fn write(
 pub async fn cleanup_receipts<'e, E: sqlx::Executor<'e, Database = Postgres>>(
     executor: E,
 ) -> Result<u64, StoreError> {
-    Ok(sqlx::query("DELETE FROM mutation_receipts WHERE (tenant_id,key_id,idempotency_key) IN (SELECT tenant_id,key_id,idempotency_key FROM mutation_receipts WHERE recorded_at < CURRENT_TIMESTAMP - INTERVAL '24 hours' ORDER BY recorded_at LIMIT 1000)").execute(executor).await?.rows_affected())
+    Ok(sqlx::query("DELETE FROM mutation_receipts WHERE (tenant_id,key_id,actor_id,idempotency_key) IN (SELECT tenant_id,key_id,actor_id,idempotency_key FROM mutation_receipts WHERE recorded_at < CURRENT_TIMESTAMP - INTERVAL '24 hours' ORDER BY recorded_at LIMIT 1000)").execute(executor).await?.rows_affected())
 }

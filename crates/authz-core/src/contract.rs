@@ -6,7 +6,7 @@ use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::{collections::BTreeSet, fmt};
 
-pub const MODEL: &str = "org-doc-v1";
+pub const MODEL: &str = "org-doc-v2";
 pub const MAX_BODY: usize = 262_144;
 pub const MAX_DEPTH: usize = 32;
 pub const MAX_ITEMS: usize = 100;
@@ -89,6 +89,7 @@ impl Entity {
 pub enum Relation {
     Editor,
     Member,
+    Manager,
     Parent,
     Viewer,
 }
@@ -97,6 +98,7 @@ impl Relation {
         match self {
             Self::Editor => "editor",
             Self::Member => "member",
+            Self::Manager => "manager",
             Self::Parent => "parent",
             Self::Viewer => "viewer",
         }
@@ -123,7 +125,7 @@ impl Edge {
                     && self.subject.kind == Kind::Folder
                     && self.subject_relation.is_empty()
             }
-            Relation::Viewer | Relation::Editor => {
+            Relation::Viewer | Relation::Editor | Relation::Manager => {
                 self.resource.resource()
                     && ((self.subject.kind == Kind::User && self.subject_relation.is_empty())
                         || (self.subject.kind == Kind::Team && self.subject_relation == "member"))
@@ -141,6 +143,7 @@ impl Edge {
 pub enum Action {
     View,
     Edit,
+    Manage,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -211,9 +214,17 @@ impl<'de> Deserialize<'de> for Revision {
         Ok(Self(n))
     }
 }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum OrgRole {
+    Admin,
+    Member,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "op", rename_all = "snake_case", deny_unknown_fields)]
 pub enum Operation {
+    SetOrgRole { user_id: Id, role: OrgRole },
     PutEntity { entity: Entity },
     DeleteEntity { entity: Entity },
     PutRelation { relationship: Edge },
@@ -232,8 +243,14 @@ impl WriteRequest {
         }
         let mut entities = BTreeSet::new();
         let mut edges = BTreeSet::new();
+        let mut roles = BTreeSet::new();
         for op in &self.operations {
             match op {
+                Operation::SetOrgRole { user_id, .. } => {
+                    if !roles.insert(user_id) {
+                        return Err(Fault::DuplicateOperation);
+                    }
+                }
                 Operation::PutEntity { entity } | Operation::DeleteEntity { entity } => {
                     if !entities.insert(entity) {
                         return Err(Fault::DuplicateOperation);
@@ -246,6 +263,14 @@ impl WriteRequest {
                         return Err(Fault::DuplicateOperation);
                     }
                 }
+            }
+        }
+        for op in &self.operations {
+            if let Operation::DeleteEntity { entity } = op
+                && entity.kind == Kind::User
+                && roles.contains(&entity.id)
+            {
+                return Err(Fault::DuplicateOperation);
             }
         }
         Ok(())

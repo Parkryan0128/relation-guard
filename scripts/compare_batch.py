@@ -27,7 +27,7 @@ def request(path, payload, expected):
         with connections_lock:
             connections.append(local.connection)
     local.connection.request('POST', f'/v1/tenants/{lab.tenant}/{path}', json.dumps(payload),
-                             {'Authorization': 'Bearer ' + lab.token,
+                             {'X-Actor-Id': 'test-admin', 'Authorization': 'Bearer ' + lab.token,
                               'Content-Type': 'application/json'})
     response = local.connection.getresponse()
     body = json.loads(response.read())

@@ -17,7 +17,7 @@ class Lab:
  def initialize(self):
   self.pgcmd('initdb','-D',str(self.data),'-U','relation_guard','-A','trust','--no-locale','-E','UTF8')
   with (self.data/'postgresql.conf').open('a') as f:f.write("\nshared_preload_libraries='pg_stat_statements'\nshared_buffers='256MB'\nmax_connections=100\n")
-  self.start_db();self.pgcmd('createdb','-h','127.0.0.1','-p',str(self.pgport),'-U','relation_guard','relation_guard');self.admin('migrate');self.admin('tenant',self.tenant);self.admin('runtime-role')
+  self.start_db();self.pgcmd('createdb','-h','127.0.0.1','-p',str(self.pgport),'-U','relation_guard','relation_guard');self.admin('migrate');self.admin('tenant',self.tenant);self.admin('bootstrap-admin',self.tenant,'test-admin');self.admin('runtime-role')
   self.token=self.new_key('initial');self.start_server();return self
  def admin(self,*args):
   r=subprocess.run([str(self.bin/'authz-admin'),*args],env={**os.environ,'DATABASE_URL':self.admin_url,'AUTHZ_RUNTIME_PASSWORD':self.runtime_password},stdout=subprocess.PIPE,stderr=subprocess.PIPE)
@@ -55,8 +55,8 @@ class Lab:
   try:r=urllib.request.urlopen(f'http://127.0.0.1:{self.opsport}/{path}',timeout=2)
   except urllib.error.HTTPError as e:r=e
   return r.status,r.read().decode()
- def request(self,path,body=None,token=None,key=None):
-  headers={'Authorization':'Bearer '+(token or self.token),'Content-Type':'application/json','Idempotency-Key':key or str(uuid.uuid4())}
+ def request(self,path,body=None,token=None,key=None,actor="test-admin"):
+  headers={'X-Actor-Id':actor,'Authorization':'Bearer '+(token or self.token),'Content-Type':'application/json','Idempotency-Key':key or str(uuid.uuid4())}
   req=urllib.request.Request(f'http://127.0.0.1:{self.port}/v1/tenants/{self.tenant}/{path}',data=None if body is None else json.dumps(body).encode(),headers=headers)
   try:r=urllib.request.urlopen(req,timeout=4)
   except urllib.error.HTTPError as e:r=e
@@ -75,7 +75,7 @@ class ExistingDatabaseLab(Lab):
   self.pgport=parsed.port or 5432;self.admin_url=urlunsplit(parsed._replace(path='/'+self.database));self.url=urlunsplit(parsed._replace(netloc='relation_guard_runtime@'+parsed.netloc.rsplit('@',1)[-1],path='/'+self.database))
  def control(self,sql):return self.pgcmd('psql',self.control_url,'-X','-v','ON_ERROR_STOP=1','-At',input=sql.encode()).decode().strip()
  def initialize(self):
-  self.control('CREATE DATABASE '+self.database);self.created=True;self.admin('migrate');self.admin('tenant',self.tenant);self.admin('runtime-role');self.token=self.new_key('initial');self.start_server();return self
+  self.control('CREATE DATABASE '+self.database);self.created=True;self.admin('migrate');self.admin('tenant',self.tenant);self.admin('bootstrap-admin',self.tenant,'test-admin');self.admin('runtime-role');self.token=self.new_key('initial');self.start_server();return self
  def start_db(self):self.control('ALTER DATABASE '+self.database+' ALLOW_CONNECTIONS true')
  def stop_db(self):
   self.control('ALTER DATABASE '+self.database+' ALLOW_CONNECTIONS false');self.control("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='"+self.database+"'")

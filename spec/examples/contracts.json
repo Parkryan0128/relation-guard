@@ -88,7 +88,7 @@
     "response": {
       "changed": true,
       "revision": "1",
-      "model_version": "org-doc-v1",
+      "model_version": "org-doc-v2",
       "request_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
     },
     "response_headers": {
@@ -113,7 +113,7 @@
       "decision": "allow",
       "reason": "MATCHING_RELATION",
       "evaluated_revision": "1",
-      "model_version": "org-doc-v1",
+      "model_version": "org-doc-v2",
       "request_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
       "proof": [
         {
@@ -181,7 +181,7 @@
     },
     "response": {
       "evaluated_revision": "1",
-      "model_version": "org-doc-v1",
+      "model_version": "org-doc-v2",
       "request_id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
       "results": [
         {
@@ -222,7 +222,7 @@
     "response": {
       "changed": true,
       "revision": "2",
-      "model_version": "org-doc-v1",
+      "model_version": "org-doc-v2",
       "request_id": "dddddddd-dddd-4ddd-8ddd-dddddddddddd"
     },
     "response_headers": {
@@ -247,7 +247,7 @@
       "decision": "deny",
       "reason": "NO_MATCHING_RELATION",
       "evaluated_revision": "2",
-      "model_version": "org-doc-v1",
+      "model_version": "org-doc-v2",
       "request_id": "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee"
     }
   },
@@ -359,7 +359,7 @@
     "response": {
       "changed": true,
       "revision": "1",
-      "model_version": "org-doc-v1",
+      "model_version": "org-doc-v2",
       "request_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
     },
     "response_headers": {
@@ -385,7 +385,7 @@
       "decision": "deny",
       "reason": "NO_MATCHING_RELATION",
       "evaluated_revision": "2",
-      "model_version": "org-doc-v1",
+      "model_version": "org-doc-v2",
       "request_id": "13131313-1313-4313-8313-131313131313",
       "proof": []
     }
@@ -403,7 +403,7 @@
   "revision": {
     "response": {
       "revision": "2",
-      "model_version": "org-doc-v1",
+      "model_version": "org-doc-v2",
       "request_id": "15151515-1515-4515-8515-151515151515"
     }
   },

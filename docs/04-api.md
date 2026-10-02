@@ -1,6 +1,7 @@
 # 04. HTTP API 계약
 
-상태: v0.1 구현 전 규격. canonical JSON 예시는 [contracts.json](../spec/examples/contracts.json). M0에서 이 문서를 OpenAPI 3.1로 옮기고 fixture를 schema로 검증한다.
+> 현재 확장 계약: [사용자 기준 권한 관리](15-managed-authorization.md). 아래 v0.1 설명 중 신뢰된 writer의 무조건 변경, view/edit만 지원, actor 없는 감사/receipt 규칙은 이 확장에서 대체된다.
+상태: org-doc-v2 구현 계약. canonical JSON 예시는 [contracts.json](../spec/examples/contracts.json). M0에서 이 문서를 OpenAPI 3.1로 옮기고 fixture를 schema로 검증한다.
 
 ## 공통
 
@@ -23,7 +24,7 @@ explain은 추가로 explain scope 필요. check scope만으로 원본 관계 �
 
 필수 header `Idempotency-Key`: 1–128 ASCII `[A-Za-z0-9._-]+`.
 
-필수 body: `expected_revision`, `operations` 배열. operation은 put_entity, delete_entity, put_relation, delete_relation 중 하나이며 명시적인 tagged union이다. entity는 `{kind,id}`. relation은 `{resource,relation,subject,subject_relation}`이며 direct subject는 `subject_relation:""`을 사용한다.
+필수 body: `expected_revision`, `operations` 배열. operation은 put_entity, delete_entity, put_relation, delete_relation, set_org_role 중 하나이며 명시적인 tagged union이다. entity는 `{kind,id}`. relation은 `{resource,relation,subject,subject_relation}`이며 direct subject는 `subject_relation:""`을 사용한다.
 
 - 1–100 ops. 같은 entity key나 동일 relation tuple이 두 번 나타나면 400 DUPLICATE_OPERATION. old/new parent는 다른 tuple이므로 동시 delete/put 가능.
 - 순서에 의존하지 않는 최종 상태 의미론. relation delete → entity delete → entity put → relation put 순으로 적용하고 최종 검증한다. put된 관계는 살아 있는 객체를 참조해야 한다.
@@ -34,11 +35,11 @@ explain은 추가로 explain scope 필요. check scope만으로 원본 관계 �
 - 유효하지 않은 relation/references는 422, 객체 사용 중·다중 parent·cycle·depth 위반은 409. 하나라도 실패하면 graph/revision/audit/receipt 전부 rollback.
 - commit outcome 불명확 시 503 WRITE_OUTCOME_UNKNOWN. 실패를 곧 미반영으로 해석하지 말고 같은 key/payload로 재시도.
 
-정규화 hash는 parse/검증된 typed request에서 아래 canonicalization v1 규칙으로 얻은 bytes를 SHA-256으로 계산한다. whitespace와 입력 operation 순서만 다른 요청은 같은 payload다. expected_revision도 hash에 포함된다. idempotency key는 인증 key_id와 tenant 내에서 유일하다. key 교체 후 자동 retry는 새 작업이므로 revision 충돌 처리부터 다시 한다.
+정규화 hash는 parse/검증된 typed request에서 아래 canonicalization v1 규칙으로 얻은 bytes를 SHA-256으로 계산한다. whitespace와 입력 operation 순서만 다른 요청은 같은 payload다. expected_revision도 hash에 포함된다. idempotency key는 인증 key_id, actor_id와 tenant 내에서 유일하다. key 교체 후 자동 retry는 새 작업이므로 revision 충돌 처리부터 다시 한다.
 
 ## Check
 
-body: subject(user만), resource(folder/document만), action(view/edit), explain(default false). 성공 200은 `decision:"allow"|"deny"`, reason, evaluated_revision, model_version, request_id, 선택적 proof 배열. allow reason은 MATCHING_RELATION으로 고정한다. proof는 explain 권한과 요청이 모두 있을 때만 제공한다.
+body: subject(user만), resource(folder/document만), action(view/edit/manage), explain(default false). 성공 200은 `decision:"allow"|"deny"`, reason, evaluated_revision, model_version, request_id, 선택적 proof 배열. allow reason은 관계 경로면 MATCHING_RELATION, 조직 관리자면 ORG_ADMIN이다. proof는 explain 권한과 요청이 모두 있을 때만 제공한다.
 
 존재하지 않는 local 객체는 200 deny NOT_FOUND. 기존 객체에 경로가 없으면 200 deny NO_MATCHING_RELATION. 다른 tenant의 객체를 찾아서 구분하지 않는다. unsupported kind/action은 400이며 정상 거부와 구별한다.
 
@@ -50,7 +51,7 @@ body: 단일 subject, checks 배열(1–100, 각 `{resource,action}`), explain(d
 
 `/relationships?resource_kind=folder&resource_id=f1&limit=50&after=...`: resource 필수, limit 1–100. 정렬 키 `(relation,subject_kind,subject_id,subject_relation)`. cursor는 이 키와 tenant/resource/filter를 담는 versioned base64url 값으로 검증한다. 권한을 부여하는 credential은 아니며 변조된 cursor도 query scope를 바꿀 수 없다. 요청마다 별도 snapshot이므로 여러 페이지가 하나의 시점이라는 보장은 없다. 없는 resource는 빈 목록.
 
-`/audit?after_revision=0&limit=50`: 실제 변경만 revision 오름차순. 최대 100. key_id, committed revision, timestamp, 변경 diff와 request ID를 반환. no-op은 감사 변경 행이 없다. 원시 secret 저장 금지. `/revision`은 초기 sync와 conflict 복구용이며 compare-and-write를 대체하지 않는다.
+`/audit?after_revision=0&limit=50`: 실제 변경만 revision 오름차순. 최대 100. key_id, actor_id, authorization_basis, committed revision, timestamp, 변경 diff와 request ID를 반환. no-op은 감사 변경 행이 없다. 원시 secret 저장 금지. `/revision`은 초기 sync와 conflict 복구용이며 compare-and-write를 대체하지 않는다.
 
 ## 제한과 오류
 
@@ -63,7 +64,7 @@ body: 단일 subject, checks 배열(1–100, 각 `{resource,action}`), explain(d
 | 400 | INVALID_REQUEST / DUPLICATE_OPERATION | 잘못된 입력 |
 | 404 / 405 / 415 | NOT_FOUND / METHOD_NOT_ALLOWED / UNSUPPORTED_MEDIA_TYPE | 경로·메서드·Content-Type 오류 |
 | 401 / 403 | UNAUTHENTICATED / FORBIDDEN | 서비스 인증/범위 실패 |
-| 409 | REVISION_CONFLICT / IDEMPOTENCY_CONFLICT / ENTITY_IN_USE / INVALID_HIERARCHY | 상태 충돌 |
+| 409 | REVISION_CONFLICT / IDEMPOTENCY_CONFLICT / ENTITY_IN_USE / INVALID_HIERARCHY / LAST_ADMIN | 상태 충돌 |
 | 413 | PAYLOAD_TOO_LARGE | body 제한 |
 | 422 | INVALID_RELATION / UNKNOWN_ENTITY / EVALUATION_LIMIT | 의미 오류 또는 한도 |
 | 503 | OVERLOADED / DATABASE_UNAVAILABLE / WRITE_OUTCOME_UNKNOWN / REVISION_EXHAUSTED | 일시 장애·포화 또는 revision 한계 |
@@ -106,6 +107,12 @@ check/batch의 공통 요청 예산은 20,000 units다. 각 item마다 방문하
 
 `/revision`: `{revision,model_version,request_id}`.
 `/relationships`: `{relationships,evaluated_revision,next_cursor,request_id}`. 더 없으면 next_cursor=null; limit+1개를 읽어 다음 페이지 존재를 판별한다.
-`/audit`: `{events,evaluated_revision,next_after_revision,request_id}`. event는 `{revision,key_id,request_id,recorded_at,effective_changes}`. 더 없으면 next_after_revision=null, 더 있으면 마지막 반환 revision. 시간은 RFC3339 UTC이며 recorded_at은 transaction의 기록 시각으로 정확한 commit timestamp가 아니다.
+`/audit`: `{events,evaluated_revision,next_after_revision,request_id}`. event는 `{revision,key_id,actor_id,authorization_basis,request_id,recorded_at,effective_changes}`. 더 없으면 next_after_revision=null, 더 있으면 마지막 반환 revision. 시간은 RFC3339 UTC이며 recorded_at은 transaction의 기록 시각으로 정확한 commit timestamp가 아니다.
 
 각 GET은 한 read-only snapshot에서 revision과 내용을 함께 읽는다. 페이지 간 snapshot 일치는 보장하지 않는다. cursor는 최대 2,048 bytes, base64url unpadded JSON `{v:1,tenant_id,resource_kind,resource_id,last:[relation,subject_kind,subject_id,subject_relation]}`. path/filter 불일치·지원 안 되는 version·타입·크기 오류는 400. cursor는 인증/권한 검사를 대체하지 않는다.
+
+## V1 관리 확장 요청
+
+모든 data API에는 `X-Actor-Id` 헤더가 정확히 하나 필요하다. 인증된 백엔드가 로그인 세션의 사용자 ID를 증언한다. scope 검사를 통과해도 사용자 자격 검사는 생략하지 않는다. `set_org_role` payload는 `{"op":"set_org_role","user_id":"u1","role":"admin"}`이며 role은 admin/member뿐이다. 동일 user의 role 변경 중복 또는 같은 요청의 user 삭제와 role 변경 조합은 DUPLICATE_OPERATION이다.
+
+자기 check는 member에게 허용하고 타인의 check는 조직 admin만 가능하다. 관계 조회는 리소스 manager 또는 조직 admin, audit은 조직 admin만 가능하다. 모든 변경 자격과 receipt 재시도 순서는 [관리 확장 계약](15-managed-authorization.md)을 따른다.

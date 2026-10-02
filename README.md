@@ -2,7 +2,7 @@
 
 **A relationship-based authorization service in Rust.** Backends written in any language can use its HTTP API to register or revoke relationships and check access to resources.
 
-> **Status: functional implementation verified; one native performance gate remains unmet.** Core, transactions, HTTP, recovery and key rotation pass locally and in clean Linux CI. All planned native load profiles ran, but one batch repetition exceeded the failure-rate target. Container deployment remains unverified. See [verification status](verification/status.md).
+> **Status: managed-authorization V1 implementation in verification.** The service now checks who may change permissions, not only who may access resources. Historical v0.1 measurements remain separate; current results are tracked in [verification status](verification/status.md).
 
 ## What it does
 
@@ -15,14 +15,17 @@ flowchart LR
   Store -->|Facts from one snapshot| Core
 ```
 
-An application asks whether a user can view or edit a folder or document. Relation Guard evaluates direct grants, team membership, and inherited folder permissions. Applications continue to own login, business data, and enforcement of the returned decision. The service reads its own relationship database, not the application's database.
+An application asks whether a user can view or edit a folder or document. Relation Guard evaluates direct grants, team membership, and inherited folder permissions. Applications continue to own login, business data, and enforcement of the returned decision. Authenticated backends assert the logged-in user with `X-Actor-Id`; the engine checks that user’s authority. Service keys must never be given to end users. The service reads its own relationship database, not the application's database.
 
-## v0.1 scope
+## V1 scope
 
-- A fixed `org-doc-v1` model: users, teams, folders, and documents within an isolated tenant.
+- A fixed `org-doc-v2` model: users, teams, folders, and documents within an isolated tenant.
 - Atomic entity and relationship writes, with expected revisions and idempotent retries.
 - Single checks and batch checks for up to 100 items belonging to one subject.
-- Direct and team-based grants, single-parent folder inheritance, and `edit` implying `view`.
+- Direct and team-based viewer/editor/manager grants; single-parent folder inheritance; manage implies edit and view.
+- Organization administrators and members; protected administrator handover and last-administrator checks.
+- User-authorized mutations checked against the pre-change state under the same transaction lock.
+- Actor-bound retries and audit records, with a separate operator-only bootstrap/recovery path.
 - Optional, scope-protected evidence for an allow decision; change audit records.
 - Explicit error handling, bounded work, health checks, metrics, and container deployment files.
 
@@ -45,7 +48,7 @@ Rust 1.96.1 and resolved dependency versions are pinned in rust-toolchain.toml a
 
 ## Try the implementation
 
-Build with `cargo build --locked --workspace`. Provision the dedicated database and a tenant using `authz-admin`, then start `authz-server` with `DATABASE_URL` and `AUTHZ_KEYS_FILE`. See the [step-by-step guide](docs/13-running.md). The standard-library [Python client](examples/client.py) demonstrates grant, check, revoke, and fail-closed enforcement.
+Build with `cargo build --locked --workspace`. Provision the dedicated database and a tenant using `authz-admin`, then start `authz-server` with `DATABASE_URL` and `AUTHZ_KEYS_FILE`. Bootstrap the first organization administrator with `authz-admin bootstrap-admin TENANT_UUID USER_ID`. Every data request requires `X-Actor-Id`. See the [step-by-step guide](docs/13-running.md). The standard-library [Python client](examples/client.py) demonstrates grant, check, revoke, and fail-closed enforcement.
 
 Run `PYTHON=.venv/bin/python scripts/verify.sh` with an isolated `TEST_DATABASE_URL` after installing `scripts/requirements-test.txt`. This runs the implemented regression suite; it does not certify the unfinished release gates.
 
@@ -64,7 +67,7 @@ M0–M3 functional verification and M4-native recovery checks pass. M5-native me
 
 A stage passes only when its required cases pass and evidence is recorded for the tested commit. A skipped or unavailable required test is not a pass. Implementation and testing of later stages must not hide an unresolved earlier gate.
 
-## Measured local results
+## Historical v0.1 measurements
 
 Release build on macOS arm64 with a local PostgreSQL 18.6 endpoint; no CPU/memory caps. Each profile used a 60-second warmup and three 300-second measurements.
 
@@ -99,6 +102,7 @@ The README is in English. Detailed design documents currently use Korean; API id
 12. [Acceptance test matrix](docs/12-acceptance-tests.md)
 13. [Running locally](docs/13-running.md)
 14. [Native verification plan and environment limits](docs/14-native-verification.md)
+15. [Managed authorization rules and migration](docs/15-managed-authorization.md)
 
 Supporting artifacts: [design DDL](spec/schema.sql), [API examples](spec/examples/contracts.json), and [authorization cases](spec/examples/authorization-cases.json). The initial migration and constraints have been tested against PostgreSQL 18. Examples specify expected behavior; they are not recorded server responses.
 

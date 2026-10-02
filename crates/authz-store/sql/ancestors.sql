@@ -18,4 +18,5 @@ SELECT
  FROM relationships r JOIN limited n ON r.resource_kind=n.kind AND r.resource_id=n.id
  WHERE r.tenant_id=$1 AND r.relation='parent') AS parents,
  EXISTS(SELECT 1 FROM entities WHERE tenant_id=$1 AND kind='user' AND id=$3) AS subject_exists,
+ EXISTS(SELECT 1 FROM entities WHERE tenant_id=$1 AND kind='user' AND id=$3 AND org_admin) AS subject_admin,
  COALESCE((SELECT bool_or(cycle OR depth>32) FROM chain),false) AS corrupt

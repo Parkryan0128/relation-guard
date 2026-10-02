@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Relation Guard",
-    "version": "0.1.0"
+    "version": "1.0.0"
   },
   "security": [
     {
@@ -66,7 +66,18 @@
             }
           }
         }
-      }
+      },
+      "parameters": [
+        {
+          "name": "X-Actor-Id",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "description": "User identity asserted by the authenticated trusted backend; never forward an untrusted client header."
+        }
+      ]
     },
     "/v1/tenants/{tenant_id}/check": {
       "post": {
@@ -115,7 +126,18 @@
             }
           }
         }
-      }
+      },
+      "parameters": [
+        {
+          "name": "X-Actor-Id",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "description": "User identity asserted by the authenticated trusted backend; never forward an untrusted client header."
+        }
+      ]
     },
     "/v1/tenants/{tenant_id}/batch-check": {
       "post": {
@@ -164,7 +186,18 @@
             }
           }
         }
-      }
+      },
+      "parameters": [
+        {
+          "name": "X-Actor-Id",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "description": "User identity asserted by the authenticated trusted backend; never forward an untrusted client header."
+        }
+      ]
     },
     "/v1/tenants/{tenant_id}/revision": {
       "get": {
@@ -203,7 +236,18 @@
             }
           }
         }
-      }
+      },
+      "parameters": [
+        {
+          "name": "X-Actor-Id",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "description": "User identity asserted by the authenticated trusted backend; never forward an untrusted client header."
+        }
+      ]
     },
     "/v1/tenants/{tenant_id}/relationships": {
       "get": {
@@ -283,7 +327,18 @@
             }
           }
         }
-      }
+      },
+      "parameters": [
+        {
+          "name": "X-Actor-Id",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "description": "User identity asserted by the authenticated trusted backend; never forward an untrusted client header."
+        }
+      ]
     },
     "/v1/tenants/{tenant_id}/audit": {
       "get": {
@@ -339,7 +394,18 @@
             }
           }
         }
-      }
+      },
+      "parameters": [
+        {
+          "name": "X-Actor-Id",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "description": "User identity asserted by the authenticated trusted backend; never forward an untrusted client header."
+        }
+      ]
     }
   },
   "components": {
@@ -428,7 +494,8 @@
               "member",
               "parent",
               "viewer",
-              "editor"
+              "editor",
+              "manager"
             ]
           },
           "subject": {
@@ -458,7 +525,8 @@
           "action": {
             "enum": [
               "view",
-              "edit"
+              "edit",
+              "manage"
             ]
           }
         },
@@ -480,7 +548,8 @@
           "action": {
             "enum": [
               "view",
-              "edit"
+              "edit",
+              "manage"
             ]
           },
           "explain": {
@@ -593,6 +662,29 @@
                     "relationship"
                   ],
                   "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "const": "set_org_role"
+                    },
+                    "user_id": {
+                      "$ref": "#/components/schemas/Id"
+                    },
+                    "role": {
+                      "enum": [
+                        "admin",
+                        "member"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "op",
+                    "user_id",
+                    "role"
+                  ],
+                  "additionalProperties": false
                 }
               ]
             },
@@ -619,7 +711,8 @@
             "enum": [
               "MATCHING_RELATION",
               "NOT_FOUND",
-              "NO_MATCHING_RELATION"
+              "NO_MATCHING_RELATION",
+              "ORG_ADMIN"
             ]
           },
           "proof": {
@@ -649,7 +742,8 @@
             "enum": [
               "MATCHING_RELATION",
               "NOT_FOUND",
-              "NO_MATCHING_RELATION"
+              "NO_MATCHING_RELATION",
+              "ORG_ADMIN"
             ]
           },
           "proof": {
@@ -663,7 +757,7 @@
             "$ref": "#/components/schemas/Revision"
           },
           "model_version": {
-            "const": "org-doc-v1"
+            "const": "org-doc-v2"
           },
           "request_id": {
             "type": "string",
@@ -694,7 +788,7 @@
             "$ref": "#/components/schemas/Revision"
           },
           "model_version": {
-            "const": "org-doc-v1"
+            "const": "org-doc-v2"
           },
           "request_id": {
             "type": "string",
@@ -719,7 +813,7 @@
             "$ref": "#/components/schemas/Revision"
           },
           "model_version": {
-            "const": "org-doc-v1"
+            "const": "org-doc-v2"
           },
           "request_id": {
             "type": "string",
@@ -741,7 +835,7 @@
             "$ref": "#/components/schemas/Revision"
           },
           "model_version": {
-            "const": "org-doc-v1"
+            "const": "org-doc-v2"
           },
           "request_id": {
             "type": "string",
@@ -872,11 +966,70 @@
                     "relationship"
                   ],
                   "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "const": "set_org_role"
+                    },
+                    "user_id": {
+                      "$ref": "#/components/schemas/Id"
+                    },
+                    "role": {
+                      "enum": [
+                        "admin",
+                        "member"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "op",
+                    "user_id",
+                    "role"
+                  ],
+                  "additionalProperties": false
                 }
               ]
             },
             "minItems": 1,
             "maxItems": 100
+          },
+          "actor_id": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Id"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "authorization_basis": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "enum": [
+                  "org_admin",
+                  "resource_manager",
+                  "operator",
+                  "legacy_operator",
+                  "operator_bootstrap",
+                  "operator_recovery"
+                ]
+              },
+              "resources": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Resource"
+                },
+                "maxItems": 100
+              }
+            },
+            "required": [
+              "kind"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
@@ -884,7 +1037,9 @@
           "key_id",
           "request_id",
           "recorded_at",
-          "effective_changes"
+          "effective_changes",
+          "actor_id",
+          "authorization_basis"
         ],
         "additionalProperties": false
       },

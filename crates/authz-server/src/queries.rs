@@ -21,6 +21,7 @@ fn invalid() -> StoreError {
 pub async fn get(
     pool: &sqlx::PgPool,
     tenant: Uuid,
+    actor: &Id,
     route: &str,
     query: Option<&str>,
     id: Uuid,
@@ -48,6 +49,10 @@ pub async fn get(
         return Err(invalid());
     }
     let mut snapshot = begin_read(pool, tenant).await?;
+    let admin = authz_store::management::actor_is_admin(&mut snapshot.tx, tenant, actor).await?;
+    if route == "audit" && !admin {
+        return Err(StoreError::new("FORBIDDEN"));
+    }
     let response = match route {
         "revision" => {
             json!({"revision":snapshot.revision.to_string(),"model_version":MODEL,"request_id":id})
@@ -57,6 +62,22 @@ pub async fn get(
                 serde_json::from_value(json!(params.get("resource_kind").ok_or_else(invalid)?))
                     .map_err(|_| invalid())?;
             let resource_id = Id::new(params.get("resource_id").ok_or_else(invalid)?.clone())?;
+            if !admin {
+                let resource = Entity {
+                    kind,
+                    id: resource_id.clone(),
+                };
+                if !resource.resource() {
+                    return Err(StoreError::new("FORBIDDEN"));
+                }
+                authz_store::management::require_manage(
+                    &mut snapshot.tx,
+                    tenant,
+                    actor,
+                    [resource].into(),
+                )
+                .await?;
+            }
             let last = if let Some(encoded) = params.get("after") {
                 if encoded.len() > 2048 {
                     return Err(invalid());
@@ -132,14 +153,14 @@ pub async fn get(
                     .unwrap_or("0")
             ))
             .map_err(|_| invalid())?;
-            let rows=sqlx::query("SELECT revision,key_id,request_id,to_char(recorded_at AT TIME ZONE 'UTC','YYYY-MM-DD\"T\"HH24:MI:SS.US\"Z\"') AS recorded_at,effective_changes FROM audit_events WHERE tenant_id=$1 AND revision>$2 ORDER BY revision LIMIT $3").bind(tenant).bind(after.0).bind(limit+1).fetch_all(&mut *snapshot.tx).await?;
+            let rows=sqlx::query("SELECT revision,key_id,actor_id,authorization_basis,request_id,to_char(recorded_at AT TIME ZONE 'UTC','YYYY-MM-DD\"T\"HH24:MI:SS.US\"Z\"') AS recorded_at,effective_changes FROM audit_events WHERE tenant_id=$1 AND revision>$2 ORDER BY revision LIMIT $3").bind(tenant).bind(after.0).bind(limit+1).fetch_all(&mut *snapshot.tx).await?;
             let more = rows.len() > limit as usize;
             let mut events = Vec::new();
             let mut tail = None;
             for row in rows.into_iter().take(limit as usize) {
                 let revision = row.try_get::<i64, _>("revision")?.to_string();
                 tail = Some(revision.clone());
-                events.push(json!({"revision":revision,"key_id":row.try_get::<String,_>("key_id")?,"request_id":row.try_get::<Uuid,_>("request_id")?,"recorded_at":row.try_get::<String,_>("recorded_at")?,"effective_changes":row.try_get::<Value,_>("effective_changes")?}));
+                events.push(json!({"revision":revision,"key_id":row.try_get::<String,_>("key_id")?,"actor_id":row.try_get::<Option<String>,_>("actor_id")?,"authorization_basis":row.try_get::<Value,_>("authorization_basis")?,"request_id":row.try_get::<Uuid,_>("request_id")?,"recorded_at":row.try_get::<String,_>("recorded_at")?,"effective_changes":row.try_get::<Value,_>("effective_changes")?}));
             }
             json!({"events":events,"evaluated_revision":snapshot.revision.to_string(),"next_after_revision":if more{tail}else{None},"request_id":id})
         }

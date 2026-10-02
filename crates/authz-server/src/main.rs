@@ -43,7 +43,11 @@ fn error(e: StoreError, id: Uuid) -> Response {
         "FORBIDDEN" => 403,
         "NOT_FOUND" => 404,
         "METHOD_NOT_ALLOWED" => 405,
-        "REVISION_CONFLICT" | "IDEMPOTENCY_CONFLICT" | "ENTITY_IN_USE" | "INVALID_HIERARCHY" => 409,
+        "REVISION_CONFLICT"
+        | "IDEMPOTENCY_CONFLICT"
+        | "ENTITY_IN_USE"
+        | "INVALID_HIERARCHY"
+        | "LAST_ADMIN" => 409,
         "PAYLOAD_TOO_LARGE" => 413,
         "UNSUPPORTED_MEDIA_TYPE" => 415,
         "INVALID_RELATION" | "UNKNOWN_ENTITY" | "EVALUATION_LIMIT" => 422,
@@ -133,6 +137,15 @@ async fn dispatch(app: &Arc<App>, request: Request, id: Uuid) -> Result<Response
     if key.tenant_id != tenant || !key.scopes.contains(scope) {
         return Err(StoreError::new("FORBIDDEN"));
     }
+    if parts.headers.get_all("x-actor-id").iter().count() != 1 {
+        return Err(StoreError::new("UNAUTHENTICATED"));
+    }
+    let actor = parts
+        .headers
+        .get("x-actor-id")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| Id::new(v).ok())
+        .ok_or(StoreError::new("UNAUTHENTICATED"))?;
     if method == "POST" {
         let ct = parts
             .headers
@@ -161,7 +174,15 @@ async fn dispatch(app: &Arc<App>, request: Request, id: Uuid) -> Result<Response
             .ok_or(StoreError::new("INVALID_REQUEST"))?;
         let prepared = tokio::time::timeout_at(
             deadline,
-            authz_store::prepare_write(&app.pool, tenant, &key.key_id, receipt_key, &data, id),
+            authz_store::prepare_actor_write(
+                &app.pool,
+                tenant,
+                &key.key_id,
+                receipt_key,
+                &data,
+                id,
+                &actor,
+            ),
         )
         .await
         .map_err(|_| StoreError::new("DEADLINE_EXCEEDED"))??;
@@ -204,7 +225,8 @@ async fn dispatch(app: &Arc<App>, request: Request, id: Uuid) -> Result<Response
             if data.explain && !key.scopes.contains("explain") {
                 return Err(StoreError::new("FORBIDDEN"));
             }
-            let (revision, result) = authz_store::check(&app.pool, tenant, &data).await?;
+            let (revision, result) =
+                authz_store::management::check_as(&app.pool, tenant, &actor, &data).await?;
             for decision in &result.decisions {
                 match decision.decision {
                     Verdict::Allow => {
@@ -231,7 +253,7 @@ async fn dispatch(app: &Arc<App>, request: Request, id: Uuid) -> Result<Response
             body["request_id"] = json!(id);
             body
         } else {
-            queries::get(&app.pool, tenant, route, parts.uri.query(), id).await?
+            queries::get(&app.pool, tenant, &actor, route, parts.uri.query(), id).await?
         };
         Ok::<Value, StoreError>(body)
     };

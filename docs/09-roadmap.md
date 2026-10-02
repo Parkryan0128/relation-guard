@@ -1,5 +1,6 @@
 # 09. 구현 순서와 완료 체크리스트
 
+> 현재 확장 계약: [사용자 기준 권한 관리](15-managed-authorization.md). 아래 v0.1 설명 중 신뢰된 writer의 무조건 변경, view/edit만 지원, actor 없는 감사/receipt 규칙은 이 확장에서 대체된다.
 구현을 시작했다. M0–M3 및 native recovery 검증 결과는 [현재 증거](../verification/status.md)를 따른다. 아래 stage 완료는 모든 필수 case와 증거가 있을 때만 인정한다.
 
 ## 모든 stage에 적용하는 gate
@@ -124,3 +125,13 @@
 ## v0.2 이후 후보 — 자동 포함 아님
 
 gRPC, language SDK, 캐시+revision consistency, 접근 가능 리소스 검색, in-memory graph 최적화, dynamic model, RLS, 다중 replica 부하 실험. 먼저 실제 병목/사용 요구가 있어야 한다. DSL·분산 캐시·서비스 mesh를 경력용 장식으로 추가하지 않는다.
+
+## 승인된 V1 관리 권한 확장
+
+- [ ] Core 모델과 migration
+- [ ] 사용자 기준 원자적 관리 변경과 감사
+- [ ] HTTP 사용자 검증과 우회 차단
+- [ ] happy path/경계/부정/동시성 테스트
+- [ ] 클라이언트·운영·배포·성능 검증
+
+세부 규칙과 단계별 검증은 [확장 계약](15-managed-authorization.md)을 따른다.

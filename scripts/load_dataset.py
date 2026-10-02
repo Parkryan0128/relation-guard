@@ -11,4 +11,4 @@ def seed(lab,tenant,documents,total):
  for i in range(total-len(rows)):rows.append(('document',f'd{i}','viewer','user',f'u{(i+2)%500}',''))
  assert len(rows)==total and len(set(rows))==total
  sql="BEGIN;\nINSERT INTO tenants(id) VALUES('"+tenant+"') ON CONFLICT DO NOTHING;\nCOPY entities(tenant_id,kind,id) FROM STDIN;\n"+''.join('\t'.join((tenant,*e))+'\n' for e in entities)+"\\.\nCOPY relationships FROM STDIN;\n"+''.join('\t'.join((tenant,*r))+'\n' for r in rows)+"\\.\nCOMMIT;\nANALYZE;\n"
- lab.sql(sql);return {'tenant':tenant,'users':1000,'teams':100,'folders':1000,'documents':documents,'relationships':total,'max_depth':8}
+ lab.sql(sql);return {'tenant':tenant,'users':1000,'management_users_per_tenant':1,'teams':100,'folders':1000,'documents':documents,'relationships':total,'max_depth':8}

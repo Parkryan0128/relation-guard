@@ -8,12 +8,12 @@ class ClientTests(unittest.TestCase):
   self.seen=[];self.replies=[];outer=self
   class Handler(BaseHTTPRequestHandler):
    def do_POST(self):
-    body=self.rfile.read(int(self.headers.get('Content-Length','0')));outer.seen.append((self.path,self.headers.get('Idempotency-Key'),body))
+    body=self.rfile.read(int(self.headers.get('Content-Length','0')));outer.seen.append((self.path,self.headers.get('Idempotency-Key'),body,self.headers.get('X-Actor-Id')));assert self.headers.get('X-Actor-Id')=='user'
     status,value=outer.replies.pop(0)
     if status==0:self.connection.shutdown(2);self.connection.close();return
     payload=json.dumps(value).encode();self.send_response(status);self.send_header('Content-Length',str(len(payload)));self.end_headers();self.wfile.write(payload)
    def log_message(self,*args):pass
-  self.server=ThreadingHTTPServer(('127.0.0.1',0),Handler);self.thread=threading.Thread(target=self.server.serve_forever,daemon=True);self.thread.start();self.client=module.Client(f'http://127.0.0.1:{self.server.server_port}',str(uuid.uuid4()),'fixture')
+  self.server=ThreadingHTTPServer(('127.0.0.1',0),Handler);self.thread=threading.Thread(target=self.server.serve_forever,daemon=True);self.thread.start();self.client=module.Client(f'http://127.0.0.1:{self.server.server_port}',str(uuid.uuid4()),'fixture','user')
  def tearDown(self):self.server.shutdown();self.server.server_close();self.thread.join()
  def test_unknown_and_transport_retry_same_write(self):
   for first in [(503,{'error':{'code':'WRITE_OUTCOME_UNKNOWN'}}),(0,{})]:
@@ -24,7 +24,7 @@ class ClientTests(unittest.TestCase):
   with self.assertRaises(module.RevisionConflict):self.client.request('write',{'expected_revision':'0'},key='same-key')
   self.assertEqual(len(self.seen),1)
  def test_malformed_allow_and_errors_block(self):
-  base={'decision':'allow','reason':'MATCHING_RELATION','evaluated_revision':'1','model_version':'org-doc-v1','request_id':str(uuid.uuid4())}
+  base={'decision':'allow','reason':'MATCHING_RELATION','evaluated_revision':'1','model_version':'org-doc-v2','request_id':str(uuid.uuid4())}
   cases=[[],{},dict(base,reason='NOT_FOUND'),dict(base,evaluated_revision=None),dict(base,evaluated_revision='01'),dict(base,request_id='invalid')]
   for value in cases:
    self.replies=[(200,value)]

@@ -24,12 +24,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 serde_json::json!({"token":format!("{id}.{}",URL_SAFE_NO_PAD.encode(secret)),"config_entry":{"key_id":id,"tenant_id":tenant,"scopes":["check","explain","relations:read","relations:write","audit:read"],"secret_sha256":hex::encode(Sha256::digest(secret))}})
             );
         }
-        Some("migrate" | "tenant" | "cleanup-receipts" | "runtime-role") => {
+        Some(
+            "migrate" | "tenant" | "cleanup-receipts" | "runtime-role" | "bootstrap-admin"
+            | "recover-admin",
+        ) => {
             let pool = authz_store::pool(&std::env::var("DATABASE_URL")?).await?;
             match args[0].as_str() {
                 "migrate" if args.len() == 1 => authz_store::MIGRATOR.run(&pool).await?,
                 "tenant" if args.len() == 2 => {
                     authz_store::provision(&pool, Uuid::parse_str(&args[1])?).await?
+                }
+                "bootstrap-admin" | "recover-admin" if args.len() == 3 => {
+                    authz_store::management::bootstrap_admin(
+                        &pool,
+                        Uuid::parse_str(&args[1])?,
+                        &authz_core::Id::new(args[2].clone())?,
+                        args[0] == "recover-admin",
+                    )
+                    .await?;
                 }
                 "runtime-role" if args.len() == 1 => {
                     let password = std::env::var("AUTHZ_RUNTIME_PASSWORD")?;
@@ -64,7 +76,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         _ => {
             return Err(
-                "Usage: authz-admin migrate | tenant UUID | key UUID KEY_ID | runtime-role | cleanup-receipts"
+                "Usage: authz-admin migrate | tenant UUID | bootstrap-admin UUID USER_ID | recover-admin UUID USER_ID | key UUID KEY_ID | runtime-role | cleanup-receipts"
                     .into(),
             );
         }

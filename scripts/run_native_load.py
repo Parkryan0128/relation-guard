@@ -3,7 +3,7 @@
 import hashlib,json,os,pathlib,platform,subprocess,time,uuid
 from native_lab import Lab,ROOT
 run=pathlib.Path(os.environ['RG_LOAD_DIR']);run.mkdir(exist_ok=True);run.chmod(0o700)
-lab=Lab(run/'lab');k6=os.environ['K6_BIN'];out=ROOT/'verification/load';out.mkdir(exist_ok=True)
+lab=Lab(run/'lab');k6=os.environ['K6_BIN'];out=pathlib.Path(os.environ.get('RG_LOAD_OUTPUT',str(ROOT/'verification/load')));out.mkdir(exist_ok=True)
 manifest={'seed':424242,'environment':'native macOS loopback; no cgroup CPU/memory limits','os':platform.platform(),'architecture':platform.machine(),'source_dirty':bool(subprocess.check_output(['git','diff','--name-only','HEAD','--','Cargo.toml','Cargo.lock','crates'],cwd=ROOT)),'logical_cpus':os.cpu_count(),'postgres':subprocess.check_output([str(lab.pg/'postgres'),'--version'],text=True).strip(),'commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'binary_sha256':hashlib.sha256((lab.bin/'authz-server').read_bytes()).hexdigest(),'runs':[]}
 from load_dataset import seed
 def configure(tenants,documents):
@@ -36,7 +36,7 @@ try:
  # Replace S with an independently seeded M dataset.
  lab.stop_server();manifest['S_server_resource_usage']=lab.resource_usage;lab.sql('TRUNCATE audit_events,mutation_receipts,relationships,entities,tenants CASCADE');lab.keys=[];tenants=[];shapes=[]
  for i in range(10):
-  tenant=str(uuid.uuid5(uuid.NAMESPACE_DNS,f'relation-guard-424242-{i}'));shapes.append(seed(lab,tenant,20000,100000));lab.tenant=tenant;token=lab.new_key('m'+str(i));tenants.append({'id':tenant,'token':token})
+  tenant=str(uuid.uuid5(uuid.NAMESPACE_DNS,f'relation-guard-424242-{i}'));shapes.append(seed(lab,tenant,20000,100000));lab.tenant=tenant;lab.admin('bootstrap-admin',tenant,'test-admin');token=lab.new_key('m'+str(i));tenants.append({'id':tenant,'token':token})
  manifest['M']=shapes;lab.start_server();cfg=configure(tenants,20000);assert lab.sql('SELECT count(*) FROM relationships')=='1000000'
  measured('single',60,100,'M-single',cfg,False)
  for profile in ['mixed-hot','mixed-distributed']:measured(profile,60,100,'M-'+profile,cfg,False)

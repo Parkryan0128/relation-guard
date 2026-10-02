@@ -1,5 +1,7 @@
 # Verification status
 
+**Current work: managed-authorization V1 (`org-doc-v2`) verification in progress.** New core, store, migration and HTTP tests have passed locally; final recovery/deployment/load checks are pending. The entries below describe the earlier v0.1 baseline and must not be presented as V1 release certification.
+
 All planned implementation stages and approved native test scenarios have been executed. Functional and recovery checks passed; **M5-native acceptance did not pass** because one batch repetition exceeded its error budget. This is not a production release or a container certification.
 
 Original benchmark source: `afc0fe192681eba11e6867f6bf85413baa4598fb`. Subsequent diagnosis adds pool metrics, structured error logging and a service minimum of ten connections; historical performance results retain their original source and binary attribution. [Local regression](regression.log) and [clean Linux functional/recovery CI](https://github.com/Parkryan0128/relation-guard/actions/runs/37041474310) passed.

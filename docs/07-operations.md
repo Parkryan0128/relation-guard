@@ -1,5 +1,6 @@
 # 07. 보안·배포·운영
 
+> 현재 확장 계약: [사용자 기준 권한 관리](15-managed-authorization.md). 아래 v0.1 설명 중 신뢰된 writer의 무조건 변경, view/edit만 지원, actor 없는 감사/receipt 규칙은 이 확장에서 대체된다.
 ## 신뢰 경계
 
 end user → 기존 앱 → Relation Guard → PostgreSQL. 사용자 인증과 subject 선택 책임은 기존 앱에 있다. 사용자가 입력한 user ID를 그대로 믿고 엔진에 넘기지 않는다. Relation Guard는 신뢰된 caller의 tenant와 scope를 검증한다.
@@ -8,7 +9,7 @@ v0.1 서비스 인증: CSPRNG로 생성한 정확히 32바이트 secret, key_id,
 
 credential secret 파일은 read-only mount, app DB에는 넣지 않는다. key rotation은 새·옛 key 잠시 중복 배포 후 옛 key 제거 및 모든 replica 재시작으로 처리한다. v0.1은 hot reload/즉시 분산 credential 회수를 약속하지 않는다. startup 시 잘못된 tenant/scope/key 중복 설정은 fail-fast. admin CLI는 별도 privileged DB credential로 tenant와 초기 revision 0을 생성하며 runtime 서버에 그 credential을 제공하지 않는다.
 
-caller scope: check, explain, relations:read, relations:write, audit:read. writer는 해당 tenant의 모든 권한 관계를 관리하는 신뢰된 서비스다. 개별 최종 사용자가 grant할 자격이 있는지는 기존 앱이 검사해야 하며, check-only key를 writer로 승격할 수 없다.
+caller scope: check, explain, relations:read, relations:write, audit:read. writer scope는 변경 API를 호출할 수 있는 서비스 범위다. 실제 grant/revoke 자격은 엔진이 X-Actor-Id의 사용자 기준으로 검사한다. check-only key는 writer 호출을 할 수 없고, writer key도 actor의 부족한 권한을 보충하지 않는다. 신뢰된 백엔드는 로그인 세션에서 actor를 선택하며 외부 헤더를 그대로 전달하지 않는다. 서비스 키를 가진 신원 증언자의 거짓말까지 방어하는 end-user 인증 시스템은 아니다.
 
 ## 실패 정책
 

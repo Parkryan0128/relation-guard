@@ -4,6 +4,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Snapshot {
+    #[serde(default)]
+    pub administrators: BTreeSet<Entity>,
     pub entities: BTreeSet<Entity>,
     pub relationships: BTreeSet<Edge>,
 }
@@ -17,6 +19,8 @@ pub enum Verdict {
 pub enum Reason {
     #[serde(rename = "MATCHING_RELATION")]
     MatchingRelation,
+    #[serde(rename = "ORG_ADMIN")]
+    OrgAdmin,
     #[serde(rename = "NOT_FOUND")]
     NotFound,
     #[serde(rename = "NO_MATCHING_RELATION")]
@@ -48,6 +52,13 @@ pub fn evaluate(snapshot: &Snapshot, request: &BatchRequest) -> Result<Evaluatio
     if snapshot.entities.iter().filter(|e| e.resource()).count() > MAX_RESOURCES {
         return Err(Fault::EvaluationLimit);
     }
+    if snapshot
+        .administrators
+        .iter()
+        .any(|e| e.kind != Kind::User || !snapshot.entities.contains(e))
+    {
+        return Err(Fault::CorruptGraph);
+    }
     let mut parents = BTreeMap::new();
     let mut grants: BTreeMap<&Entity, Vec<&Edge>> = BTreeMap::new();
     for edge in &snapshot.relationships {
@@ -62,7 +73,7 @@ pub fn evaluate(snapshot: &Snapshot, request: &BatchRequest) -> Result<Evaluatio
                     return Err(Fault::CorruptGraph);
                 }
             }
-            Relation::Viewer | Relation::Editor => {
+            Relation::Viewer | Relation::Editor | Relation::Manager => {
                 grants.entry(&edge.resource).or_default().push(edge);
             }
             Relation::Member => {}
@@ -106,6 +117,14 @@ pub fn evaluate(snapshot: &Snapshot, request: &BatchRequest) -> Result<Evaluatio
             });
             continue;
         }
+        if snapshot.administrators.contains(&request.subject) {
+            decisions.push(Decision {
+                decision: Verdict::Allow,
+                reason: Reason::OrgAdmin,
+                proof: request.explain.then(Vec::new),
+            });
+            continue;
+        }
         let (mut cursor, mut path, mut proof) = (&check.resource, Vec::new(), None);
         loop {
             charge(&mut work)?;
@@ -129,7 +148,9 @@ pub fn evaluate(snapshot: &Snapshot, request: &BatchRequest) -> Result<Evaluatio
                             snapshot.relationships.contains(m)
                         });
                     if matches
-                        && (check.action == Action::View || grant.relation == Relation::Editor)
+                        && (grant.relation == Relation::Manager
+                            || check.action == Action::View
+                            || (check.action == Action::Edit && grant.relation == Relation::Editor))
                         && proof.is_none()
                     {
                         let mut p = path.clone();

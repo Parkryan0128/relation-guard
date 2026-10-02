@@ -1,10 +1,11 @@
-# 03. 권한 의미론 — 고정 모델 `org-doc-v1`
+# 03. 권한 의미론 — 고정 모델 `org-doc-v2`
 
+> 현재 확장 계약: [사용자 기준 권한 관리](15-managed-authorization.md). 아래 v0.1 설명 중 신뢰된 writer의 무조건 변경, view/edit만 지원, actor 없는 감사/receipt 규칙은 이 확장에서 대체된다.
 이 문서는 권한 결과의 source of truth다. 모델을 임의로 OpenFGA/Cedar와 동일하다고 해석하지 않는다.
 
 ## 객체와 테넌트
 
-객체는 `(tenant_id, kind, id)`로 식별한다. kind는 user, team, folder, document 중 하나다. 조직은 tenant 자체이며 조직 소속만으로 모든 문서를 볼 수 없다. user registry에 객체가 있다는 사실도 권한 부여가 아니다.
+객체는 `(tenant_id, kind, id)`로 식별한다. kind는 user, team, folder, document 중 하나다. 조직은 tenant 자체이며 일반 member는 조직 소속만으로 모든 문서를 볼 수 없다. 조직 admin은 모든 존재하는 리소스를 관리할 수 있다. user registry의 일반 member 등록 자체는 리소스 권한 부여가 아니다. org_admin 역할은 별도다.
 
 ID는 종류 내에서 유일한 ASCII opaque string, 1–128자, `[A-Za-z0-9][A-Za-z0-9._-]{0,127}`. 대소문자를 구분하고 Unicode 정규화/URL path 의미를 추가하지 않는다. 외부 앱 ID를 그대로 또는 안정적으로 매핑해서 전달한다.
 
@@ -14,8 +15,8 @@ ID는 종류 내에서 유일한 ASCII opaque string, 1–128자, `[A-Za-z0-9][A
 |---|---|---|---|
 | team | member | user | 빈 문자열 |
 | folder/document | parent | folder | 빈 문자열 |
-| folder/document | viewer/editor | user | 빈 문자열 |
-| folder/document | viewer/editor | team | member |
+| folder/document | viewer/editor/manager | user | 빈 문자열 |
+| folder/document | viewer/editor/manager | team | member |
 
 `document:d1#parent@folder:f1`은 d1이 f1 아래에 있음을 뜻한다. `folder:f1#editor@team:t1#member`는 t1의 멤버 집합에 편집 권한을 부여한다. team 자체를 로그인 사용자처럼 check할 수 없다.
 
@@ -26,7 +27,11 @@ ID는 종류 내에서 유일한 ASCII opaque string, 1–128자, `[A-Za-z0-9][A
 `matches(user, subject)`는 직접 사용자 일치 또는 해당 팀의 member 관계 존재다.
 
 ```text
-edit(u, r) = 직접 editor 관계에서 matches(u)
+manage(u, r) = 조직 admin인 등록 user이며 r이 존재
+               OR 직접 manager 관계에서 matches(u)
+               OR (r의 parent가 p이고 manage(u, p))
+
+edit(u, r) = manage(u, r) OR 직접 editor 관계에서 matches(u)
              OR (r의 parent가 p이고 edit(u, p))
 
 view(u, r) = edit(u, r)
@@ -63,3 +68,7 @@ DB 오류, 깊이/작업 한도 초과, corrupt graph는 deny 판단이 아니�
 - 입력 전체의 형식/권한과 로드 결과의 무결성/한도를 먼저 검증한다. 앞 item이 allow라고 해서 뒤 item의 오류를 숨기지 않는다. 어느 item이든 평가가 실패하면 batch 전체가 오류다.
 - read에서 cycle/다중 부모/depth>32를 발견하면 저장 invariant 손상이므로 500 INTERNAL_ERROR. write가 그런 상태를 만들려 하면 409 INVALID_HIERARCHY. 정상 데이터에서 평가 작업 예산만 초과하면 422 EVALUATION_LIMIT.
 - 삭제 후 같은 ID를 새 write에서 재등록하는 것은 허용하지만 과거 grant를 복원하지 않는다. 오래된 integration event를 새 의도로 재발행하는 문제는 caller가 식별해야 한다.
+
+## 변경 자격
+
+권한 변경 및 조직/리소스 관리의 사전 상태 검사, 마지막 관리자 보호, 생성/이동 제한은 [관리 권한 계약](15-managed-authorization.md)을 따른다. admin allow의 reason은 ORG_ADMIN이며 explain proof는 빈 배열이다. 다른 allow는 기존 관계 proof를 제공한다.

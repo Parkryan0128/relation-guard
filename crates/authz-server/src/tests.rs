@@ -23,6 +23,13 @@ async fn harness_with_hook(hook: Option<Arc<CommitBarrier>>) -> Harness {
     authz_store::MIGRATOR.run(&pool).await.unwrap();
     let tenant = Uuid::new_v4();
     authz_store::provision(&pool, tenant).await.unwrap();
+    sqlx::query(
+        "INSERT INTO entities(tenant_id,kind,id,org_admin) VALUES($1,'user','test-admin',true)",
+    )
+    .bind(tenant)
+    .execute(&pool)
+    .await
+    .unwrap();
     let secret = [42u8; 32];
     let keys=strict_json::<auth::Config>(&serde_json::to_vec(&json!({"version":1,"keys":[{"key_id":"test","tenant_id":tenant,"scopes":["check","explain","relations:write","relations:read"],"secret_sha256":hex::encode(Sha256::digest(secret))}]})).unwrap()).unwrap();
     let app = Arc::new(App {
@@ -58,7 +65,7 @@ async fn request(h: &Harness, path: &str, body: Option<Value>) -> (u16, Value) {
     let method = if body.is_some() { "POST" } else { "GET" };
     let body = body.map(|b| b.to_string()).unwrap_or_default();
     let text = format!(
-        "{method} /v1/tenants/{}/{path} HTTP/1.1\r\nHost: localhost\r\nAuthorization: Bearer {}\r\nContent-Type: application/json\r\nIdempotency-Key: test\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+        "{method} /v1/tenants/{}/{path} HTTP/1.1\r\nHost: localhost\r\nAuthorization: Bearer {}\r\nX-Actor-Id: test-admin\r\nContent-Type: application/json\r\nIdempotency-Key: test\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
         h.tenant,
         h.token,
         body.len()
@@ -246,7 +253,7 @@ async fn m3_http_disconnect_before_commit() {
     let h = harness_with_hook(Some(hook.clone())).await;
     let mut connection = tokio::net::TcpStream::connect(h.address).await.unwrap();
     let body=json!({"expected_revision":"0","operations":[{"op":"put_entity","entity":{"kind":"user","id":"disconnect"}}]}).to_string();
-    connection.write_all(format!("POST /v1/tenants/{}/write HTTP/1.1\r\nHost: localhost\r\nAuthorization: Bearer {}\r\nContent-Type: application/json\r\nIdempotency-Key: disconnect\r\nContent-Length: {}\r\n\r\n{}",h.tenant,h.token,body.len(),body).as_bytes()).await.unwrap();
+    connection.write_all(format!("POST /v1/tenants/{}/write HTTP/1.1\r\nHost: localhost\r\nAuthorization: Bearer {}\r\nX-Actor-Id: test-admin\r\nContent-Type: application/json\r\nIdempotency-Key: disconnect\r\nContent-Length: {}\r\n\r\n{}",h.tenant,h.token,body.len(),body).as_bytes()).await.unwrap();
     tokio::time::timeout(Duration::from_secs(2), hook.entered.notified())
         .await
         .unwrap();
