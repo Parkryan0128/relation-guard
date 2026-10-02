@@ -1,6 +1,6 @@
 # Verification status
 
-**Active pool-timeout investigation:** the bounded-wait change passes functional, controlled fault and container CI, but its extended local S-single-3 measurement failed. Independent Linux load verification is in progress. [Current report](pool-burst/report.md). The earlier V1 results below retain their original source attribution.
+**Latest pool-timeout result:** the bounded 500ms wait passes controlled short-stall, functional and container tests. Independent Linux native load gates PASS: 99,006 normal-load requests, zero errors/drops; recovery 6,001/6,001. The macOS rerun FAILS during longer stalls (40 overloads, four deadline errors); their external cause remains unresolved. Exploratory Linux stress dropped work and is not a throughput guarantee. [Full evidence and limitations](pool-burst/report.md). The earlier V1 results below retain their original source attribution.
 
 **Current: managed-authorization V1 (`org-doc-v2`) implementation and approved verification complete.** [Full V1 report](v1/report.md).
 

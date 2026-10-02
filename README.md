@@ -5,7 +5,7 @@
 > **Status: managed-authorization V1 implemented and verified.** Functional tests, native recovery, Docker deployment and the approved native performance gates passed. The service checks who may change permissions, not only who may access resources. See the [V1 verification report](verification/v1/report.md) for evidence, observed failures and environment limits.
 
 
-**Current follow-up:** short pool saturation now has a 500ms acquisition budget, with a controlled before/after regression test. Extended local remeasurement encountered a longer stall and failed a performance gate; independent Linux measurement is in progress. See the [active investigation](verification/pool-burst/report.md). Prior V1 results below remain historical evidence.
+**Latest reliability verification:** the 500ms pool-acquisition budget absorbs the tested short stall without replaying transactions. Functional/container CI and independent Linux native load gates passed; 99,006 normal-load requests had zero errors or drops. The local macOS rerun still failed during longer stalls, whose root cause remains unresolved. See the [before/after results and limits](verification/pool-burst/report.md). Earlier V1 measurements below retain their original source attribution.
 
 ## What it does
 
