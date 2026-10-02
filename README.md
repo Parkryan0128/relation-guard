@@ -57,33 +57,15 @@ Run `PYTHON=.venv/bin/python scripts/verify.sh` with an isolated `TEST_DATABASE_
 
 ## Validation
 
-Current V1 evidence is collected in the [managed authorization report](verification/v1/report.md). The suite includes 10,000 generated graph comparisons, 290 HTTP assertions, transaction races, migration, recovery and clean Linux functional/container CI. Native S measurements returned 99,003 correct responses with no errors or dropped iterations: single-check p95 5.25–5.31 ms, batch p95 29.38–31.15 ms. The final recovery profile also passed. Four 503 responses occurred during a warmup, and high-load exploratory profiles included generator drops; those observations are retained. These are local measurements, not production throughput guarantees.
+Run `scripts/verify.sh` for the complete functional regression suite: formatting, Clippy, contracts, core properties, real PostgreSQL transactions, management rules, 290 HTTP assertions, COMMIT faults, and the Python client. `scripts/test-stage.sh M4` adds native recovery and controlled connection stalls; M5 adds security review and load measurements. See the [test roadmap](docs/09-roadmap.md) for stage requirements.
 
-The following M0–M5 results describe the historical v0.1 baseline, not the current V1 result.
+Evidence is attributed to the source and environment actually tested:
 
-M0–M3 functional verification and M4-native recovery checks pass. M5-native measurement is complete, but its acceptance gate did not pass: batch repetition 3 returned six HTTP 503 responses out of 3,001 requests (0.20%, against a <0.1% target). No wrong authorization decision was observed. Container deployment verification is deferred under the [approved native testing plan](docs/14-native-verification.md). Detailed test cases, required evidence, and pass/fail rules are defined in the [implementation roadmap](docs/09-roadmap.md) and [acceptance test matrix](docs/12-acceptance-tests.md).
+- [Managed authorization V1](verification/v1/report.md): functional, recovery, deployment, and native performance results.
+- [Pool reliability](verification/pool-burst/report.md): independent Linux normal-load gates passed with 99,006 correct requests and zero errors or drops. The local macOS rerun failed during longer stalls; the cause remains unresolved. Exploratory stress dropped work.
+- [Verification history](verification/status.md): earlier results, including the failed v0.1 performance gate, are retained.
 
-| Stage | Deliverable | Required validation |
-|---|---|---|
-| M0 | Workspace, typed contracts, migrations | Build/lint, valid and invalid API fixtures, real PostgreSQL constraints |
-| M1 | Pure authorization evaluator | Rule fixtures, independent reference comparison, property tests, proof and limit boundaries |
-| M2 | Storage and transactional writes | Rollback, revision conflicts, retry safety, snapshot reads, deterministic concurrency schedules |
-| M3 | HTTP API and service authentication | HTTP contracts, tenant/scope isolation, error mapping, deadlines, overload and disconnect tests |
-| M4 | Deployable integration | Clean Docker bootstrap, external-language client, restart persistence, key rotation, backup/restore |
-| M5 | Release evidence | Full regression, reproducible load tests, fault recovery, dependency and secret review |
-
-A stage passes only when its required cases pass and evidence is recorded for the tested commit. A skipped or unavailable required test is not a pass. Implementation and testing of later stages must not hide an unresolved earlier gate.
-
-## Historical v0.1 measurements
-
-Release build on macOS arm64 with a local PostgreSQL 18.6 endpoint; no CPU/memory caps. Each profile used a 60-second warmup and three 300-second measurements.
-
-| Workload | Successful-response latency across runs | Errors and acceptance |
-|---|---|---|
-| 100 single checks/s | p95 6.08–6.41 ms; p99 17.99–21.84 ms | 90,002/90,002 correct responses; all three runs passed |
-| 10 batches/s, 100 checks each | p95 29.16–30.46 ms | Six 503 responses in run 3; failure-rate gate missed |
-
-The one-million-relationship dataset, mixed writes, stress and recovery profiles also ran. Stress results include dropped load-generator iterations. See the [complete report](verification/M5-report.md), including preserved failures, internal costs and environment limits. These are engineering measurements, not production SLA guarantees. The [connection-pool investigation](verification/pool-timeout-investigation.md) records a controlled reproduction, service-pool hardening and separate diagnostic replays; the original failed acceptance result is preserved.
+These measurements are not production throughput guarantees. A failed or skipped required check is not a pass. A refactor does not establish new performance measurements.
 
 ## Consistency boundaries
 
@@ -115,7 +97,7 @@ Supporting artifacts: [design DDL](spec/schema.sql), [API examples](spec/example
 
 ## Working on this repository
 
-Read [AGENTS.md](AGENTS.md) before changes. Follow the [running and testing guide](docs/13-running.md) for native binaries, local credentials, the Python client, and the draft Compose setup.
+Read [AGENTS.md](AGENTS.md) before changes. Follow the [running and testing guide](docs/13-running.md) for native binaries, local credentials, the Python client, and the Compose setup.
 
 Run the current document checks from the repository root:
 

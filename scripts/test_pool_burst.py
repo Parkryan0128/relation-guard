@@ -11,7 +11,7 @@ import time
 import urllib.parse
 
 from native_lab import Lab, ROOT
-from test_pool_transport_stall import GateProxy, metrics
+from pg_fault_proxy import GateProxy
 
 
 def experiment(delay):
@@ -32,7 +32,7 @@ def experiment(delay):
         lab.url = urllib.parse.urlunsplit(parsed._replace(
             netloc=f"relation_guard_runtime@127.0.0.1:{proxy.port}", query="sslmode=disable"))
         lab.start_server()
-        before = metrics(lab)
+        before = lab.metrics()
         assert before['relation_guard_pool_size'] == 10
         proxy.pause()
         released = threading.Event()
@@ -71,7 +71,7 @@ def experiment(delay):
             responses = [f.result() for f in futures]
         thread.join(timeout=3)
         assert released.is_set()
-        after = metrics(lab)
+        after = lab.metrics()
         assert lab.request("revision")[0] == 200
         return {"delay_ms": delay*1000, "offered_requests_per_second": 100,
                 "correct": sum(r["status"] == 200 for r in responses),

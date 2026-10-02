@@ -20,7 +20,7 @@
 
 R 번호의 원문은 [근거 자료](11-references.md). crate의 정확한 patch와 MSRV는 M0에서 호환성을 확인하고 rust-toolchain.toml, Cargo.lock에 고정한다. 이 문서의 제품 선택을 검증 안 된 최신 버전 pin으로 바꾸지 않는다. PostgreSQL image도 검증된 patch/digest로 고정한다.
 
-## 계획된 workspace
+## 구현된 workspace
 
 ```text
 crates/
@@ -29,9 +29,11 @@ crates/
   authz-server/     # Axum routes, auth, DTO, limits, errors, orchestration
   authz-admin/      # trusted local tenant provisioning; no public admin API
 migrations/
-examples/python/   # small HTTP caller, not another business service
+examples/client.py # small HTTP caller, not another business service
 benchmarks/        # seeded data, load profiles, reports
 ```
+
+crate 내부에서도 책임을 나눈다. core의 `contract.rs`는 요청/응답 계약, `json.rs`는 중복 키를 거부하는 파서를 담당한다. store의 `database.rs`는 연결/트랜잭션 시작, `read.rs`는 snapshot 조회/평가, `write.rs`는 변경/receipt/audit, `management.rs`는 변경 권한 규칙, `error.rs`는 오류 변환을 담당한다. server의 `main.rs`는 프로세스/운영 endpoint, `api.rs`는 데이터 API를 담당한다. 모듈 분리는 SQL, 권한 규칙, timeout 값을 바꾸지 않는다.
 
 위 계층은 현재 구현돼 있다. Python 클라이언트는 examples/client.py에 있다. 핵심 의존 방향은 store → core, server → core/store다. core는 HTTP/SQL/runtime에 의존하지 않는다. 저장소가 같은 snapshot에서 조회한 제한된 facts를 core에 넘긴다. core는 결정과 증명 경로를 계산한다.
 

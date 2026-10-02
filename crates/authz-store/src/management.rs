@@ -1,6 +1,14 @@
 //! User-authorized changes. All decisions use the state before any operation runs.
-use crate::*;
+use crate::{
+    StoreError, begin_read,
+    database::begin,
+    read::{finish_check, load_tx},
+};
+use authz_core::*;
+use serde_json::{Value, json};
+use sqlx::{PgPool, Postgres, Transaction};
 use std::collections::{BTreeMap, BTreeSet};
+use uuid::Uuid;
 
 pub async fn actor_is_admin(
     tx: &mut Transaction<'_, Postgres>,
@@ -137,13 +145,7 @@ pub async fn check_as(
     if request.subject.id != *actor && !admin {
         return Err(StoreError::new("FORBIDDEN"));
     }
-    let facts = load(&mut read, request).await?;
-    let timer = metrics::CORE.timer();
-    let result = evaluate(&facts, request)?;
-    drop(timer);
-    metrics::WORK.observe(result.work as u64);
-    read.tx.commit().await?;
-    Ok((read.revision, result))
+    finish_check(read, request).await
 }
 
 /// Explicit privileged-DB operation; never routed from the HTTP data API.

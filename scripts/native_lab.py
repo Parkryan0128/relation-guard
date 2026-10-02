@@ -55,6 +55,8 @@ class Lab:
   try:r=urllib.request.urlopen(f'http://127.0.0.1:{self.opsport}/{path}',timeout=2)
   except urllib.error.HTTPError as e:r=e
   return r.status,r.read().decode()
+ def metrics(self):
+  return {key:float(value) for key,value in (line.split() for line in self.probe('metrics')[1].splitlines())}
  def request(self,path,body=None,token=None,key=None,actor="test-admin"):
   headers={'X-Actor-Id':actor,'Authorization':'Bearer '+(token or self.token),'Content-Type':'application/json','Idempotency-Key':key or str(uuid.uuid4())}
   req=urllib.request.Request(f'http://127.0.0.1:{self.port}/v1/tenants/{self.tenant}/{path}',data=None if body is None else json.dumps(body).encode(),headers=headers)

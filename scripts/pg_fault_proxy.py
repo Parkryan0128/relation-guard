@@ -51,3 +51,39 @@ class Proxy:
         for s in self.connections:
             try:s.shutdown(socket.SHUT_RDWR);s.close()
             except OSError:pass
+
+
+class GateProxy:
+    def __init__(self,host,port):
+        self.target=(host,port)
+        self.listener=socket.socket();self.listener.bind(('127.0.0.1',0));self.listener.listen()
+        self.port=self.listener.getsockname()[1];self.gate=threading.Event();self.gate.set()
+        self.blocked=threading.Event();self.sockets=[]
+        threading.Thread(target=self.accept,daemon=True).start()
+    def accept(self):
+        try:
+            while True:
+                client,_=self.listener.accept()
+                backend=socket.create_connection(self.target)
+                self.sockets.extend([client,backend])
+                threading.Thread(target=self.relay,args=(client,backend,False),daemon=True).start()
+                threading.Thread(target=self.relay,args=(backend,client,True),daemon=True).start()
+        except OSError:pass
+    def relay(self,source,destination,responses):
+        try:
+            while data:=source.recv(65536):
+                if responses and not self.gate.is_set():
+                    self.blocked.set();self.gate.wait()
+                destination.sendall(data)
+        except OSError:pass
+        finally:
+            try:destination.shutdown(socket.SHUT_RDWR)
+            except OSError:pass
+    def pause(self):self.blocked.clear();self.gate.clear()
+    def resume(self):self.gate.set()
+    def close(self):
+        self.resume();self.listener.close()
+        for sock in self.sockets:
+            try:sock.shutdown(socket.SHUT_RDWR)
+            except OSError:pass
+            sock.close()

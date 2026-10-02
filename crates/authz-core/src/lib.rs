@@ -3,3 +3,5 @@ pub mod contract;
 pub use contract::*;
 pub mod evaluator;
 pub use evaluator::*;
+mod json;
+pub use json::strict_json;

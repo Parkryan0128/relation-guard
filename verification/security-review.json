@@ -1,8 +1,8 @@
 {
   "advisory_database": {
-    "advisory-count": 1280,
-    "last-commit": "117edb3bed98e9be112f277b7615eea3252e7c43",
-    "last-updated": "2026-10-02T10:58:33+02:00"
+    "advisory-count": 1288,
+    "last-commit": "f8dee89e1b2f2f1eaf548312df7655fe5202a302",
+    "last-updated": "2026-10-02T22:27:46+02:00"
   },
   "advisories": [
     {
@@ -13,7 +13,7 @@
       "disposition": "not compiled into server/admin; optional locked dependency only"
     }
   ],
-  "active_packages": 173,
+  "active_packages": 170,
   "licenses": [
     {
       "package": "allocator-api2",
@@ -98,16 +98,6 @@
     {
       "package": "cfg-if",
       "version": "1.0.5",
-      "license": "MIT OR Apache-2.0"
-    },
-    {
-      "package": "chrono",
-      "version": "0.4.45",
-      "license": "MIT OR Apache-2.0"
-    },
-    {
-      "package": "core-foundation-sys",
-      "version": "0.8.7",
       "license": "MIT OR Apache-2.0"
     },
     {
@@ -319,11 +309,6 @@
       "package": "hyper-util",
       "version": "0.1.21",
       "license": "MIT"
-    },
-    {
-      "package": "iana-time-zone",
-      "version": "0.1.65",
-      "license": "MIT OR Apache-2.0"
     },
     {
       "package": "icu_collections",

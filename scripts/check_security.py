@@ -3,8 +3,7 @@
 import json,os,pathlib,re,subprocess
 root=pathlib.Path(__file__).resolve().parents[1]
 metadata=json.loads(subprocess.check_output(['cargo','metadata','--locked','--format-version','1'],cwd=root))
-packages={p['id']:p for p in metadata['packages']};nodes={n['id']:n for n in metadata['resolve']['nodes']}
-roots=[p['id'] for p in packages.values() if p['name'] in ('authz-server','authz-admin')]
+packages={p['id']:p for p in metadata['packages']}
 # cargo metadata includes optional resolution nodes; cargo tree applies activated features.
 active=set()
 for target in ('aarch64-apple-darwin','aarch64-unknown-linux-gnu','x86_64-unknown-linux-gnu'):

@@ -5,7 +5,7 @@
 
 ## 모든 stage에 적용하는 gate
 
-`scripts/verify.sh`는 구현된 Rust/실제 PostgreSQL/TCP 회귀 검사를 실행한다. `scripts/test-stage.sh`는 별도 stage gate이며 미완료 case가 있는 stage의 PASS를 거부한다. 정확한 재현 방법은 docs/13-running.md를 따른다.
+`scripts/verify.sh [M0|M1|M2|M3]`가 회귀 테스트 목록을 한 곳에서 관리한다. 인자 없이는 전체 Rust/실제 PostgreSQL/TCP 회귀 검사를 실행한다. M1부터 전체 core 테스트, M2부터 전체 store 테스트를 실행하므로 새 관리 권한 테스트도 포함한다. `scripts/test-stage.sh`는 이 진입점을 재사용하고 해당 stage의 benchmark/recovery/security/load 검사를 추가한다. 문서상 완료 판정은 별도 배포 증거까지 포함한 아래 필수 조건을 따른다. 정확한 재현 방법은 docs/13-running.md를 따른다.
 
 각 gate는 [테스트 매트릭스](12-acceptance-tests.md)의 해당 ID 전부를 요구한다. stage가 올라가면 이전 stage gate도 누적 실행한다. 실패/skip/환경 없음은 PASS가 아니다. 실패한 stage는 미완료로 남기고 관련 결과를 보고한다. 예상 오류를 검증하는 negative test는 지정된 오류와 무변경 조건까지 확인해야 성공이다.
 
