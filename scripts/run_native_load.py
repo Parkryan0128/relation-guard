@@ -28,8 +28,8 @@ def measured(profile,duration,rate,label,cfg,gate=True):
   while p.poll() is None:
    samples.append({'elapsed':len(samples),'application_metrics':lab.probe('metrics')[1]});time.sleep(5)
  (out/(label+'-resources.json')).write_text(json.dumps(samples));(out/(label+'-metrics-after.txt')).write_text(lab.probe('metrics')[1]);d=json.loads(result.read_text());m=d['metrics']
- good=m.get('correct_responses',{}).get('values',{}).get('count',0);bad=m.get('unexpected_responses',{}).get('values',{}).get('count',0);dropped=m.get('dropped_iterations',{}).get('values',{}).get('count',0);scheduled=rate*duration
- latency=m.get('successful_latency',{}).get('values',{});record={'label':label,'scheduled':scheduled,'correct':good,'unexpected':bad,'dropped':dropped,'p50_ms':latency.get('p(50)'),'p95_ms':latency.get('p(95)'),'p99_ms':latency.get('p(99)'),'exit_code':p.returncode,'http_requests':m.get('http_reqs',{}).get('values',{}).get('count',0),'revision_conflicts':m.get('revision_conflicts',{}).get('values',{}).get('count',0)}
+ good=m.get('correct_responses',{}).get('values',{}).get('count',0);bad=m.get('unexpected_responses',{}).get('values',{}).get('count',0);dropped=m.get('dropped_iterations',{}).get('values',{}).get('count',0);scheduled=m.get('iterations',{}).get('values',{}).get('count',0)+dropped
+ latency=m.get('successful_latency',{}).get('values',{});record={'label':label,'scheduled':scheduled,'nominal_target':rate*duration,'correct':good,'unexpected':bad,'dropped':dropped,'p50_ms':latency.get('p(50)'),'p95_ms':latency.get('p(95)'),'p99_ms':latency.get('p(99)'),'exit_code':p.returncode,'http_requests':m.get('http_reqs',{}).get('values',{}).get('count',0),'revision_conflicts':m.get('revision_conflicts',{}).get('values',{}).get('count',0)}
  manifest['runs'].append(record);(out/'manifest.json').write_text(json.dumps(manifest,indent=2));print(json.dumps(record),flush=True)
  assert m.get('correctness_mismatches',{}).get('values',{}).get('count',0)==0,'Wrong authorization decision'
  if gate:

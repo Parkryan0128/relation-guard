@@ -1,6 +1,6 @@
 # 12. Stage별 acceptance test matrix
 
-상태: **테스트 명세만 존재. 아래 ID는 실행 결과가 아니다.** 모든 ID는 구현 시 최소 하나의 자동 검증 항목으로 연결한다. 절차/환경/evidence는 [roadmap](09-roadmap.md), 규칙은 docs/03·04·06이 기준이다. 버그 수정은 해당 ID의 회귀 case로 남긴다.
+상태: 아래는 acceptance 기준이며 실제 결과는 verification 보고서에 기록한다. M4/M5의 승인된 native 실행 범위는 docs/14-native-verification.md를 따른다. 모든 ID는 구현 시 최소 하나의 자동 검증 항목으로 연결한다. 절차/환경/evidence는 [roadmap](09-roadmap.md), 규칙은 docs/03·04·06이 기준이다. 버그 수정은 해당 ID의 회귀 case로 남긴다.
 
 ## M0 — 계약과 저장 제약
 

@@ -13,3 +13,5 @@ PROPTEST_CASES="${PROPTEST_CASES:-10000}" PROPTEST_RNG_SEED="${PROPTEST_RNG_SEED
 "$python_cmd" scripts/test_http.py
 
 "$python_cmd" scripts/test_commit_faults.py
+
+"$python_cmd" scripts/test_client.py

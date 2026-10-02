@@ -32,5 +32,5 @@ for name in filter(None,files):
  data=path.read_bytes()
  if any(re.search(pattern,data) for pattern in patterns):hits.append(name)
 assert not hits,{'potential_secret_files':hits}
-result={'advisories':review,'active_packages':len(reachable),'licenses':[{'package':a,'version':b,'license':c} for a,b,c in licenses],'tracked_secret_pattern_hits':0,'limitations':'Pattern scan is not a proof of secret absence; review includes tracked artifacts and ignored credential locations.'}
+result={'advisory_database':advisories.get('database'),'advisories':review,'active_packages':len(reachable),'licenses':[{'package':a,'version':b,'license':c} for a,b,c in licenses],'tracked_secret_pattern_hits':0,'limitations':'Pattern scan is not a proof of secret absence; review includes tracked artifacts and ignored credential locations.'}
 (root/'verification/security-review.json').write_text(json.dumps(result,indent=2));print('PASS: active dependency closure and licenses reviewed; no unresolved active advisory, no tracked secret-pattern hits.')

@@ -18,7 +18,11 @@ class Client:
                 with urllib.request.urlopen(urllib.request.Request(self.base+'/'+path,data=encoded,headers=headers),timeout=3) as response:
                     return json.load(response)
             except urllib.error.HTTPError as error:
-                result=json.load(error);code=result.get('error',{}).get('code')
+                try:
+                    with error:result=json.load(error)
+                except (ValueError,TypeError) as invalid:
+                    raise AuthorizationError('Invalid error response') from invalid
+                code=result.get('error',{}).get('code')
                 if code=='REVISION_CONFLICT':raise RevisionConflict(result)
                 if not key or code not in ('WRITE_OUTCOME_UNKNOWN','DATABASE_UNAVAILABLE','OVERLOADED') or attempt==2:raise AuthorizationError(result)
             except (OSError,ValueError) as error:

@@ -1,6 +1,6 @@
 # 09. 구현 순서와 완료 체크리스트
 
-구현을 시작했다. M0/M1의 로컬 검증과 M2/M3의 부분 검증 결과는 [현재 증거](../verification/status.md)를 따른다. 아래 stage 완료는 모든 필수 case와 증거가 있을 때만 인정한다.
+구현을 시작했다. M0–M3 및 native recovery 검증 결과는 [현재 증거](../verification/status.md)를 따른다. 아래 stage 완료는 모든 필수 case와 증거가 있을 때만 인정한다.
 
 ## 모든 stage에 적용하는 gate
 
@@ -12,11 +12,11 @@
 
 ## M0 — 계약 확정과 골격
 
-- [ ] Rust stable/edition, crate 호환성, toolchain/lockfile pin 확인.
-- [ ] core/store/server/admin workspace 생성, fmt/Clippy CI.
-- [ ] docs/04를 OpenAPI 3.1 schema로 옮기고 request/response fixture 검증.
-- [ ] core의 ID/action/relation 타입과 strict parser, limits 상수.
-- [ ] PostgreSQL 설계 DDL을 실제 migration으로 전환하고 빈 DB 적용 테스트.
+- [x] Rust stable/edition, crate 호환성, toolchain/lockfile pin 확인.
+- [x] core/store/server/admin workspace 생성, fmt/Clippy CI.
+- [x] docs/04를 OpenAPI 3.1 schema로 옮기고 request/response fixture 검증.
+- [x] core의 ID/action/relation 타입과 strict parser, limits 상수.
+- [x] PostgreSQL 설계 DDL을 실제 migration으로 전환하고 빈 DB 적용 테스트.
 
 완료: 정상/잘못된 DTO fixture가 계약대로 검증되고 DB constraints가 실제 PG에서 검증됨. 아직 권한 엔진 완성이라고 부르지 않음.
 
@@ -30,9 +30,9 @@
 
 ## M1 — 순수 권한 평가기
 
-- [ ] fixed model rules, direct/team/inherited grants, proof, budgets.
-- [ ] reference evaluator, fixture runner, proptest.
-- [ ] core microbench scaffold. 아직 SQL/HTTP와 결합하지 않음.
+- [x] fixed model rules, direct/team/inherited grants, proof, budgets.
+- [x] reference evaluator, fixture runner, proptest.
+- [x] core microbench scaffold. 아직 SQL/HTTP와 결합하지 않음.
 
 완료: 모든 권한 fixture와 property test 통과, core에 네트워크/DB/runtime 의존성 없음.
 
@@ -46,11 +46,11 @@
 
 ## M2 — 저장·원자적 관계 변경
 
-- [ ] tenant admin CLI와 revision bootstrap.
-- [ ] transactional write, composite tenant constraints, graph validation.
-- [ ] idempotency canonicalization/receipts, audit, expected revision.
-- [ ] snapshot fact loader, bounded batch SQL, 실제 PG integration tests.
-- [ ] receipt 만료 정리 명령; 감사 기록은 삭제하지 않음.
+- [x] tenant admin CLI와 revision bootstrap.
+- [x] transactional write, composite tenant constraints, graph validation.
+- [x] idempotency canonicalization/receipts, audit, expected revision.
+- [x] snapshot fact loader, bounded batch SQL, 실제 PG integration tests.
+- [x] receipt 만료 정리 명령; 감사 기록은 삭제하지 않음.
 
 완료: mutation rollback·stale retry·cycle concurrency·snapshot consistency 테스트 통과. 이 단계의 동시성 버그를 HTTP로 가리지 않음.
 
@@ -64,11 +64,11 @@
 
 ## M3 — 네트워크 서비스와 보안
 
-- [ ] Axum routes, service-key scopes, DTO/error mapping.
-- [ ] check/batch/write/revision/relationships/audit.
-- [ ] deadlines, body/work/in-flight limits, graceful shutdown.
-- [ ] health/readiness/metrics와 structured logs.
-- [ ] HTTP contract/auth/cross-tenant/DB failure integration tests.
+- [x] Axum routes, service-key scopes, DTO/error mapping.
+- [x] check/batch/write/revision/relationships/audit.
+- [x] deadlines, body/work/in-flight limits, graceful shutdown.
+- [x] health/readiness/metrics와 structured logs.
+- [x] HTTP contract/auth/cross-tenant/DB failure integration tests.
 
 완료: 다른 프로세스에서 호출 가능, 오류가 allow로 처리되지 않음, scope 없는 explain 불가.
 

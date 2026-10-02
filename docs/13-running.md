@@ -1,6 +1,6 @@
 # 13. 현재 구현 실행과 검증
 
-현재 core/store/HTTP/admin 구현은 로컬 PostgreSQL과 TCP 테스트를 통과했다. **전체 M0–M5 release gate 통과를 의미하지 않는다.** 컨테이너 빌드·복구·COMMIT ack 유실·부하 검증의 미완료 항목은 [검증 현황](../verification/status.md)을 따른다.
+현재 core/store/HTTP/admin 구현은 로컬 PostgreSQL과 TCP 테스트를 통과했다. **전체 M0–M5 release gate 통과를 의미하지 않는다.** 복구와 COMMIT ack 유실 검증은 통과했다. 현재 native 검증 계획은 docs/14-native-verification.md에 있다. 배포·부하 검증의 상태는 [검증 현황](../verification/status.md)을 따른다.
 
 ## 로컬 바이너리
 
@@ -25,7 +25,7 @@ cargo run --locked -p authz-server
 
 운영 listener의 `/healthz`, `/readyz`, `/metrics`와 데이터 listener를 분리한다. 기본 bind는 loopback이다. 데이터 port만 인증된 서비스 네트워크에 연결한다. 외부 HTTPS는 reverse proxy에서 종료한다. 이 구현이 TLS 서버 또는 end-user 로그인 서버는 아니다.
 
-## Compose (파일 작성됨, 이미지 빌드 아직 미검증)
+## Compose (이미지 빌드 성공, clean deployment 검증은 별도)
 
 ```bash
 python3 scripts/bootstrap-local.py
@@ -50,10 +50,10 @@ scripts/test-stage.sh M1
 cargo bench --locked -p authz-core --bench evaluation
 ```
 
-`verify.sh`는 현재 구현된 회귀 검사 전체를 실행한다. stage gate와 다르다. M1은 실제 CPU를 기재한 BENCHMARK_CPU 환경 변수를 요구한다. M2 이상 미완료 필수 case가 있으면 `test-stage.sh`는 성공을 표시하지 않는다. 테스트는 고유 schema 또는 tenant를 사용하지만 테스트 DB에 데이터를 남기므로 **일회용 DB 사용 후 DB 전체를 폐기**한다. test DB URL을 운영 DB URL로 설정하지 않는다. proptest 기본 10,000 cases, seed 424242. 실패를 재시도로 숨기지 않는다.
+`verify.sh`는 현재 구현된 회귀 검사 전체를 실행한다. stage gate와 다르다. stage script는 M0–M3를 누적 실행하고, M4부터는 사용자 승인된 native 검증 경로를 사용한다. 실패를 PASS로 바꾸지 않는다. 테스트는 고유 schema 또는 tenant를 사용하지만 테스트 DB에 데이터를 남기므로 **일회용 DB 사용 후 DB 전체를 폐기**한다. test DB URL을 운영 DB URL로 설정하지 않는다. proptest 기본 10,000 cases, seed 424242. 실패를 재시도로 숨기지 않는다.
 
 ## 운영 CLI
 
 `authz-admin cleanup-receipts`는 24시간 초과 receipt를 한 번에 최대 1,000개 삭제한다. audit과 graph revision은 바꾸지 않는다. 자동 스케줄러는 포함하지 않는다. receipt 정리 이후에는 과거 성공 응답이 재생되지 않을 수 있으므로 expected_revision 충돌을 올바르게 처리해야 한다.
 
-백업·복구와 key rotation은 docs/07에 있는 운영 계획을 따른다. 아직 실제 컨테이너 restore 실험을 통과하지 않았으므로 프로덕션 배포를 권장하지 않는다.
+백업·복구와 key rotation은 docs/07에 있는 운영 계획을 따른다. 별도 DB에 대한 native restore 실험은 통과했다. 컨테이너 볼륨/배포 검증은 별도이며 프로덕션 준비 완료를 주장하지 않는다.

@@ -24,7 +24,7 @@ An application asks whether a user can view or edit a folder or document. Relati
 - Single checks and batch checks for up to 100 items belonging to one subject.
 - Direct and team-based grants, single-parent folder inheritance, and `edit` implying `view`.
 - Optional, scope-protected evidence for an allow decision; change audit records.
-- Explicit error handling, bounded work, health checks, metrics, and container deployment.
+- Explicit error handling, bounded work, health checks, metrics, and container deployment files.
 
 An explicit deny rule is not supported. Removing one grant does not revoke access provided by another grant. A failed evaluation returns an error, not a successful deny response, and callers must execute protected actions only after an explicit allow.
 
@@ -51,7 +51,7 @@ Run `PYTHON=.venv/bin/python scripts/verify.sh` with an isolated `TEST_DATABASE_
 
 ## Stage gates
 
-M0 and M1 have local test evidence. M2 and M3 have passing implementation tests but incomplete acceptance gates; M4 and M5 remain unverified. Detailed test cases, required evidence, and pass/fail rules are defined in the [implementation roadmap](docs/09-roadmap.md) and [acceptance test matrix](docs/12-acceptance-tests.md).
+M0–M3 functional verification and native recovery checks now pass. Native load testing is in progress. Container deployment verification is deferred under the [approved native testing plan](docs/14-native-verification.md). Detailed test cases, required evidence, and pass/fail rules are defined in the [implementation roadmap](docs/09-roadmap.md) and [acceptance test matrix](docs/12-acceptance-tests.md).
 
 | Stage | Deliverable | Required validation |
 |---|---|---|
@@ -86,6 +86,8 @@ The README is in English. Detailed design documents currently use Korean; API id
 10. [Architecture decisions](docs/10-decisions.md)
 11. [Primary references and their applicability](docs/11-references.md)
 12. [Acceptance test matrix](docs/12-acceptance-tests.md)
+13. [Running locally](docs/13-running.md)
+14. [Native verification plan and environment limits](docs/14-native-verification.md)
 
 Supporting artifacts: [design DDL](spec/schema.sql), [API examples](spec/examples/contracts.json), and [authorization cases](spec/examples/authorization-cases.json). The initial migration and constraints have been tested against PostgreSQL 18. Examples specify expected behavior; they are not recorded server responses.
 
