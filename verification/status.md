@@ -1,6 +1,21 @@
 # Verification status
 
-**Current work: managed-authorization V1 (`org-doc-v2`) verification in progress.** New core, store, migration and HTTP tests have passed locally; final recovery/deployment/load checks are pending. The entries below describe the earlier v0.1 baseline and must not be presented as V1 release certification.
+**Current: managed-authorization V1 (`org-doc-v2`) implementation and approved verification complete.** [Full V1 report](v1/report.md).
+
+| Current V1 verification | Result |
+|---|---|
+| Core, migration, real PostgreSQL transactions and concurrency, 290 HTTP assertions | PASS; includes 10,000 generated graph comparisons |
+| Native restart, backup/restore, rotation and fault recovery | PASS |
+| Clean Compose deployment and separate Python client | PASS locally and in Linux CI |
+| Native S single/batch measurements, three runs each | PASS; 99,003 correct requests, zero unexpected responses or generator drops |
+| Million-relationship mixed/stress and recovery | Completed; final recovery 6,000/6,000 correct, numeric gate PASS |
+| Observed limits | Four warmup 503s and eight warmup drops; exploratory stress drops: one at 600/s, 266 at 1,000/s; no observed incorrect decision |
+
+[Latest verified implementation CI](https://github.com/Parkryan0128/relation-guard/actions/runs/37064993225) passed both functional/recovery and container jobs. Native load source is `91b1c2106cd10f660b1abd1d2b874b309b7c27cb`; later client/docs/CI changes do not change its Rust binary. Native performance is not a resource-limited Linux certification. Credentials and private generator configuration are excluded from evidence.
+
+## Historical v0.1 baseline
+
+The following entries preserve the earlier baseline and its failed acceptance result. They do not describe current V1 verification.
 
 All planned implementation stages and approved native test scenarios have been executed. Functional and recovery checks passed; **M5-native acceptance did not pass** because one batch repetition exceeded its error budget. This is not a production release or a container certification.
 

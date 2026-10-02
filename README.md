@@ -2,7 +2,7 @@
 
 **A relationship-based authorization service in Rust.** Backends written in any language can use its HTTP API to register or revoke relationships and check access to resources.
 
-> **Status: managed-authorization V1 implementation in verification.** The service now checks who may change permissions, not only who may access resources. Historical v0.1 measurements remain separate; current results are tracked in [verification status](verification/status.md).
+> **Status: managed-authorization V1 implemented and verified.** Functional tests, native recovery, Docker deployment and the approved native performance gates passed. The service checks who may change permissions, not only who may access resources. See the [V1 verification report](verification/v1/report.md) for evidence, observed failures and environment limits.
 
 ## What it does
 
@@ -50,11 +50,13 @@ Rust 1.96.1 and resolved dependency versions are pinned in rust-toolchain.toml a
 
 Build with `cargo build --locked --workspace`. Provision the dedicated database and a tenant using `authz-admin`, then start `authz-server` with `DATABASE_URL` and `AUTHZ_KEYS_FILE`. Bootstrap the first organization administrator with `authz-admin bootstrap-admin TENANT_UUID USER_ID`. Every data request requires `X-Actor-Id`. See the [step-by-step guide](docs/13-running.md). The standard-library [Python client](examples/client.py) demonstrates grant, check, revoke, and fail-closed enforcement.
 
-Run `PYTHON=.venv/bin/python scripts/verify.sh` with an isolated `TEST_DATABASE_URL` after installing `scripts/requirements-test.txt`. This runs the implemented regression suite; it does not certify the unfinished release gates.
+Run `PYTHON=.venv/bin/python scripts/verify.sh` with an isolated `TEST_DATABASE_URL` after installing `scripts/requirements-test.txt`. This runs the functional regression suite; recovery, deployment and performance use separate test harnesses.
 
 ## Validation
 
-Current V1 evidence is collected in the [managed authorization report](verification/v1/report.md). The following M0–M5 results describe the historical v0.1 baseline.
+Current V1 evidence is collected in the [managed authorization report](verification/v1/report.md). The suite includes 10,000 generated graph comparisons, 290 HTTP assertions, transaction races, migration, recovery and clean Linux functional/container CI. Native S measurements returned 99,003 correct responses with no errors or dropped iterations: single-check p95 5.25–5.31 ms, batch p95 29.38–31.15 ms. The final recovery profile also passed. Four 503 responses occurred during a warmup, and high-load exploratory profiles included generator drops; those observations are retained. These are local measurements, not production throughput guarantees.
+
+The following M0–M5 results describe the historical v0.1 baseline, not the current V1 result.
 
 M0–M3 functional verification and M4-native recovery checks pass. M5-native measurement is complete, but its acceptance gate did not pass: batch repetition 3 returned six HTTP 503 responses out of 3,001 requests (0.20%, against a <0.1% target). No wrong authorization decision was observed. Container deployment verification is deferred under the [approved native testing plan](docs/14-native-verification.md). Detailed test cases, required evidence, and pass/fail rules are defined in the [implementation roadmap](docs/09-roadmap.md) and [acceptance test matrix](docs/12-acceptance-tests.md).
 
