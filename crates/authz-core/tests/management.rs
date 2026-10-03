@@ -121,3 +121,111 @@ fn role_operations_are_strict_and_canonical() {
     });
     assert_eq!(duplicate.validate(), Err(Fault::DuplicateOperation));
 }
+
+#[test]
+fn batch_preserves_order_duplicates_and_missing_resources() {
+    let user = entity(Kind::User, "u");
+    let allowed = entity(Kind::Document, "allowed");
+    let denied = entity(Kind::Document, "denied");
+    let mut snapshot = Snapshot::default();
+    snapshot
+        .entities
+        .extend([user.clone(), allowed.clone(), denied.clone()]);
+    snapshot
+        .relationships
+        .insert(edge(allowed.clone(), Relation::Editor, user.clone()));
+    let request = BatchRequest {
+        subject: user,
+        checks: vec![
+            Check {
+                resource: denied,
+                action: Action::View,
+            },
+            Check {
+                resource: allowed.clone(),
+                action: Action::Edit,
+            },
+            Check {
+                resource: entity(Kind::Document, "missing"),
+                action: Action::View,
+            },
+            Check {
+                resource: allowed.clone(),
+                action: Action::Edit,
+            },
+            Check {
+                resource: allowed,
+                action: Action::Manage,
+            },
+        ],
+        explain: true,
+    };
+    let result = evaluate(&snapshot, &request).unwrap();
+    assert_eq!(
+        result
+            .decisions
+            .iter()
+            .map(|d| &d.reason)
+            .collect::<Vec<_>>(),
+        vec![
+            &Reason::NoMatchingRelation,
+            &Reason::MatchingRelation,
+            &Reason::NotFound,
+            &Reason::MatchingRelation,
+            &Reason::NoMatchingRelation
+        ]
+    );
+    assert_eq!(result.decisions[1], result.decisions[3]);
+    for index in [0, 2, 4] {
+        assert_eq!(result.decisions[index].proof, Some(vec![]));
+    }
+}
+
+#[test]
+fn resource_and_grant_limits_are_inclusive_and_errors_are_not_decisions() {
+    let user = entity(Kind::User, "u");
+    let target = entity(Kind::Document, "d0");
+    let request = BatchRequest {
+        subject: user.clone(),
+        checks: vec![Check {
+            resource: target.clone(),
+            action: Action::View,
+        }],
+        explain: false,
+    };
+    let mut snapshot = Snapshot::default();
+    snapshot.entities.insert(user.clone());
+    for i in 0..MAX_RESOURCES {
+        snapshot
+            .entities
+            .insert(entity(Kind::Document, &format!("d{i}")));
+    }
+    assert!(evaluate(&snapshot, &request).is_ok());
+    snapshot.entities.insert(entity(Kind::Document, "overflow"));
+    assert_eq!(
+        evaluate(&snapshot, &request).unwrap_err(),
+        Fault::EvaluationLimit
+    );
+    // Even an administrator cannot bypass fact limits with an early allow.
+    snapshot.administrators.insert(user.clone());
+    assert_eq!(
+        evaluate(&snapshot, &request).unwrap_err(),
+        Fault::EvaluationLimit
+    );
+    snapshot = Snapshot::default();
+    snapshot.entities.extend([user, target.clone()]);
+    for i in 0..=MAX_GRANTS {
+        if i == MAX_GRANTS {
+            assert!(evaluate(&snapshot, &request).is_ok());
+        }
+        let grantee = entity(Kind::User, &format!("grantee{i}"));
+        snapshot.entities.insert(grantee.clone());
+        snapshot
+            .relationships
+            .insert(edge(target.clone(), Relation::Viewer, grantee));
+    }
+    assert_eq!(
+        evaluate(&snapshot, &request).unwrap_err(),
+        Fault::EvaluationLimit
+    );
+}

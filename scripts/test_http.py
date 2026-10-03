@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Real TCP smoke/contract tests. Uses only an explicitly isolated test database."""
-import copy, http.client, json, os, pathlib, socket, subprocess, sys, tempfile, time, urllib.request, urllib.error, uuid
+import base64, copy, http.client, json, os, pathlib, socket, subprocess, sys, tempfile, time, urllib.request, urllib.error, uuid
 from jsonschema import Draft202012Validator
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 URL=os.environ['TEST_DATABASE_URL']
@@ -107,6 +107,15 @@ with tempfile.TemporaryDirectory(prefix='relation-guard-http-') as td:
             call('write',{'expected_revision':'3','operations':grants},headers={'Idempotency-Key':'page-seed'})
             page,_=call('relationships?resource_kind=document&resource_id=d100&limit=1');cursor=page['next_cursor'];assert cursor
             call('relationships?resource_kind=folder&resource_id=f10&after='+cursor,expected=400,code='INVALID_REQUEST')
+            decoded=json.loads(base64.urlsafe_b64decode(cursor+'='*(-len(cursor)%4)))
+            for patch in ({'tenant_id':other},{'v':2},{'extra':True},{'last':['viewer','team','dev','']}, {'last':['viewer','user','invalid id','']}):
+                altered={**decoded,**patch}
+                encoded=base64.urlsafe_b64encode(json.dumps(altered).encode()).decode().rstrip('=')
+                call('relationships?resource_kind=document&resource_id=d100&after='+encoded,expected=400,code='INVALID_REQUEST')
+            for limit in ('0','101','-1','not-a-number'):
+                call('relationships?resource_kind=document&resource_id=d100&limit='+limit,expected=400,code='INVALID_REQUEST')
+            for revision in ('-1','01','9223372036854775808'):
+                call('audit?after_revision='+revision,expected=400,code='INVALID_REQUEST')
             seen=page['relationships']
             while cursor:
                 page,_=call('relationships?resource_kind=document&resource_id=d100&limit=1&after='+cursor);seen+=page['relationships'];cursor=page['next_cursor']
@@ -143,6 +152,29 @@ with tempfile.TemporaryDirectory(prefix='relation-guard-http-') as td:
             change([relation(document,'viewer','bob')],actor='u42',expected=403,code='FORBIDDEN')
             call('relationships?resource_kind=document&resource_id=d100',actor='u42',expected=403,code='FORBIDDEN')
             assert call('check',{**self_check,'subject':{'kind':'user','id':'test-admin'}},actor='test-admin')[0]['reason']=='ORG_ADMIN'
+            # Batch item order and cardinality are part of the public HTTP contract.
+            items=[{'resource':document,'action':'view'}, {'resource':{'kind':'document','id':'missing'},'action':'view'}]*50
+            payload={'subject':{'kind':'user','id':'test-admin'},'checks':items}
+            result,_=call('batch-check',payload)
+            assert [item['decision'] for item in result['results']]==['allow','deny']*50
+            for checks in ([],items+[items[0]]):
+                call('batch-check',{**payload,'checks':checks},expected=400,code='INVALID_REQUEST')
+            # Duplicate sensitive headers must never select one value and execute a write.
+            current=call('revision')[0]['revision']
+            body=json.dumps({'expected_revision':current,'operations':[{'op':'put_entity','entity':{'kind':'user','id':'must-not-exist'}}]}).encode()
+            for header,status,code in [('Authorization',401,'UNAUTHENTICATED'),('Idempotency-Key',400,'INVALID_REQUEST')]:
+                connection=http.client.HTTPConnection('127.0.0.1',data,timeout=4)
+                connection.putrequest('POST',f'/v1/tenants/{tenant}/write')
+                values={'Authorization':'Bearer '+tokens['admin'],'Idempotency-Key':'duplicate-header','X-Actor-Id':'test-admin','Content-Type':'application/json','Content-Length':str(len(body))}
+                for name,value in values.items():
+                    connection.putheader(name,value)
+                    if name==header:connection.putheader(name,value)
+                connection.endheaders(body)
+                response=connection.getresponse();error=json.loads(response.read())
+                assert response.status==status and error['error']['code']==code
+                schema(error,'Error');assert response.getheader('X-Request-Id')
+                connection.close();count+=1
+            assert call('revision')[0]['revision']==current
             # Source of user identity is the authenticated backend; service keys are never browser credentials.
             with urllib.request.urlopen(f'http://127.0.0.1:{ops}/healthz') as response:assert json.load(response)=={'status':'ok'}
             client_file=pathlib.Path(td)/'client.json'

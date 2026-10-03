@@ -1,0 +1,60 @@
+warning: output of `xcrun` while finding MacOSX.sdk
+  |
+  = note: 2026-10-02 20:09:02.011 xcodebuild[8186:77862]  DVTFilePathFSEvents: Failed to start fs event stream.
+          2026-10-02 20:09:02.496 xcodebuild[8200:78006]  DVTFilePathFSEvents: Failed to start fs event stream.
+
+warning: output of `xcrun` while finding MacOSX.sdk
+  |
+  = note: 2026-10-02 20:09:01.639 xcodebuild[8165:77499]  DVTFilePathFSEvents: Failed to start fs event stream.
+          2026-10-02 20:09:02.252 xcodebuild[8197:77892]  DVTFilePathFSEvents: Failed to start fs event stream.
+
+warning: output of `xcrun` while finding MacOSX.sdk
+  |
+  = note: 2026-10-02 20:09:02.572 xcodebuild[8208:78068]  DVTFilePathFSEvents: Failed to start fs event stream.
+
+   Compiling authz-core v0.1.0 (/Users/jiwonpark/Documents/Codex/2026-10-01/new-chat/outputs/relation-guard/crates/authz-core)
+warning: `authz-core` (test "contracts") generated 1 warning
+warning: `authz-core` (lib test) generated 1 warning
+warning: `authz-core` (test "evaluator") generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.55s
+     Running unittests src/lib.rs (target/debug/deps/authz_core-215c519d1e3b4cef)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contracts.rs (target/debug/deps/contracts-19ed99b669eb801f)
+
+running 2 tests
+test m0_canonicalization_golden ... ok
+test m0_typed_fixtures_and_boundaries ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/evaluator.rs (target/debug/deps/evaluator-b8104ead3ec114ac)
+
+running 4 tests
+test m1_proof_priority_and_errors ... ok
+test m1_design_fixtures ... ok
+test m1_depth_and_budget_boundaries ... ok
+test m1_reference_and_properties ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.70s
+
+     Running tests/management.rs (target/debug/deps/management-354a84768b19b111)
+
+running 5 tests
+test admin_does_not_allow_missing_resource_or_corrupt_graph ... ok
+test batch_preserves_order_duplicates_and_missing_resources ... ok
+test role_operations_are_strict_and_canonical ... ok
+test managed_permissions_matrix_and_inheritance ... ok
+test resource_and_grant_limits_are_inclusive_and_errors_are_not_decisions ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+   Doc-tests authz_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

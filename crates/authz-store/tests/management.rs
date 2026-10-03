@@ -122,9 +122,13 @@ async fn attempt(
     Ok(w.response)
 }
 async fn denied(p: &PgPool, t: Uuid, actor: &str, ops: Vec<Operation>, code: &str) {
-    let before = revision(p, t).await;
+    let before = state(p, t).await;
     assert_eq!(apply(p, t, actor, ops).await.unwrap_err().code, code);
-    assert_eq!(revision(p, t).await, before);
+    assert_eq!(
+        state(p, t).await,
+        before,
+        "failed write changed persistent state"
+    );
 }
 #[tokio::test]
 async fn managed_happy_paths_and_no_privilege_escalation() {
@@ -650,4 +654,240 @@ async fn managed_role_transfer_removal_and_recreation_do_not_restore_admin() {
             .code,
         "IDEMPOTENCY_CONFLICT"
     );
+}
+
+// Compare contents, not just counts: a failed write must leave all four state groups intact.
+async fn state(p: &PgPool, t: Uuid) -> Value {
+    sqlx::query_scalar(r#"SELECT jsonb_build_object(
+        'tenant', (SELECT to_jsonb(x) FROM tenants x WHERE id=$1),
+        'entities', (SELECT COALESCE(jsonb_agg(to_jsonb(x) ORDER BY kind,id),'[]') FROM entities x WHERE tenant_id=$1),
+        'relationships', (SELECT COALESCE(jsonb_agg(to_jsonb(x) ORDER BY resource_kind,resource_id,relation,subject_kind,subject_id,subject_relation),'[]') FROM relationships x WHERE tenant_id=$1),
+        'audit', (SELECT COALESCE(jsonb_agg(to_jsonb(x) ORDER BY revision),'[]') FROM audit_events x WHERE tenant_id=$1),
+        'receipts', (SELECT COALESCE(jsonb_agg(to_jsonb(x) ORDER BY key_id,actor_id,idempotency_key),'[]') FROM mutation_receipts x WHERE tenant_id=$1))"#)
+        .bind(t).fetch_one(p).await.unwrap()
+}
+
+async fn can_manage(p: &PgPool, t: Uuid, actor: &str, resource: Entity) -> bool {
+    management::check_as(
+        p,
+        t,
+        &id(actor),
+        &BatchRequest {
+            subject: ent(Kind::User, actor),
+            checks: vec![Check {
+                resource,
+                action: Action::Manage,
+            }],
+            explain: true,
+        },
+    )
+    .await
+    .unwrap()
+    .1
+    .decisions[0]
+        .decision
+        == Verdict::Allow
+}
+
+#[tokio::test]
+async fn managed_revocation_preserves_other_paths_until_the_last_one_is_removed() {
+    let (p, t) = setup().await;
+    let doc = ent(Kind::Document, "doc");
+    let bob = ent(Kind::User, "bob");
+    let team = ent(Kind::Team, "team");
+    let direct = grant(doc.clone(), Relation::Manager, bob.clone());
+    let inherited = grant(ent(Kind::Folder, "root"), Relation::Manager, bob.clone());
+    let membership = grant(team.clone(), Relation::Member, bob.clone());
+    apply(
+        &p,
+        t,
+        "admin",
+        vec![
+            direct.clone(),
+            inherited.clone(),
+            membership.clone(),
+            grant(doc.clone(), Relation::Manager, team),
+        ],
+    )
+    .await
+    .unwrap();
+    for removed in [direct, inherited] {
+        apply(&p, t, "admin", vec![remove(removed)]).await.unwrap();
+        assert!(can_manage(&p, t, "bob", doc.clone()).await);
+        // The remaining path authorizes an actual mutation, not just a check.
+        apply(
+            &p,
+            t,
+            "bob",
+            vec![grant(
+                doc.clone(),
+                Relation::Viewer,
+                ent(Kind::User, "alice"),
+            )],
+        )
+        .await
+        .unwrap();
+    }
+    apply(&p, t, "admin", vec![remove(membership)])
+        .await
+        .unwrap();
+    assert!(!can_manage(&p, t, "bob", doc.clone()).await);
+    denied(
+        &p,
+        t,
+        "bob",
+        vec![grant(doc, Relation::Manager, bob)],
+        "FORBIDDEN",
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn managed_new_parent_cannot_be_used_as_preexisting_authority() {
+    let (p, t) = setup().await;
+    let folder = ent(Kind::Folder, "new-folder");
+    let doc = ent(Kind::Document, "new-doc");
+    let operations = vec![
+        put(Kind::Folder, "new-folder"),
+        put(Kind::Document, "new-doc"),
+        grant(folder.clone(), Relation::Parent, ent(Kind::Folder, "root")),
+        grant(doc.clone(), Relation::Parent, folder.clone()),
+    ];
+    denied(&p, t, "alice", operations.clone(), "FORBIDDEN").await;
+    // An administrator may create a hierarchy atomically; managers may then use it.
+    apply(&p, t, "admin", operations).await.unwrap();
+    assert!(can_manage(&p, t, "alice", doc.clone()).await);
+    apply(
+        &p,
+        t,
+        "alice",
+        vec![grant(doc, Relation::Viewer, ent(Kind::User, "bob"))],
+    )
+    .await
+    .unwrap();
+}
+
+#[tokio::test]
+async fn managed_sql_failure_rolls_back_prior_operations_and_all_metadata() {
+    let (p, t) = setup().await;
+    denied(
+        &p,
+        t,
+        "admin",
+        vec![
+            put(Kind::Document, "must-rollback"),
+            grant(
+                ent(Kind::Document, "must-rollback"),
+                Relation::Viewer,
+                ent(Kind::User, "missing"),
+            ),
+        ],
+        "UNKNOWN_ENTITY",
+    )
+    .await;
+    // Failure occurs after successful entity/relationship changes, in final graph validation.
+    denied(
+        &p,
+        t,
+        "admin",
+        vec![
+            put(Kind::User, "also-rollback"),
+            grant(
+                ent(Kind::Folder, "root"),
+                Relation::Parent,
+                ent(Kind::Folder, "other"),
+            ),
+            grant(
+                ent(Kind::Folder, "other"),
+                Relation::Parent,
+                ent(Kind::Folder, "root"),
+            ),
+        ],
+        "INVALID_HIERARCHY",
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn managed_reordered_replay_and_noop_have_precise_audit_and_receipt_effects() {
+    let (p, t) = setup().await;
+    let mut request = WriteRequest {
+        expected_revision: Revision(revision(&p, t).await),
+        operations: vec![
+            role("new-admin", OrgRole::Admin),
+            grant(
+                ent(Kind::Document, "audit-doc"),
+                Relation::Viewer,
+                ent(Kind::User, "new-admin"),
+            ),
+            put(Kind::User, "new-admin"),
+            put(Kind::Document, "audit-doc"),
+        ],
+    };
+    let response = attempt(&p, t, "admin", "reordered", &request)
+        .await
+        .unwrap();
+    let after = state(&p, t).await;
+    request.operations.reverse();
+    assert_eq!(
+        attempt(&p, t, "admin", "reordered", &request)
+            .await
+            .unwrap(),
+        response
+    );
+    assert_eq!(state(&p, t).await, after);
+    let expected: Value = serde_json::from_slice(&request.canonical().unwrap()).unwrap();
+    let audit: Value = sqlx::query_scalar("SELECT effective_changes FROM audit_events WHERE tenant_id=$1 ORDER BY revision DESC LIMIT 1")
+        .bind(t).fetch_one(&p).await.unwrap();
+    assert_eq!(audit, expected["operations"]);
+    request.expected_revision = Revision(revision(&p, t).await);
+    let noop = attempt(&p, t, "admin", "noop", &request).await.unwrap();
+    assert_eq!(noop["changed"], false);
+    let after_noop = state(&p, t).await;
+    for field in ["tenant", "entities", "relationships", "audit"] {
+        assert_eq!(after_noop[field], after[field]);
+    }
+    assert_eq!(
+        after_noop["receipts"].as_array().unwrap().len(),
+        after["receipts"].as_array().unwrap().len() + 1
+    );
+    assert_eq!(
+        attempt(&p, t, "admin", "noop", &request).await.unwrap(),
+        noop
+    );
+    assert_eq!(state(&p, t).await, after_noop);
+}
+
+#[tokio::test]
+async fn managed_authority_resource_limit_counts_new_parents_and_is_atomic() {
+    let (p, t) = setup().await;
+    let docs: Vec<_> = (0..100)
+        .map(|i| ent(Kind::Document, &format!("limit-{i}")))
+        .collect();
+    let seed: Vec<_> = docs
+        .iter()
+        .flat_map(|doc| {
+            [
+                Operation::PutEntity {
+                    entity: doc.clone(),
+                },
+                grant(doc.clone(), Relation::Manager, ent(Kind::User, "alice")),
+            ]
+        })
+        .collect();
+    for operations in seed.chunks(MAX_ITEMS) {
+        apply(&p, t, "admin", operations.to_vec()).await.unwrap();
+    }
+    let moves: Vec<_> = docs
+        .iter()
+        .map(|doc| grant(doc.clone(), Relation::Parent, ent(Kind::Folder, "root")))
+        .collect();
+    // 100 operations are valid input, but require 101 distinct authority anchors.
+    denied(&p, t, "alice", moves.clone(), "EVALUATION_LIMIT").await;
+    // 99 documents plus their shared destination is exactly the 100-anchor limit.
+    apply(&p, t, "alice", moves[..99].to_vec()).await.unwrap();
+    apply(&p, t, "alice", moves[99..].to_vec()).await.unwrap();
+    assert_eq!(sqlx::query_scalar::<_, i64>(
+        "SELECT count(*) FROM relationships WHERE tenant_id=$1 AND relation='parent' AND resource_id LIKE 'limit-%'")
+        .bind(t).fetch_one(&p).await.unwrap(), 100);
 }

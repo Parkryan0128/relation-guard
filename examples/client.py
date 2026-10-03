@@ -22,7 +22,10 @@ class Client:
                     with error:result=json.load(error)
                 except (ValueError,TypeError) as invalid:
                     raise AuthorizationError('Invalid error response') from invalid
-                code=result.get('error',{}).get('code')
+                if (not isinstance(result,dict) or not isinstance(result.get('error'),dict)
+                        or not isinstance(result['error'].get('code'),str)):
+                    raise AuthorizationError('Invalid error response')
+                code=result['error']['code']
                 if code=='REVISION_CONFLICT':raise RevisionConflict(result)
                 if not key or code not in ('WRITE_OUTCOME_UNKNOWN','DATABASE_UNAVAILABLE','OVERLOADED') or attempt==2:raise AuthorizationError(result)
             except (OSError,ValueError) as error:

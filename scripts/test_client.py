@@ -34,4 +34,22 @@ class ClientTests(unittest.TestCase):
   self.replies=[(503,{'error':{'code':'DATABASE_UNAVAILABLE'}})]
   with self.assertRaises(module.AuthorizationError):self.client.can_view({'kind':'user','id':'u'},{'kind':'document','id':'d'})
   self.replies=[(200,dict(base,decision='deny',reason='NO_MATCHING_RELATION'))];self.assertFalse(self.client.can_view({'kind':'user','id':'u'},{'kind':'document','id':'d'}))
+ def test_malformed_error_envelopes_raise_authorization_error(self):
+  for value in ([],None,'error',{'error':None},{'error':[]},{'error':'unavailable'}, {}, {'error':{}}):
+   with self.subTest(value=value):
+    self.seen=[];self.replies=[(503,value)]
+    with self.assertRaises(module.AuthorizationError):
+     self.client.request('write',{'expected_revision':'0'},key='same-key')
+    self.assertEqual(len(self.seen),1)
+ def test_retry_budget_and_nonretryable_failures(self):
+  self.replies=[(503,{'error':{'code':'OVERLOADED'}})]*3
+  with self.assertRaises(module.AuthorizationError):
+   self.client.request('write',{'expected_revision':'0'},key='same-key')
+  self.assertEqual(len(self.seen),3)
+  self.assertTrue(all(item==self.seen[0] for item in self.seen))
+  for status,code in ((401,'UNAUTHENTICATED'),(403,'FORBIDDEN'),(409,'IDEMPOTENCY_CONFLICT'),(422,'INVALID_RELATION'),(503,'REVISION_EXHAUSTED')):
+   self.seen=[];self.replies=[(status,{'error':{'code':code}})]
+   with self.assertRaises(module.AuthorizationError):
+    self.client.request('write',{'expected_revision':'0'},key='same-key')
+   self.assertEqual(len(self.seen),1)
 if __name__=='__main__':unittest.main()
