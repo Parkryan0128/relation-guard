@@ -1,1 +1,0 @@
-PASS: isolated non-root Compose, separate runtime DB role, Python container client, restart persistence, backup/restore, key rotation, DB/schema readiness and shutdown.

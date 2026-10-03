@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Controlled mechanism experiment; not proof of the historical failure's trigger."""
+from test_output import output_path
 import concurrent.futures,hashlib,json,os,pathlib,subprocess,threading,time,urllib.parse
 from native_lab import Lab,ROOT
 from pg_fault_proxy import GateProxy
@@ -51,7 +52,7 @@ if __name__=='__main__':
     reports=[experiment()]
     binary=pathlib.Path(os.environ.get('AUTHZ_BIN',str(ROOT/'target/debug')))/'authz-server'
     result={'source_commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'purpose':'Controlled DB transport-delay mechanism experiment; does not establish what caused the original network/pool stall.','runs':reports}
-    pathlib.Path(os.environ.get('POOL_STALL_OUTPUT',str(ROOT/'verification/pool-transport-stall.json'))).write_text(json.dumps(result,indent=2))
+    output_path('POOL_STALL_OUTPUT', 'pool-stall.json').write_text(json.dumps(result,indent=2))
     report=reports[0]
     assert report['initial_pool_size']==10, report
     assert report['acquire_timeouts']==0 and all(r['status']==200 for r in report['responses']),report

@@ -4,5 +4,4 @@ secrets
 .env*
 work
 benchmark-results
-verification
 __pycache__

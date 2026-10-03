@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Isolated Compose release acceptance. Leaves the verified stack for load testing."""
+from test_output import output_path
 import base64,hashlib,json,shutil,os,pathlib,secrets,socket,subprocess,sys,tempfile,time,urllib.request,urllib.error,uuid
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 PG='postgres:18-alpine@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873'
@@ -93,7 +94,7 @@ try:
  dc('start','db');ready();assert internal('readyz')[0]==200;assert http('check',check)[1]['decision']=='allow'
  started=time.monotonic();dc('stop','server');assert time.monotonic()-started<12;dc('up','-d','server');ready()
  context={'project':project,'run_dir':str(run),'port':port,'tenant':tenant,'db':cid('db'),'server':cid('server'),'client':project+'-client','restore_db':restored,'restore_server':restored_server,'image':json.loads(shell(['docker','image','inspect','relation-guard:local']).stdout)[0]['Id']}
- (run/'context.json').write_text(json.dumps(context,indent=2));pathlib.Path(os.environ.get('DEPLOYMENT_OUTPUT',str(ROOT/'verification/deployment-result.json'))).write_text(json.dumps({'passed':['M4-01','M4-02-happy-path','M4-03','M4-04','M4-05','M4-06'],'image':context['image'],'snapshot':json.loads(before),'runtime_uid':'10001:10001','database_and_operations_ports_published':False},indent=2))
+ (run/'context.json').write_text(json.dumps(context,indent=2));output_path('DEPLOYMENT_OUTPUT', 'deployment.json').write_text(json.dumps({'passed':['M4-01','M4-02-happy-path','M4-03','M4-04','M4-05','M4-06'],'image':context['image'],'snapshot':json.loads(before),'runtime_uid':'10001:10001','database_and_operations_ports_published':False},indent=2))
  print('PASS: isolated non-root Compose, separate runtime DB role, Python container client, restart persistence, backup/restore, key rotation, DB/schema readiness and shutdown.')
  print('Context: '+str(run/'context.json'))
 except BaseException:

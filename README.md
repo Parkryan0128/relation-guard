@@ -4,8 +4,6 @@ A relationship-based authorization service written in Rust.
 
 It stores permissions in PostgreSQL and lets application backends check access, share resources and revoke permissions over HTTP. It checks both who can access a resource and who can change its permissions.
 
-[Verification results](verification/status.md)
-
 ## How it works
 
 ```text
@@ -51,7 +49,7 @@ The service:
 
 Applications still own login and enforce the returned decision. A trusted backend sends its service key and the logged-in user's `X-Actor-Id`. Service keys must stay on the backend; a failed check must block the protected action.
 
-A check already in progress may see permissions from before a revocation. Checking permission and updating another application's database are separate operations. See the [consistency contract](docs/06-consistency.md).
+A check already in progress may see permissions from before a revocation. Checking permission and updating another application's database are separate operations.
 
 ## Project structure
 
@@ -64,7 +62,6 @@ migrations/          Database migrations
 examples/            Python HTTP client
 scripts/             Contract, integration and recovery checks
 benchmarks/          Load datasets and k6 profiles
-verification/        Test and performance evidence
 ```
 
 ## Build
@@ -82,13 +79,36 @@ The server uses Axum, Tokio and SQLx. Dependency versions are pinned in Cargo.lo
 cargo build --locked --workspace
 ```
 
-Follow the [setup guide](docs/13-running.md) to create the database, service key and first administrator, then start the server natively or with Docker Compose.
-
-After completing the Compose setup, run the sharing and revocation example:
+For Docker Compose:
 
 ```bash
+python3 scripts/bootstrap-local.py
+docker compose build
+docker compose run --rm migrate
+# Replace TENANT_UUID with the UUID printed by bootstrap-local.py.
+docker compose run --rm --entrypoint authz-admin migrate tenant TENANT_UUID
+docker compose run --rm --entrypoint authz-admin migrate bootstrap-admin TENANT_UUID local-admin
+docker compose up -d server
 python3 examples/client.py
 ```
+
+The setup creates private local credentials and refuses to overwrite an existing setup. Keep `.env` and `secrets/` out of Git. The API binds to `127.0.0.1:8080`; change `AUTHZ_PORT` in `.env` if needed and set the client's `AUTHZ_URL` accordingly.
+
+For native execution, `authz-admin` provides `migrate`, `tenant`, `bootstrap-admin`, `key` and `runtime-role` commands. Start `authz-server` with a runtime-role `DATABASE_URL` and `AUTHZ_KEYS_FILE`. Keep privileged database credentials for operator commands only. The key file has the shape `{"version":1,"keys":[CONFIG_ENTRY]}`, using `config_entry` from the `key` command. `bootstrap-admin` only works before the first administrator exists; `recover-admin` is the privileged recovery path.
+
+## API
+
+Requests use `Authorization: Bearer TOKEN` and `X-Actor-Id: USER_ID`. Routes are under `/v1/tenants/{tenant_id}`:
+
+| Method | Route | Purpose |
+|---|---|---|
+| POST | `/check`, `/batch-check` | Check access for one resource or a batch |
+| POST | `/write` | Change entities, roles or relationships |
+| GET | `/revision`, `/relationships`, `/audit` | Read revision, relationships or audit records |
+
+Writes require an `Idempotency-Key` and `expected_revision`. Reuse the same key and payload when retrying an uncertain write. Reads return their observed revision. The [OpenAPI specification](spec/openapi.json) defines request and response formats.
+
+Health, readiness and metrics use a separate operations listener. In native mode, use `AUTHZ_BIND` and `AUTHZ_OPS_BIND` to set the two addresses. Keep the operations listener private.
 
 ## Tests
 
@@ -103,7 +123,17 @@ PYTHON=.venv/bin/python scripts/verify.sh
 
 The suite covers permission rules, tenant isolation, unauthorized changes, transaction rollback, concurrency, HTTP contracts and lost COMMIT acknowledgements. It includes 10,000 generated graph cases, 309 HTTP assertions and five Python client tests.
 
-See the [test stages](docs/09-roadmap.md) for recovery, deployment and load checks.
+Recovery and connection-stall tests need PostgreSQL client tools and an isolated database:
+
+```bash
+export PG_BIN=/absolute/path/to/postgresql/bin
+export EXISTING_TEST_DATABASE_URL="$TEST_DATABASE_URL"
+python3 scripts/test_native_recovery.py
+python3 scripts/test_pool_transport_stall.py
+python3 scripts/test_pool_burst.py
+```
+
+Run `python3 scripts/test_deployment.py` for the isolated Compose deployment test. Generated results go to ignored `target/test-results/`; they are not committed.
 
 ## Benchmarks
 
@@ -113,15 +143,23 @@ Run the core evaluator benchmark:
 cargo bench --locked -p authz-core --bench evaluation
 ```
 
-For end-to-end k6 measurements, follow the [load test setup](docs/14-native-verification.md).
+For end-to-end load tests, use the same PostgreSQL client/database settings as the recovery tests:
 
-The recorded macOS run completed 99,003 normal-load requests with zero errors or dropped iterations. The [full report](verification/new-mac-review/local/load-report.md) includes source, environment, datasets, latency percentiles and limitations. Deployment results and earlier failures remain in the [verification history](verification/status.md).
+```bash
+cargo build --release --locked -p authz-server -p authz-admin
+export AUTHZ_BIN="$PWD/target/release"
+export K6_BIN=/absolute/path/to/k6
+export RG_LOAD_DIR="$(mktemp -d)"
+python3 scripts/run_native_load.py
+```
+
+The harness creates disposable datasets, measures single and batch checks, adds concurrent writes and stress, then checks recovery. It requires k6 2.3.0 and takes roughly 40 minutes. Its temporary working directory contains test credentials; keep it private.
 
 ## Scope
 
 V1 uses a fixed user/team/folder/document model. Custom policy languages, nested teams, explicit deny rules, decision caching, gRPC and multi-region operation are outside its scope. Revoking one grant does not remove access through another grant.
 
-See the [HTTP API](docs/04-api.md), [management rules](docs/15-managed-authorization.md) and [operations guide](docs/07-operations.md) for the full contracts. Detailed design documents are in Korean.
+Before upgrading an existing database, stop writers and back it up. Run migrations with operator credentials; the server does not apply them automatically. Rotate service keys by deploying both keys, updating callers, then removing the old key and restarting the server. `authz-admin cleanup-receipts` removes up to 1,000 receipts older than 24 hours without deleting audit records.
 
 ## Contact
 

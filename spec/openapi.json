@@ -13,7 +13,7 @@
     "/v1/tenants/{tenant_id}/write": {
       "post": {
         "operationId": "write",
-        "description": "Requires relations:write scope. Normative semantics: docs/04-api.md.",
+        "description": "Requires relations:write scope.",
         "parameters": [
           {
             "name": "tenant_id",
@@ -82,7 +82,7 @@
     "/v1/tenants/{tenant_id}/check": {
       "post": {
         "operationId": "check",
-        "description": "Requires check scope. Normative semantics: docs/04-api.md.",
+        "description": "Requires check scope.",
         "parameters": [
           {
             "name": "tenant_id",
@@ -142,7 +142,7 @@
     "/v1/tenants/{tenant_id}/batch-check": {
       "post": {
         "operationId": "batch_check",
-        "description": "Requires check scope. Normative semantics: docs/04-api.md.",
+        "description": "Requires check scope.",
         "parameters": [
           {
             "name": "tenant_id",
@@ -202,7 +202,7 @@
     "/v1/tenants/{tenant_id}/revision": {
       "get": {
         "operationId": "revision",
-        "description": "Requires relations:read scope. Normative semantics: docs/04-api.md.",
+        "description": "Requires relations:read scope.",
         "parameters": [
           {
             "name": "tenant_id",
@@ -252,7 +252,7 @@
     "/v1/tenants/{tenant_id}/relationships": {
       "get": {
         "operationId": "relationships",
-        "description": "Requires relations:read scope. Normative semantics: docs/04-api.md.",
+        "description": "Requires relations:read scope.",
         "parameters": [
           {
             "name": "tenant_id",
@@ -343,7 +343,7 @@
     "/v1/tenants/{tenant_id}/audit": {
       "get": {
         "operationId": "audit",
-        "description": "Requires audit:read scope. Normative semantics: docs/04-api.md.",
+        "description": "Requires audit:read scope.",
         "parameters": [
           {
             "name": "tenant_id",

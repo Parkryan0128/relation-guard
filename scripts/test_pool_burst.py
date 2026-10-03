@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Bounded transport-stall reproduction at the normal 100 requests/s arrival rate."""
+from test_output import output_path
 import concurrent.futures
 import hashlib
 import json
@@ -95,7 +96,7 @@ if __name__ == '__main__':
               "binary_sha256": hashlib.sha256(binary.read_bytes()).hexdigest(),
               "purpose": "Reproduces pool exhaustion; does not identify the historical external stall trigger.",
               "runs": runs}
-    pathlib.Path(os.environ['POOL_BURST_OUTPUT']).write_text(json.dumps(report, indent=2)+'\n')
+    output_path('POOL_BURST_OUTPUT', 'pool-burst.json').write_text(json.dumps(report, indent=2)+'\n')
     if os.environ.get('EXPECT_SHORT_STALL_FAILURE') == '1':
         assert runs[0]['overloaded'] > 0, runs[0]
     else:

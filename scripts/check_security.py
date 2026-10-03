@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Review advisory findings against the actual server/admin dependency closure."""
+from test_output import output_path
 import json,os,pathlib,re,subprocess
 root=pathlib.Path(__file__).resolve().parents[1]
 metadata=json.loads(subprocess.check_output(['cargo','metadata','--locked','--format-version','1'],cwd=root))
@@ -32,4 +33,4 @@ for name in filter(None,files):
  if any(re.search(pattern,data) for pattern in patterns):hits.append(name)
 assert not hits,{'potential_secret_files':hits}
 result={'advisory_database':advisories.get('database'),'advisories':review,'active_packages':len(reachable),'licenses':[{'package':a,'version':b,'license':c} for a,b,c in licenses],'tracked_secret_pattern_hits':0,'limitations':'Pattern scan is not a proof of secret absence; review includes tracked artifacts and ignored credential locations.'}
-(root/'verification/security-review.json').write_text(json.dumps(result,indent=2));print('PASS: active dependency closure and licenses reviewed; no unresolved active advisory, no tracked secret-pattern hits.')
+output_path('SECURITY_OUTPUT', 'security.json').write_text(json.dumps(result,indent=2));print('PASS: active dependency closure and licenses reviewed; no unresolved active advisory, no tracked secret-pattern hits.')

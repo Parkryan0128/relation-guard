@@ -45,13 +45,13 @@ jobs:
           EXISTING_TEST_DATABASE_URL: postgres://postgres@127.0.0.1:5432/relation_guard_test
         run: |
           set -euo pipefail
-          mkdir -p verification/ci-native-load
-          PG_BIN="$RUNNER_TEMP/rg-pg-client" AUTHZ_BIN="$GITHUB_WORKSPACE/target/release" K6_BIN="$RUNNER_TEMP/k6-v2.3.0-linux-amd64/k6" RG_LOAD_DIR="$RUNNER_TEMP/load-private" RG_LOAD_OUTPUT="$GITHUB_WORKSPACE/verification/ci-native-load" python3 scripts/run_native_load.py | tee verification/ci-native-load.log
+          mkdir -p target/test-results/ci-native-load
+          PG_BIN="$RUNNER_TEMP/rg-pg-client" AUTHZ_BIN="$GITHUB_WORKSPACE/target/release" K6_BIN="$RUNNER_TEMP/k6-v2.3.0-linux-amd64/k6" RG_LOAD_DIR="$RUNNER_TEMP/load-private" RG_LOAD_OUTPUT="$GITHUB_WORKSPACE/target/test-results/ci-native-load" python3 scripts/run_native_load.py | tee target/test-results/ci-native-load.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: native-load-evidence
           path: |
-            verification/ci-native-load/
-            verification/ci-native-load.log
+            target/test-results/ci-native-load/
+            target/test-results/ci-native-load.log
           retention-days: 30
