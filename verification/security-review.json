@@ -1,8 +1,8 @@
 {
   "advisory_database": {
-    "advisory-count": 1288,
-    "last-commit": "f8dee89e1b2f2f1eaf548312df7655fe5202a302",
-    "last-updated": "2026-10-02T22:27:46+02:00"
+    "advisory-count": 1290,
+    "last-commit": "ef6173cbc5c50ec8166f9a5b28f07834144373ee",
+    "last-updated": "2026-10-03T10:14:03+02:00"
   },
   "advisories": [
     {

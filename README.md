@@ -5,7 +5,7 @@
 > **Status: managed-authorization V1 implemented and verified.** Functional tests, native recovery, Docker deployment and the approved native performance gates passed. The service checks who may change permissions, not only who may access resources. See the [V1 verification report](verification/v1/report.md) for evidence, observed failures and environment limits.
 
 
-**Latest reliability verification:** the 500ms pool-acquisition budget absorbs the tested short stall without replaying transactions. Functional/container CI and independent Linux native load gates passed; 99,006 normal-load requests had zero errors or drops. The local macOS rerun still failed during longer stalls, whose root cause remains unresolved. See the [before/after results and limits](verification/pool-burst/report.md). Earlier V1 measurements below retain their original source attribution.
+**Latest local verification:** the new Mac passed the expanded functional suite and full native load gates: 99,003 normal-load requests, zero errors or drops, and successful post-stress recovery. Docker image build passed; Compose execution on this Mac remains blocked by Docker's Documents-folder access. See the [new local verification](verification/new-mac-review/report.md). Earlier Linux successes and old-Mac failures remain preserved with their original source attribution.
 
 ## What it does
 
@@ -57,7 +57,7 @@ Run `PYTHON=.venv/bin/python scripts/verify.sh` with an isolated `TEST_DATABASE_
 
 ## Validation
 
-Run `scripts/verify.sh` for the complete functional regression suite: formatting, Clippy, contracts, core properties, real PostgreSQL transactions, management rules, 290 HTTP assertions, COMMIT faults, and the Python client. `scripts/test-stage.sh M4` adds native recovery and controlled connection stalls; M5 adds security review and load measurements. See the [test roadmap](docs/09-roadmap.md) for stage requirements.
+Run `scripts/verify.sh` for the complete functional regression suite: formatting, Clippy, contracts, core properties, real PostgreSQL transactions, management rules, 309 HTTP assertions, COMMIT faults, and the Python client. `scripts/test-stage.sh M4` adds native recovery and controlled connection stalls; M5 adds security review and load measurements. See the [test roadmap](docs/09-roadmap.md) for stage requirements.
 
 Evidence is attributed to the source and environment actually tested:
 

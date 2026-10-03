@@ -1,0 +1,22 @@
+Failed deployment project retained for inspection: rg-03a007355d in /Users/jiwonpark/Documents/Codex/2026-10-01/new-chat/work/new-mac-review/compose
+Traceback (most recent call last):
+  File "/Users/jiwonpark/Documents/Codex/2026-10-01/new-chat/outputs/relation-guard/scripts/test_deployment.py", line 44, in <module>
+    dc('run','--rm','migrate');dc('run','--rm','--entrypoint','authz-admin','migrate','tenant',tenant);dc('run','--rm','--entrypoint','authz-admin','migrate','bootstrap-admin',tenant,cred['actor_id']);dc('up','-d','server');ready()
+    ~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jiwonpark/Documents/Codex/2026-10-01/new-chat/outputs/relation-guard/scripts/test_deployment.py", line 18, in dc
+    def dc(*args,**kwargs):return shell(compose+list(args),**kwargs)
+                                  ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jiwonpark/Documents/Codex/2026-10-01/new-chat/outputs/relation-guard/scripts/test_deployment.py", line 11, in shell
+    if check and r.returncode:raise RuntimeError(f'Command {args[:4]} failed: '+r.stderr.decode()[-3000:])
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Command ['docker', 'compose', '--project-directory', '/Users/jiwonpark/Documents/Codex/2026-10-01/new-chat/work/new-mac-review/compose'] failed:  Network rg-03a007355d_default Creating
+ Volume rg-03a007355d_postgres_data Creating
+ Volume rg-03a007355d_postgres_data Creating
+ Network rg-03a007355d_default Creating
+ Volume rg-03a007355d_postgres_data Created
+ Volume rg-03a007355d_postgres_data Created
+ Network rg-03a007355d_default Created
+ Network rg-03a007355d_default Created
+ Container rg-03a007355d-db-1 Creating
+ service:db:1 Error response from daemon: invalid mount config for type "bind": stat /host_mnt/Users/jiwonpark/Documents/Codex/2026-10-01/new-chat/work/new-mac-review/compose/secrets/db_password: operation not permitted
+Error response from daemon: invalid mount config for type "bind": stat /host_mnt/Users/jiwonpark/Documents/Codex/2026-10-01/new-chat/work/new-mac-review/compose/secrets/db_password: operation not permitted

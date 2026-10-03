@@ -1,0 +1,78 @@
+{
+  "source_commit": "026529822eace0fe2297b1dae49f3d9a96196436",
+  "binary_sha256": "7135f0e312727580656e522f4fef477e00e92c43c90234a7d8653a7fb993b4d8",
+  "purpose": "Controlled DB transport-delay mechanism experiment; does not establish what caused the original network/pool stall.",
+  "runs": [
+    {
+      "initial_pool_size": 10,
+      "initial_pool_idle": 10,
+      "response_delay_ms": 750,
+      "offered_requests_per_second": 10,
+      "responses": [
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 766.1915000003319
+        },
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 665.6089580001208
+        },
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 565.0478750003458
+        },
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 463.60950000007506
+        },
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 365.2065839996794
+        },
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 264.45379200004027
+        },
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 160.77408299997842
+        },
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 65.0164999997287
+        },
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 5.201999999826512
+        },
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 6.95533299995077
+        },
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 5.759167000178422
+        },
+        {
+          "status": 200,
+          "code": null,
+          "milliseconds": 4.90345799971692
+        }
+      ],
+      "acquire_timeouts": 0,
+      "begin_errors": 0,
+      "recovered": true
+    }
+  ]
+}

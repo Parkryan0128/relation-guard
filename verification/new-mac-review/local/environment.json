@@ -1,0 +1,12 @@
+{
+  "application": "native macOS arm64 release",
+  "database": "Docker PostgreSQL 18 on the same Mac, loopback port 55438",
+  "database_image": "postgres:18-alpine@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873",
+  "docker_engine": "29.8.1",
+  "docker_vm_logical_cpus": 10,
+  "docker_vm_memory_bytes": 8319504384,
+  "database_container_memory_limit": 0,
+  "database_container_nanocpus": 0,
+  "host_hardware_note": "User reports new Mac; host RAM/model query unavailable due to sandbox. Docker VM memory is not host RAM.",
+  "performance_note": "No per-process caps; other host applications were not stopped."
+}

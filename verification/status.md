@@ -1,5 +1,7 @@
 # Verification status
 
+**Latest local re-review (2026-10-03):** source `0265298` passes 39 Rust tests, 10,000 generated graph cases, 309 HTTP assertions, five client tests, fault/recovery checks and all unchanged native S/M load gates. Normal S measurements: 99,003 correct responses, zero errors/drops; recovery 6,001/6,001. Docker build passes; local Compose secret mounting remains blocked by Documents access. GitHub authentication prevents pushing/new CI. [Full current evidence](new-mac-review/report.md). Earlier measurements below are historical and retain their source attribution.
+
 **Latest refactor:** `b7c0dbc` separates responsibilities and removes redundant code/dependencies without changing authorization semantics. Local functional and fault/recovery suites pass; Linux functional/recovery and clean release-container CI also pass. [Refactor evidence](refactor/report.md). Performance figures below remain attributed to their original source commits.
 
 **Latest pool-timeout result:** the bounded 500ms wait passes controlled short-stall, functional and container tests. Independent Linux native load gates PASS: 99,006 normal-load requests, zero errors/drops; recovery 6,001/6,001. The macOS rerun FAILS during longer stalls (40 overloads, four deadline errors); their external cause remains unresolved. Exploratory Linux stress dropped work and is not a throughput guarantee. [Full evidence and limitations](pool-burst/report.md). The earlier V1 results below retain their original source attribution.
