@@ -1,48 +1,131 @@
 # Relation Guard
 
-A Rust authorization service for application backends. Store permissions in a dedicated PostgreSQL database and check or change them over HTTP.
+A relationship-based authorization service written in Rust.
 
-## Features
+It stores permissions in PostgreSQL and lets application backends check access, share resources and revoke permissions over HTTP. It checks both who can access a resource and who can change its permissions.
 
-- Users, teams, folders and documents, isolated by tenant.
-- Viewer, editor and manager permissions, including team and folder inheritance.
-- Organization administrators and checks on who can grant, revoke or change permissions.
-- Atomic writes, revision conflicts, idempotent retries and audit records.
-- Single and batch access checks, with optional decision evidence.
+[Verification results](verification/status.md)
 
-Applications own login and enforce the returned decision. A trusted backend sends the logged-in user's `X-Actor-Id` with its service key. Never expose service keys to end users. Errors must block the protected action.
+## How it works
 
-## Run
+```text
+Access check
+    │
+    ▼
+Authenticate the backend and validate the actor
+    │
+    ▼
+Read one PostgreSQL snapshot
+    ├── Direct permissions
+    ├── Team membership
+    └── Inherited folder permissions
+    │
+    ▼
+Evaluate → allow, deny or error
+```
 
-Follow the [setup guide](docs/13-running.md) for Docker Compose or native execution. The [Python example](examples/client.py) demonstrates sharing, rejected privilege escalation and revocation.
+```text
+Permission change
+    │
+    ▼
+Authenticate the backend and lock the tenant
+    ├── Return a matching receipt for a completed retry
+    ├── Check the actor's authority before any changes
+    └── Check the expected revision
+    │
+    ▼
+Apply changes and validate the resulting state
+    │
+    ▼
+Commit permissions, revision, audit and receipt together
+```
 
-Stack: Rust 1.96.1, Axum, Tokio, SQLx and PostgreSQL 18. Dependency versions are pinned in `Cargo.lock`.
+The service:
 
-## Test
+1. Separates each organization's users, teams, folders and documents by tenant.
+2. Supports viewer, editor and manager permissions through direct grants, teams and folder inheritance.
+3. Allows organization administrators to manage users and teams, while resource managers can share their resources.
+4. Prevents self-promotion through permissions added in the same request and protects the last organization administrator.
+5. Evaluates up to 100 access checks in one batch using the same database snapshot.
+6. Uses revision checks and idempotency receipts to handle concurrent changes and retries.
 
-With a dedicated test PostgreSQL database and the Python test dependencies installed:
+Applications still own login and enforce the returned decision. A trusted backend sends its service key and the logged-in user's `X-Actor-Id`. Service keys must stay on the backend; a failed check must block the protected action.
 
-```sh
+A check already in progress may see permissions from before a revocation. Checking permission and updating another application's database are separate operations. See the [consistency contract](docs/06-consistency.md).
+
+## Project structure
+
+```text
+crates/authz-core/    Permission model and pure evaluator
+crates/authz-store/   PostgreSQL reads, writes and management rules
+crates/authz-server/  HTTP API, authentication, limits and metrics
+crates/authz-admin/   Database setup and operator commands
+migrations/          Database migrations
+examples/            Python HTTP client
+scripts/             Contract, integration and recovery checks
+benchmarks/          Load datasets and k6 profiles
+verification/        Test and performance evidence
+```
+
+## Build
+
+Requirements:
+
+- Rust 1.96.1, pinned in rust-toolchain.toml
+- PostgreSQL 18
+- Python 3 for the example client and test scripts
+- Docker Compose for container deployment
+
+The server uses Axum, Tokio and SQLx. Dependency versions are pinned in Cargo.lock.
+
+```bash
+cargo build --locked --workspace
+```
+
+Follow the [setup guide](docs/13-running.md) to create the database, service key and first administrator, then start the server natively or with Docker Compose.
+
+After completing the Compose setup, run the sharing and revocation example:
+
+```bash
+python3 examples/client.py
+```
+
+## Tests
+
+Prepare a dedicated test PostgreSQL instance with `pg_stat_statements` enabled, then run:
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -r scripts/requirements-test.txt
+export TEST_DATABASE_URL='postgres://postgres@127.0.0.1:5432/relation_guard_test'
 PYTHON=.venv/bin/python scripts/verify.sh
 ```
 
-See [test stages](docs/09-roadmap.md) and [recovery/load commands](docs/14-native-verification.md).
+The suite covers permission rules, tenant isolation, unauthorized changes, transaction rollback, concurrency, HTTP contracts and lost COMMIT acknowledgements. It includes 10,000 generated graph cases, 309 HTTP assertions and five Python client tests.
 
-Latest local verification: 39 Rust tests, 10,000 generated graph cases, 309 HTTP assertions and five client tests passed. Normal-load measurements completed 99,003 requests with zero errors or dropped iterations. Docker image build passed; Compose on the new Mac remains blocked by Documents-folder access. These are measured results, not production throughput guarantees. [Evidence and earlier results](verification/status.md).
+See the [test stages](docs/09-roadmap.md) for recovery, deployment and load checks.
 
-## Boundaries
+## Benchmarks
 
-Each check or batch reads one primary-database snapshot. Checks already in progress may observe permissions from before a revocation. A permission check and a business write in another database are not one atomic operation.
+Run the core evaluator benchmark:
 
-V1 uses the fixed `org-doc-v2` model. Login, custom policy languages, nested teams, explicit deny rules, decision caching, gRPC and multi-region operation are outside its scope. Removing one grant does not remove access through other grants.
+```bash
+cargo bench --locked -p authz-core --bench evaluation
+```
 
-## Documentation
+For end-to-end k6 measurements, follow the [load test setup](docs/14-native-verification.md).
 
-Detailed documents are in Korean; API names and examples are in English.
+The recorded macOS run completed 99,003 normal-load requests with zero errors or dropped iterations. The [full report](verification/new-mac-review/local/load-report.md) includes source, environment, datasets, latency percentiles and limitations. Deployment results and earlier failures remain in the [verification history](verification/status.md).
 
-- Design: [scope](docs/01-scope.md), [architecture](docs/02-architecture.md), [decisions](docs/10-decisions.md), [references](docs/11-references.md).
-- Contracts: [access rules](docs/03-authorization-model.md), [management rules](docs/15-managed-authorization.md), [HTTP API](docs/04-api.md), [storage](docs/05-storage.md), [consistency](docs/06-consistency.md).
-- Operations: [setup](docs/13-running.md), [security and recovery](docs/07-operations.md).
-- Validation: [methodology](docs/08-validation.md), [stages](docs/09-roadmap.md), [test cases](docs/12-acceptance-tests.md), [results](verification/status.md).
+## Scope
 
-Read [AGENTS.md](AGENTS.md) before changes. Run `python3 scripts/check_docs.py` to check documentation links and specification invariants.
+V1 uses a fixed user/team/folder/document model. Custom policy languages, nested teams, explicit deny rules, decision caching, gRPC and multi-region operation are outside its scope. Revoking one grant does not remove access through another grant.
+
+See the [HTTP API](docs/04-api.md), [management rules](docs/15-managed-authorization.md) and [operations guide](docs/07-operations.md) for the full contracts. Detailed design documents are in Korean.
+
+## Contact
+
+- **Name:** Ryan Park
+- **Email:** [parkryan0128@gmail.com](mailto:parkryan0128@gmail.com)
+- **LinkedIn:** [linkedin.com/in/parkryan0128](https://www.linkedin.com/in/parkryan0128)
+- **GitHub:** [github.com/Parkryan0128](https://github.com/Parkryan0128)
