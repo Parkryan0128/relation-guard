@@ -1,17 +1,6 @@
-# 14. 검증 환경 변경 기록 — 2026-10-02
+# 14. 복구·부하 검증
 
-> 아래는 v0.1 당시 환경 변경 기록이다. 이후 V1은 `org-doc-v2`로 확장되었고, 실제 Compose 배포와 Linux CI 검증까지 통과했다. 현재 결과는 [V1 보고서](../verification/v1/report.md)를 따른다. Linux 자원 제한 성능 인증과 native 측정의 구분은 유지한다.
-
-사용자는 전체 구현을 계속하되, Docker 배포 테스트가 로컬 권한 문제로 기능 검증을 막지 않도록 **앱/테스트를 로컬에서 실행**하라고 지시했다. 이어 기존 전용 테스트 PostgreSQL에 연결하는 방식을 명시적으로 승인했다.
-
-이 요청을 반영해 이번 완료 범위를 다음처럼 구분한다.
-
-- M0–M3: 원래 기능/트랜잭션/보안 계약과 필수 테스트를 유지한다. 실제 PostgreSQL, 실제 TCP, DB wire proxy를 사용한다.
-- M4-native: 로컬 앱 프로세스의 비-root 실행, 별도 runtime DB role, Python 클라이언트, 앱 재시작과 DB 재연결, 빈 DB로 backup/restore, 키 교체, DB 연결 차단·스키마 불일치·SIGTERM을 검증한다. 새 DB는 기존 테스트 PG 안에 고유 이름으로 생성하고 끝나면 해당 DB만 삭제한다.
-- M5-native: 원래 S/M 데이터와 부하·정확성 기준을 유지하되 로컬 네이티브 앱+기존 테스트 PG 연결에서 측정한다. Linux의 2 vCPU/512 MiB 앱·2 vCPU/1 GiB DB 제한을 적용한 결과로 표현하지 않는다. CPU/메모리 상한, 컨테이너 네트워크, CPU 모델에 대한 보장이 다르다.
-- Docker 배포 검증: 파일과 이미지 빌드는 준비했으나 bind mount 접근 제한으로 clean Compose 시나리오를 완료하지 못했다. 사용자가 배포 작업을 재개할 때 원래 M4 및 Linux M5 조건을 별도로 확인한다. native PASS를 container PASS로 바꾸지 않는다.
-
-이는 권한 모델 또는 API 일관성 계약 변경이 아니다. `org-doc-v1`은 유지한다. 숫자 목표를 낮추지 않고 **측정 환경과 완료 범위를 명시적으로 분리**한다. native 결과가 목표를 넘으면 그 결과를 그대로 기록한다.
+앱과 테스트를 호스트에서 실행하고 전용 PostgreSQL에 연결한다. DB는 Docker에서도 실행할 수 있다. Native 결과와 Compose 배포 결과는 구분하며, Linux 컨테이너 자원 제한 성능을 대신하지 않는다. 현재 결과와 이전 실패는 [검증 현황](../verification/status.md)에 있다.
 
 ## 재현
 
@@ -34,13 +23,14 @@ cargo build --release --locked -p authz-server -p authz-admin
 export AUTHZ_BIN="$PWD/target/release"
 export K6_BIN=/absolute/path/to/k6
 export RG_LOAD_DIR=/absolute/private/scratch/directory
+export RG_LOAD_OUTPUT=/absolute/path/to/new-results
 python3 scripts/compare_batch.py
 python3 scripts/run_native_load.py
 ```
 
 `compare_batch.py`는 S 데이터에서 100개 판정을 순차 단건·10개 동시 단건·배치 1회로 실행하는 별도 소규모 비교다. Python client scheduling이 포함되며 arrival-rate 부하/SLO 결과와 섞지 않는다. 본 부하 테스트와 동시에 실행하지 않는다.
 
-`RG_LOAD_DIR`에는 테스트 토큰이 있으므로 Git에 넣지 않는다. `verification/load`에는 토큰 없는 통계만 저장한다. 결과에는 요청 수·실패·미시작 iteration·정확성 불일치·백분위수·애플리케이션 내부 카운터와 실행 환경을 포함한다. macOS sandbox에서 다른 프로세스 목록을 읽는 `ps`는 거절되었으므로 전체 호스트 프로세스를 스캔하지 않는다. 자식 서버 종료 시 부모의 wait4로 얻은 해당 서버의 CPU/RSS 사용량만 기록한다.
+`RG_LOAD_DIR`에는 테스트 토큰이 있으므로 Git에 넣지 않는다. `RG_LOAD_OUTPUT`에는 토큰 없는 통계를 저장한다. 기존 증거를 덮어쓰지 않도록 새 디렉터리를 지정한다. 결과에는 요청 수·실패·미시작 iteration·정확성 불일치·백분위수·애플리케이션 내부 카운터와 실행 환경을 포함한다. CPU/RSS는 자식 서버 종료 시 부모의 wait4로 측정한다.
 
 
 ## 의존성 검토 재현

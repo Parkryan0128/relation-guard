@@ -2,7 +2,7 @@
 
 ## Status and boundaries
 
-Implementation is authorized and in progress. Read README and docs/01 through docs/09 before changes. The current evidence and remaining release gates are in verification/status.md. Do not turn proposed behavior or performance targets into verified claims.
+Managed authorization V1 is implemented; this repository is in maintenance. Read README and docs/01 through docs/09 before changes. The current evidence and remaining release gates are in verification/status.md. Do not turn proposed behavior or performance targets into verified claims.
 
 ## Normative order
 
@@ -28,7 +28,7 @@ No custom policy DSL, dynamic arbitrary resource types, nested teams, explicit d
 
 ## Verification and reporting
 
-M0 onward: fmt, Clippy with warnings denied, unit/property tests, real PostgreSQL integration tests, API/integration smoke checks. Stage-specific required cases and evidence are defined in docs/09 and docs/12. Exact commands are established when Cargo exists. Skipped or unavailable required checks do not count as passes. Add benchmark results only with commit, hardware, limits, dataset, concurrency, errors and latency percentiles. Report unfinished checks candidly. Keep README's status and docs/09 checklist aligned with evidence.
+M0 onward: fmt, Clippy with warnings denied, unit/property tests, real PostgreSQL integration tests, API/integration smoke checks. Stage-specific required cases and evidence are defined in docs/09 and docs/12. Use scripts/verify.sh for functional regression. Skipped or unavailable required checks do not count as passes. Add benchmark results only with commit, hardware, limits, dataset, concurrency, errors and latency percentiles. Report unfinished checks candidly. Keep README's status and docs/09 test stages aligned with evidence.
 
 ## Language
 

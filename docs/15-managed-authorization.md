@@ -24,7 +24,7 @@
 
 ## 원자성, 재시도와 감사
 
-write는 tenant row lock → actor에 결속된 receipt 확인 → actor 소속/자격 확인 → expected revision 확인 → 모든 operation의 사전 상태 권한 검사 → 변경/최종 invariant 검사 → revision/audit/receipt → commit 순이다. 같은 tenant의 모든 관리 변경과 운영자 복구도 동일 lock을 사용한다. 박탈이 먼저 commit되면 뒤의 새 변경은 거부된다. 먼저 승인된 변경은 먼저 commit되고 그 뒤에 박탈된다.
+write는 tenant row lock → actor에 결속된 receipt 확인 → actor 소속과 모든 operation의 사전 상태 권한 검사 → expected revision 확인 → 변경/최종 invariant 검사 → revision/audit/receipt → commit 순이다. 같은 tenant의 모든 관리 변경과 운영자 복구도 동일 lock을 사용한다. 박탈이 먼저 commit되면 뒤의 새 변경은 거부된다. 먼저 승인된 변경은 먼저 commit되고 그 뒤에 박탈된다.
 
 receipt의 키는 `(tenant, service key, actor, idempotency key)`다. 동일 actor의 완료된 작업 재시도는 이미 저장된 결과만 반환하며 권한을 다시 부여하지 않는다. 자기 탈퇴/자기 강등 후에도 자기 receipt 재조회는 가능하다. 다른 actor는 그 receipt를 재생할 수 없다. 운영자/구버전 receipt는 별도 빈 actor namespace다.
 

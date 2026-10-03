@@ -29,7 +29,7 @@ explain은 추가로 explain scope 필요. check scope만으로 원본 관계 �
 - 1–100 ops. 같은 entity key나 동일 relation tuple이 두 번 나타나면 400 DUPLICATE_OPERATION. old/new parent는 다른 tuple이므로 동시 delete/put 가능.
 - 순서에 의존하지 않는 최종 상태 의미론. relation delete → entity delete → entity put → relation put 순으로 적용하고 최종 검증한다. put된 관계는 살아 있는 객체를 참조해야 한다.
 - put existing / delete missing은 no-op. delete_relation은 tuple의 타입/형식을 검증하되 삭제 대상과 양 끝점이 이미 없어도 no-op이다. put_relation만 최종 상태에서 양 끝점 존재를 요구한다. 존재하지 않는 entity의 delete도 no-op. 삭제와 재생성을 한 요청에 중복 기입할 수 없다.
-- expected revision이 현재와 다르면 409 REVISION_CONFLICT + current_revision. 처음 쓰기도 expected_revision=0.
+- expected revision이 현재와 다르면 409 REVISION_CONFLICT + current_revision. 조직 생성 직후는 revision 0이지만 최초 관리자 지정 후에는 1이다. 현재 revision을 조회해서 사용한다.
 - 동일 key+동일 정규화 payload 재시도는 원래 receipt를 반환. key 재사용에 다른 payload는 409 IDEMPOTENCY_CONFLICT. receipt에는 이전 request_id가 유지되고 header의 X-Request-Id는 현재 시도 ID다.
 - 성공 200: changed boolean, revision, model_version, request_id. 실제 graph가 바뀌면 tenant revision을 정확히 1 증가. no-op은 revision 유지.
 - 유효하지 않은 relation/references는 422, 객체 사용 중·다중 parent·cycle·depth 위반은 409. 하나라도 실패하면 graph/revision/audit/receipt 전부 rollback.
@@ -81,7 +81,7 @@ error body는 `{error:{code,message,request_id,details?}}`. message는 사람이
 
 `subject_relation`은 모든 관계 DTO에서 필수다. direct는 빈 문자열이고 누락/null과 다르다. `/relationships`의 limit 기본 50, `/audit`의 limit 기본 50·after_revision 기본 "0". 알 수 없거나 중복된 query parameter는 400. `check`와 `batch-check`만 explain 기본 false를 허용한다.
 
-한 단계에서 여러 오류가 있으면 validation은 entity/tuple canonical 순서로 진행하고 첫 오류를 반환한다. write transaction 내에서는 receipt lookup → expected revision → mutation/final graph 검증 순서를 고정한다. stale revision인 요청의 graph 위반은 revision conflict보다 우선하지 않는다.
+한 단계에서 여러 오류가 있으면 validation은 entity/tuple canonical 순서로 진행하고 첫 오류를 반환한다. write transaction 내에서는 receipt lookup → actor 소속/사전 상태 관리 권한 → expected revision → mutation/final graph 검증 순서를 고정한다. stale revision인 요청의 graph 위반은 revision conflict보다 우선하지 않는다.
 
 ### Canonicalization v1
 

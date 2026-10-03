@@ -25,12 +25,7 @@ fn m0_typed_fixtures_and_boundaries() {
             .0,
         i64::MAX
     );
-    let mut b = v["batch_check"]["request"].clone();
     for n in [0, 100, 101] {
-        b["checks"] = Value::Array(vec![b["checks"][0].clone(); n]);
-        if n == 0 {
-            b["checks"] = json!([])
-        };
         let mut batch: BatchRequest =
             serde_json::from_value(v["batch_check"]["request"].clone()).unwrap();
         batch.checks = vec![batch.checks[0].clone(); n];

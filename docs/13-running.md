@@ -1,6 +1,6 @@
 # 13. 현재 구현 실행과 검증
 
-현재 core/store/HTTP/admin 구현은 로컬 PostgreSQL과 TCP 테스트를 통과했다. **전체 M0–M5 release gate 통과를 의미하지 않는다.** 복구와 COMMIT ack 유실 검증은 통과했다. 현재 native 검증 계획은 docs/14-native-verification.md에 있다. 배포·부하 검증의 상태는 [검증 현황](../verification/status.md)을 따른다.
+로컬 실행과 Compose 설정을 설명한다. 현재 테스트 결과와 환경 제한은 [검증 현황](../verification/status.md)에 있다.
 
 ## 로컬 바이너리
 
@@ -34,10 +34,11 @@ cargo run --locked -p authz-server
 
 운영 listener의 `/healthz`, `/readyz`, `/metrics`와 데이터 listener를 분리한다. 기본 bind는 loopback이다. 데이터 port만 인증된 서비스 네트워크에 연결한다. 외부 HTTPS는 reverse proxy에서 종료한다. 이 구현이 TLS 서버 또는 end-user 로그인 서버는 아니다.
 
-## Compose (V1 로컬 및 Linux CI 배포 검증 통과)
+## Docker Compose
 
 ```bash
 python3 scripts/bootstrap-local.py
+docker compose build
 docker compose run --rm migrate
 # bootstrap 출력의 tenant UUID 사용
 docker compose run --rm --entrypoint authz-admin migrate tenant TENANT_UUID
@@ -55,7 +56,8 @@ python3 -m venv .venv
 .venv/bin/pip install -r scripts/requirements-test.txt
 # DB 관리자가 pg_stat_statements를 shared_preload_libraries에 추가하고 재시작해야 한다.
 export TEST_DATABASE_URL='postgres://postgres@127.0.0.1:5432/relation_guard_test'
-PYTHON=.venv/bin/python scripts/verify.sh
+export PYTHON="$PWD/.venv/bin/python"
+scripts/verify.sh
 scripts/test-stage.sh M0
 scripts/test-stage.sh M1
 cargo bench --locked -p authz-core --bench evaluation
@@ -83,4 +85,4 @@ bootstrap-admin은 기존 admin이 있으면 실패한다. 긴급 복구는 priv
 
 `examples/client.py`는 private client.json의 조직 관리자 actor로 사용자 두 명과 문서를 만든다. 그 뒤 문서 관리자 actor가 공유하고, editor actor의 자기 승격은 거부되며, 관리자가 회수하면 editor의 접근이 거부된다. 실제 앱은 예제처럼 임의로 actor를 선택하지 말고 검증된 로그인 세션에서 가져온다.
 
-macOS Documents bind mount가 제한된 환경에서는 운영체제의 Docker 파일 접근 설정을 확인하거나, 테스트용 설정을 Docker가 접근 가능한 별도 디렉터리에 생성한다. 검증 하네스는 private temporary run directory를 사용하며 기존 사용자 데이터나 접근 설정을 변경하지 않는다.
+macOS에서 Documents의 secret 파일을 마운트하지 못하면 시스템 설정 → 개인정보 보호 및 보안 → 파일 및 폴더에서 Docker의 Documents 접근을 확인한다.
