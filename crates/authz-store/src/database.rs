@@ -5,7 +5,7 @@ use std::time::Duration;
 use uuid::Uuid;
 
 pub const SCHEMA_VERSION: i64 = 2;
-// ADR-014: absorb short pool saturation without retrying a transaction.
+// Allow brief pool saturation without retrying a transaction.
 // HTTP's overall 2s deadline remains authoritative.
 pub const POOL_ACQUIRE_TIMEOUT: Duration = Duration::from_millis(500);
 pub static MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("../../migrations");

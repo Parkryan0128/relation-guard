@@ -1,5 +1,5 @@
 {
-  "_note": "DESIGN EXAMPLES, not observed server responses. Tokens are intentionally omitted.",
+  "_note": "Expected API requests and responses for contract tests. Tokens are omitted.",
   "tenant_id": "11111111-1111-4111-8111-111111111111",
   "write": {
     "method": "POST",

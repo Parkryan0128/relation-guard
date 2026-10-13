@@ -59,7 +59,7 @@ crates/authz-store/   PostgreSQL reads, writes and management rules
 crates/authz-server/  HTTP API, authentication, limits and metrics
 crates/authz-admin/   Database setup and operator commands
 migrations/          Database migrations
-examples/            Python HTTP client
+tests/               Shared fixtures and integration test helpers
 scripts/             Contract, integration and recovery checks
 benchmarks/          Load datasets and k6 profiles
 ```
@@ -70,7 +70,7 @@ Requirements:
 
 - Rust 1.96.1, pinned in rust-toolchain.toml
 - PostgreSQL 18
-- Python 3 for the example client and test scripts
+- Python 3 for the test scripts
 - Docker Compose for container deployment
 
 The server uses Axum, Tokio and SQLx. Dependency versions are pinned in Cargo.lock.
@@ -89,10 +89,9 @@ docker compose run --rm migrate
 docker compose run --rm --entrypoint authz-admin migrate tenant TENANT_UUID
 docker compose run --rm --entrypoint authz-admin migrate bootstrap-admin TENANT_UUID local-admin
 docker compose up -d server
-python3 examples/client.py
 ```
 
-The setup creates private local credentials and refuses to overwrite an existing setup. Keep `.env` and `secrets/` out of Git. The API binds to `127.0.0.1:8080`; change `AUTHZ_PORT` in `.env` if needed and set the client's `AUTHZ_URL` accordingly.
+The setup creates private local credentials and refuses to overwrite an existing setup. Keep `.env` and `secrets/` out of Git. The API binds to `127.0.0.1:8080`; change `AUTHZ_PORT` in `.env` if needed.
 
 For native execution, `authz-admin` provides `migrate`, `tenant`, `bootstrap-admin`, `key` and `runtime-role` commands. Start `authz-server` with a runtime-role `DATABASE_URL` and `AUTHZ_KEYS_FILE`. Keep privileged database credentials for operator commands only. The key file has the shape `{"version":1,"keys":[CONFIG_ENTRY]}`, using `config_entry` from the `key` command. `bootstrap-admin` only works before the first administrator exists; `recover-admin` is the privileged recovery path.
 

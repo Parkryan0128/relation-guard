@@ -84,7 +84,7 @@ async fn request(h: &Harness, path: &str, body: Option<Value>) -> (u16, Value) {
     )
 }
 #[tokio::test]
-async fn m3_pool_lock_and_recovery() {
+async fn pool_lock_and_recovery() {
     let h = harness().await;
     let mut held = Vec::new();
     for _ in 0..10 {
@@ -158,7 +158,7 @@ async fn short_pool_saturation_waits_without_replaying_reads_or_writes() {
     assert_eq!(audits, 1);
 }
 #[tokio::test]
-async fn m3_real_tcp_inflight_limit_and_deadline() {
+async fn real_tcp_inflight_limit_and_deadline() {
     let h = harness().await;
     let mut connections = Vec::new();
     for _ in 0..128 {
@@ -194,7 +194,7 @@ async fn m3_real_tcp_inflight_limit_and_deadline() {
     assert_eq!(request(&h, "revision", None).await.0, 200);
 }
 #[tokio::test]
-async fn m3_batch_failure_is_not_partial_allow() {
+async fn batch_failure_is_not_partial_allow() {
     let h = harness().await;
     let mut ops = vec![
         json!({"op":"put_entity","entity":{"kind":"user","id":"u"}}),
@@ -231,7 +231,7 @@ async fn m3_batch_failure_is_not_partial_allow() {
 }
 
 #[tokio::test]
-async fn m3_statement_timeout_and_recovery() {
+async fn statement_timeout_and_recovery() {
     let h = harness().await;
     let name = format!("slow_{}", h.tenant.simple());
     sqlx::query(&format!("CREATE FUNCTION {name}() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.tenant_id='{}'::uuid THEN PERFORM pg_sleep(2); END IF; RETURN NEW; END $$",h.tenant)).execute(&h.app.pool).await.unwrap();
@@ -257,7 +257,7 @@ async fn m3_statement_timeout_and_recovery() {
     assert_eq!(request(&h, "write", Some(write)).await.0, 200);
 }
 #[tokio::test]
-async fn m3_invalid_startup_configuration() {
+async fn invalid_startup_configuration() {
     let h = harness().await;
     let base = json!({"version":1,"keys":[{"key_id":"valid","tenant_id":h.tenant,"scopes":["check"],"secret_sha256":hex::encode(Sha256::digest([42u8;32]))}]});
     let mut cases = Vec::new();
@@ -293,7 +293,7 @@ pub(super) struct CommitBarrier {
     pub release: tokio::sync::Notify,
 }
 #[tokio::test]
-async fn m3_http_disconnect_before_commit() {
+async fn http_disconnect_before_commit() {
     let hook = Arc::new(CommitBarrier {
         entered: tokio::sync::Notify::new(),
         release: tokio::sync::Notify::new(),

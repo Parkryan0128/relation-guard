@@ -31,12 +31,12 @@ async fn setup() -> (PgPool, Uuid) {
 }
 fn fixture() -> WriteRequest {
     let v: Value =
-        serde_json::from_str(include_str!("../../../spec/examples/contracts.json")).unwrap();
+        serde_json::from_str(include_str!("../../../tests/fixtures/contracts.json")).unwrap();
     serde_json::from_value(v["write"]["request"].clone()).unwrap()
 }
 fn request() -> BatchRequest {
     let v: Value =
-        serde_json::from_str(include_str!("../../../spec/examples/contracts.json")).unwrap();
+        serde_json::from_str(include_str!("../../../tests/fixtures/contracts.json")).unwrap();
     let c: CheckRequest = serde_json::from_value(v["check"]["request"].clone()).unwrap();
     c.batch()
 }
@@ -69,7 +69,7 @@ fn parent(child: Entity, target: Entity) -> Operation {
     }
 }
 #[tokio::test]
-async fn m2_atomicity_replay_revocation_and_isolation() {
+async fn atomicity_replay_revocation_and_isolation() {
     let (p, t) = setup().await;
     let w = fixture();
     let first = put(&p, t, "grant", &w).await.unwrap();
@@ -158,7 +158,7 @@ async fn m2_atomicity_replay_revocation_and_isolation() {
     );
 }
 #[tokio::test]
-async fn m2_snapshot_and_concurrent_writers() {
+async fn snapshot_and_concurrent_writers() {
     let (p, t) = setup().await;
     let w = fixture();
     put(&p, t, "init", &w).await.unwrap();
@@ -239,7 +239,7 @@ async fn m2_snapshot_and_concurrent_writers() {
     }
 }
 #[tokio::test]
-async fn m2_hierarchy_and_revision_exhaustion() {
+async fn hierarchy_and_revision_exhaustion() {
     let (p, t) = setup().await;
     let mut w = WriteRequest {
         expected_revision: Revision(0),
@@ -308,7 +308,7 @@ async fn m2_hierarchy_and_revision_exhaustion() {
 }
 
 #[tokio::test]
-async fn m2_matching_grant_limit_and_duplicate_batch() {
+async fn matching_grant_limit_and_duplicate_batch() {
     let (p, t) = setup().await;
     put(&p, t, "init", &fixture()).await.unwrap();
     let mut batch = request();
@@ -332,7 +332,7 @@ async fn m2_matching_grant_limit_and_duplicate_batch() {
 }
 
 #[tokio::test]
-async fn m2_cleanup_recreate_and_key_scope() {
+async fn cleanup_recreate_and_key_scope() {
     let (p, t) = setup().await;
     let w = fixture();
     put(&p, t, "init", &w).await.unwrap();
@@ -389,7 +389,7 @@ async fn m2_cleanup_recreate_and_key_scope() {
 }
 
 #[tokio::test]
-async fn m2_concurrent_cycles_and_final_state_moves() {
+async fn concurrent_cycles_and_final_state_moves() {
     let (p, t) = setup().await;
     let folders: Vec<_> = ["a", "b", "c"]
         .iter()
@@ -513,7 +513,7 @@ async fn m2_concurrent_cycles_and_final_state_moves() {
 }
 
 #[tokio::test]
-async fn m2_exact_retention_boundary_and_descendant_move() {
+async fn exact_retention_boundary_and_descendant_move() {
     let (p, t) = setup().await;
     let mut tx = p.begin().await.unwrap();
     sqlx::query("INSERT INTO mutation_receipts(tenant_id,key_id,idempotency_key,request_hash,response,recorded_at) SELECT $1,'test',label,decode(repeat('00',32),'hex'),'{}'::jsonb,CURRENT_TIMESTAMP-INTERVAL '24 hours'+offset_value FROM (VALUES ('before',INTERVAL '-1 microsecond'),('exact',INTERVAL '0 microsecond'),('after',INTERVAL '1 microsecond')) v(label,offset_value)").bind(t).execute(&mut *tx).await.unwrap();
@@ -565,7 +565,7 @@ async fn m2_exact_retention_boundary_and_descendant_move() {
     assert_eq!(counts(&p, t).await, before);
 }
 #[tokio::test]
-async fn m2_batch_snapshot_between_loads() {
+async fn batch_snapshot_between_loads() {
     let (p, t) = setup().await;
     put(&p, t, "initial", &fixture()).await.unwrap();
     for round in 0..100 {

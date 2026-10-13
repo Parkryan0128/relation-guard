@@ -1,6 +1,6 @@
 use sqlx::{Connection, Executor, Row};
 #[tokio::test]
-async fn m0_real_postgres_constraints() {
+async fn real_postgres_constraints() {
     let url = std::env::var("TEST_DATABASE_URL")
         .expect("TEST_DATABASE_URL required; never silently skip PG tests");
     let mut c = sqlx::PgConnection::connect(&url).await.unwrap();

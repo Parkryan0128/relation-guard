@@ -1,6 +1,6 @@
 {
   "model_version": "org-doc-v2",
-  "precondition": "Operator provisions the tenant and bootstraps user admin; current revision is 1. The authenticated backend supplies its own tenant-bound service key and X-Actor-Id from the login session.",
+  "precondition": "The test tenant has administrator admin and revision 1. Requests use a tenant-bound service key and the actor's X-Actor-Id.",
   "steps": [
     {
       "actor": "admin",

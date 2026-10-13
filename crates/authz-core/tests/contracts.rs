@@ -1,9 +1,9 @@
 use authz_core::*;
 use serde_json::{Value, json};
 #[test]
-fn m0_typed_fixtures_and_boundaries() {
+fn typed_fixtures_and_boundaries() {
     let v: Value =
-        serde_json::from_str(include_str!("../../../spec/examples/contracts.json")).unwrap();
+        serde_json::from_str(include_str!("../../../tests/fixtures/contracts.json")).unwrap();
     for name in ["write", "revoke"] {
         let w: WriteRequest =
             strict_json(&serde_json::to_vec(&v[name]["request"]).unwrap()).unwrap();
@@ -52,7 +52,7 @@ fn m0_typed_fixtures_and_boundaries() {
     );
 }
 #[test]
-fn m0_canonicalization_golden() {
+fn canonicalization_golden() {
     let a=br#"{"operations":[{"op":"put_entity","entity":{"kind":"user","id":"u"}}],"expected_revision":"0"}"#;
     let w: WriteRequest = strict_json(a).unwrap();
     assert_eq!(

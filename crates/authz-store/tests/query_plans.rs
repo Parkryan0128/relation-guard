@@ -5,7 +5,7 @@ use serde_json::{Value, json};
 use sqlx::Row;
 use uuid::Uuid;
 #[tokio::test]
-async fn m2_measured_query_count_and_explain() {
+async fn measured_query_count_and_explain() {
     let p = pool(&std::env::var("TEST_DATABASE_URL").unwrap())
         .await
         .unwrap();
@@ -17,7 +17,7 @@ async fn m2_measured_query_count_and_explain() {
     let t = Uuid::new_v4();
     provision(&p, t).await.unwrap();
     let fixture: Value =
-        serde_json::from_str(include_str!("../../../spec/examples/contracts.json")).unwrap();
+        serde_json::from_str(include_str!("../../../tests/fixtures/contracts.json")).unwrap();
     let write_request: WriteRequest =
         serde_json::from_value(fixture["write"]["request"].clone()).unwrap();
     write(&p, t, "test", "seed", &write_request, Uuid::new_v4())

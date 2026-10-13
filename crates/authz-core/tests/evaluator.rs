@@ -29,9 +29,9 @@ fn request(user: Entity, resource: Entity, action: Action) -> BatchRequest {
     }
 }
 #[test]
-fn m1_design_fixtures() {
+fn authorization_fixtures() {
     let fixture: Value = serde_json::from_str(include_str!(
-        "../../../spec/examples/authorization-cases.json"
+        "../../../tests/fixtures/authorization-cases.json"
     ))
     .unwrap();
     for case in fixture["cases"].as_array().unwrap() {
@@ -104,7 +104,7 @@ fn reference(s: &Snapshot, u: &Entity, r: &Entity, a: Action) -> bool {
 }
 proptest! {
  #[test]
- fn m1_reference_and_properties(parents in prop::collection::vec(0usize..64,1..24), flags in prop::collection::vec(any::<u8>(),24)){
+ fn reference_and_properties(parents in prop::collection::vec(0usize..64,1..24), flags in prop::collection::vec(any::<u8>(),24)){
   let u=e(Kind::User,"u");let team=e(Kind::Team,"t");let mut s=Snapshot::default();s.entities.extend([u.clone(),team.clone()]);
   if flags[0]&1!=0{s.relationships.insert(edge(team.clone(),Relation::Member,u.clone()));}
   for(i,p)in parents.iter().enumerate(){let f=e(Kind::Folder,&format!("f{i}"));s.entities.insert(f.clone());if i>0{s.relationships.insert(edge(f.clone(),Relation::Parent,e(Kind::Folder,&format!("f{}",p%i))));}
@@ -129,7 +129,7 @@ proptest! {
  }
 }
 #[test]
-fn m1_proof_priority_and_errors() {
+fn proof_priority_and_errors() {
     let u = e(Kind::User, "u");
     let t = e(Kind::Team, "a");
     let f = e(Kind::Folder, "f");
@@ -160,7 +160,7 @@ fn m1_proof_priority_and_errors() {
     assert_eq!(evaluate(&s, &q).unwrap_err(), Fault::CorruptGraph);
 }
 #[test]
-fn m1_depth_and_budget_boundaries() {
+fn depth_and_budget_boundaries() {
     let u = e(Kind::User, "u");
     let mut s = Snapshot::default();
     s.entities.insert(u.clone());

@@ -1,5 +1,5 @@
 {
-  "_note": "Expected semantics for org-doc-v1. This fixture does not implement an evaluator.",
+  "_note": "Direct, team and inherited permission fixtures from org-doc-v1, retained as regression cases.",
   "model_version": "org-doc-v1",
   "tenants": [
     {
