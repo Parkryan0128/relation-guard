@@ -1,55 +1,28 @@
 # Relation Guard
 
-A relationship-based authorization service written in Rust.
+A Rust service for managing access to folders and documents, backed by PostgreSQL.
 
-It stores permissions in PostgreSQL and lets application backends check access, share resources and revoke permissions over HTTP. It checks both who can access a resource and who can change its permissions.
+Give a team viewer access to a folder, and its members can view the documents inside it. Removing someone from the team removes that access path; they may still have access through another grant.
+
+Application backends use the HTTP API to check access and change permissions. The service:
+
+- Keeps each organization's users, teams and resources separate.
+- Supports viewer, editor and manager access through direct grants, teams and parent folders.
+- Checks who can change permissions and records completed writes for retries.
 
 ## How it works
 
 ```text
 Access check
-    │
-    ▼
-Authenticate the backend and validate the actor
-    │
-    ▼
-Read one PostgreSQL snapshot
-    ├── Direct permissions
-    ├── Team membership
-    └── Inherited folder permissions
-    │
-    ▼
-Evaluate → allow, deny or error
+    ↓
+Authenticate the service key and validate the actor
+    ↓
+Read direct grants, team membership and parent folders in one snapshot
+    ↓
+Return allow, deny or an error
 ```
 
-```text
-Permission change
-    │
-    ▼
-Authenticate the backend and lock the tenant
-    ├── Return a matching receipt for a completed retry
-    ├── Check the actor's authority before any changes
-    └── Check the expected revision
-    │
-    ▼
-Apply changes and validate the resulting state
-    │
-    ▼
-Commit permissions, revision, audit and receipt together
-```
-
-The service:
-
-1. Separates each organization's users, teams, folders and documents by tenant.
-2. Supports viewer, editor and manager permissions through direct grants, teams and folder inheritance.
-3. Allows organization administrators to manage users and teams, while resource managers can share their resources.
-4. Prevents self-promotion through permissions added in the same request and protects the last organization administrator.
-5. Evaluates up to 100 access checks in one batch using the same database snapshot.
-6. Uses revision checks and idempotency receipts to handle concurrent changes and retries.
-
-Applications still own login and enforce the returned decision. A trusted backend sends its service key and the logged-in user's `X-Actor-Id`. Service keys must stay on the backend; a failed check must block the protected action.
-
-A check already in progress may see permissions from before a revocation. Checking permission and updating another application's database are separate operations.
+Applications handle login and enforce the result. The backend sends its service key and the logged-in user's `X-Actor-Id`. Keep service keys on the backend, and block the protected action if the check fails.
 
 ## Project structure
 
@@ -105,11 +78,25 @@ Requests use `Authorization: Bearer TOKEN` and `X-Actor-Id: USER_ID`. Routes are
 | POST | `/write` | Change entities, roles or relationships |
 | GET | `/revision`, `/relationships`, `/audit` | Read revision, relationships or audit records |
 
+Batch checks accept up to 100 items and use the same database snapshot. Organization administrators manage users and teams; resource managers can share the resources they manage.
+
 Writes require an `Idempotency-Key` and `expected_revision`. Reuse the same key and payload when retrying an uncertain write. Reads return their observed revision. The [OpenAPI specification](spec/openapi.json) defines request and response formats.
 
 Health, readiness and metrics use a separate operations listener. In native mode, use `AUTHZ_BIND` and `AUTHZ_OPS_BIND` to set the two addresses. Keep the operations listener private.
 
+## Design choices
+
+Writes lock the tenant until the transaction ends. This simplifies conflict handling, but writes within one tenant must wait their turn.
+
+Changes are authorized against the state before the request. New grants cannot authorize other changes in the same request. The resulting state must satisfy hierarchy rules and must not remove the last organization administrator.
+
+Revision checks reject changes based on outdated state. Permission changes, the revision, audit records and a retry receipt commit together. If the commit succeeds but its response is lost, a matching retry returns the saved result while the receipt is retained.
+
+Access checks read one PostgreSQL snapshot. A check already in progress may see permissions from before a revocation. Checking permission and updating another application's database are separate operations.
+
 ## Tests
+
+The tests cover granting and revoking access, tenant isolation, rejected permission changes and concurrent writes. They also interrupt database connections around COMMIT to check rollback and retry behavior when the caller cannot tell whether a write succeeded.
 
 Prepare a dedicated test PostgreSQL instance with `pg_stat_statements` enabled, then run:
 
@@ -120,7 +107,7 @@ export TEST_DATABASE_URL='postgres://postgres@127.0.0.1:5432/relation_guard_test
 PYTHON=.venv/bin/python scripts/verify.sh
 ```
 
-The suite covers permission rules, tenant isolation, unauthorized changes, transaction rollback, concurrency, HTTP contracts and lost COMMIT acknowledgements. It includes 10,000 generated graph cases, 309 HTTP assertions and five Python client tests.
+The suite compares the evaluator with an independent reference across 10,000 generated graph cases by default. It also runs 309 HTTP assertions with OpenAPI response validation and five Python client tests for retries and invalid responses.
 
 Recovery and connection-stall tests need PostgreSQL client tools and an isolated database:
 
